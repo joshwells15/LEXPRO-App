@@ -15,10 +15,12 @@
   .back-btn { width: 36px; height: 36px; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; }
   .back-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .topbar-title { font-size: 17px; font-weight: 600; color: #fff; flex: 1; }
+  .topbar-icons { display: flex; gap: 8px; }
+  .icon-btn { width: 36px; height: 36px; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; position: relative; flex-shrink: 0; }
+  .icon-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .notif-dot { position: absolute; top: 7px; right: 7px; width: 6px; height: 6px; background: #2d9e6e; border-radius: 50%; border: 1.5px solid #0a0f1e; display: none; }
 
-  .hero {
-    background: #111827; border-bottom: 1px solid #1e2d40; padding: 16px 20px;
-  }
+  .hero { background: #111827; border-bottom: 1px solid #1e2d40; padding: 16px 20px; }
   .hero-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
   .hero-name { font-size: 20px; font-weight: 700; color: #fff; }
   .hero-address { font-size: 12px; color: #5a6a7e; margin-top: 2px; }
@@ -65,21 +67,6 @@
   .edit-save:disabled { opacity: 0.5; }
   .edit-cancel { width: 100%; padding: 12px; background: none; border: none; font-size: 14px; color: #5a6a7e; cursor: pointer; margin-top: 8px; }
 
-  /* TIMELINE */
-  .timeline { display: flex; overflow-x: auto; gap: 0; padding: 4px 0 12px; scrollbar-width: none; margin-bottom: 8px; }
-  .timeline::-webkit-scrollbar { display: none; }
-  .tl-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; width: 90px; }
-  .tl-dot { width: 12px; height: 12px; border-radius: 50%; background: #1e2d40; border: 2px solid #2a3a50; margin-bottom: 6px; position: relative; z-index: 1; }
-  .tl-dot.filled { background: #2d9e6e; border-color: #2d9e6e; }
-  .tl-dot.upcoming { background: #0a0f1e; border-color: #378add; }
-  .tl-label { font-size: 9px; color: #5a6a7e; text-align: center; line-height: 1.3; }
-  .tl-date { font-size: 9px; color: #2d9e6e; text-align: center; margin-top: 2px; font-weight: 600; }
-  .tl-date.upcoming { color: #378add; }
-  .tl-line { flex: 1; height: 2px; background: #1e2d40; margin-top: -7px; min-width: 20px; }
-  .tl-line.filled { background: #2d9e6e; }
-  .tl-row { display: flex; align-items: center; width: 100%; margin-bottom: 4px; }
-
-  /* CHECKLIST */
   .checklist-item { display: flex; align-items: center; gap: 12px; padding: 14px; background: #111827; border: 1px solid #1e2d40; border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
   .checklist-item.checked { border-color: rgba(45,158,110,0.3); background: rgba(45,158,110,0.05); }
   .check-box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid #2a3a50; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -91,7 +78,6 @@
   .checklist-progress { display: flex; justify-content: space-between; margin-bottom: 12px; }
   .checklist-pct { font-size: 13px; color: #2d9e6e; font-weight: 600; }
 
-  /* DOCUMENTS */
   .doc-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: #111827; border: 1px solid #1e2d40; border-radius: 12px; margin-bottom: 8px; }
   .doc-left { display: flex; align-items: center; gap: 10px; }
   .doc-icon { width: 36px; height: 36px; border-radius: 8px; background: #1e2d40; display: flex; align-items: center; justify-content: center; }
@@ -101,7 +87,6 @@
   .doc-badge.received { background: rgba(45,158,110,0.15); color: #2d9e6e; border: 1px solid rgba(45,158,110,0.3); }
   .doc-badge.awaiting { background: rgba(90,106,126,0.1); color: #5a6a7e; border: 1px solid #1e2d40; }
 
-  /* AI SUMMARY MODAL */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; align-items: flex-end; justify-content: center; }
   .modal-overlay.open { display: flex; }
   .modal { background: #111827; border: 1px solid #1e2d40; border-radius: 24px 24px 0 0; padding: 24px 20px 48px; width: 100%; max-width: 480px; max-height: 70vh; overflow-y: auto; }
@@ -122,6 +107,15 @@
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </a>
   <div class="topbar-title" id="topbarTitle">Transaction</div>
+  <div class="topbar-icons">
+    <a class="icon-btn" href="notifications.html">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <div class="notif-dot" id="notifDot"></div>
+    </a>
+    <a class="icon-btn" href="calendar.html">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </a>
+  </div>
 </div>
 
 <div class="hero">
@@ -151,7 +145,6 @@
 </div>
 
 <div class="content">
-  <!-- FIELDS TAB -->
   <div class="tab-panel active" id="tab-fields">
     <div class="section-title">Property</div>
     <div class="info-card">
@@ -178,13 +171,11 @@
     </div>
   </div>
 
-  <!-- TIMELINE TAB -->
   <div class="tab-panel" id="tab-timeline">
     <div class="section-title">Transaction Dates</div>
     <div id="timelineContainer"></div>
   </div>
 
-  <!-- CHECKLIST TAB -->
   <div class="tab-panel" id="tab-checklist">
     <div class="checklist-progress">
       <span class="info-label" id="checklistLabel">0 of 0 complete</span>
@@ -194,14 +185,12 @@
     <div id="checklistItems"></div>
   </div>
 
-  <!-- DOCUMENTS TAB -->
   <div class="tab-panel" id="tab-documents">
     <div class="section-title">Transaction Documents</div>
     <div id="documentItems"></div>
   </div>
 </div>
 
-<!-- EDIT FIELD MODAL -->
 <div class="edit-modal" id="editModal">
   <div class="edit-modal-inner">
     <div class="edit-handle"></div>
@@ -212,7 +201,6 @@
   </div>
 </div>
 
-<!-- AI SUMMARY MODAL -->
 <div class="modal-overlay" id="aiModal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -229,7 +217,8 @@
 
 <script>
   const GHL_API_KEY = 'pit-4e98487c-3f65-409c-a264-16352f97c01a';
-  const ANTHROPIC_KEY_NOTE = 'handled by API';
+  const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM';
 
   const BUYER_STAGE_MAP = {
     '21e2d499-cb72-4c14-8bde-7d569265e9ad': 'Buyer Docs Signed',
@@ -252,10 +241,8 @@
   };
   const BUYER_STAGES = ['Buyer Docs Signed','Showing Homes','Under Contract','Inspection Period','Appraisal and Financing Period','Clear To Close','Closed'];
   const SELLER_STAGES = ['Seller Docs Signed','Listing Photos Scheduled','Listing Photos Taken','Listing Live','Under Contract','Inspection Period','Clear To Close','Closed'];
-
   const BUYER_CHECKLIST = ['Documents Signed','Under Contract','Inspection Period','Appraisal Period','Clear To Close','Closed'];
   const SELLER_CHECKLIST = ['Documents Signed','Listing Photos Scheduled','Listing Photos Taken','Listing Live','Under Contract','Inspection Period','Clear To Close','Closed'];
-
   const BUYER_DOCS = [
     { label: 'Pre-Approval', key: 'preapproval_1' },
     { label: 'Contract', key: 'contract' },
@@ -275,7 +262,6 @@
     { label: 'Title Work & Commitment', key: 'title_work' },
     { label: 'Closing Documents', key: 'closing_documents' }
   ];
-
   const TIMELINE_FIELDS = [
     { key: 'listing_live', label: 'Listing Live', sellerOnly: true },
     { key: 'under_contract', label: 'Under Contract', sellerOnly: false },
@@ -293,13 +279,26 @@
   const params = new URLSearchParams(window.location.search);
   const oppId = params.get('id');
   const side = params.get('side') || 'buyer';
+  const fromPage = params.get('from');
   let oppData = JSON.parse(sessionStorage.getItem('lexpro_opp') || '{}');
   let cfMap = {};
   let currentStage = '';
   let daysToClose = null;
 
-  const fromPage = params.get('from');
-document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifications.html' : `transaction-list.html?side=${side}`;
+  document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifications.html' : `transaction-list.html?side=${side}`;
+
+  async function checkUnread() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/notifications?is_read=eq.false&limit=1`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await res.json();
+      if (data && data.length > 0) document.getElementById('notifDot').style.display = 'block';
+    } catch(e) {}
+  }
+
+  checkUnread();
+
   function showTab(name) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -307,9 +306,7 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
     event.currentTarget.classList.add('active');
   }
 
-  function getField(key) {
-    return cfMap[key] || '—';
-  }
+  function getField(key) { return cfMap[key] || '—'; }
 
   function formatDate(val) {
     if (!val || val === '—') return null;
@@ -382,13 +379,8 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
     const map = {};
     (customFields || []).forEach(f => {
       const val = Array.isArray(f.value) ? f.value[0] : f.value;
-      if (f.id && CF_ID_MAP[f.id]) {
-        map[CF_ID_MAP[f.id]] = val;
-      }
-      if (f.fieldKey) {
-        const key = f.fieldKey.replace('contact.', '');
-        map[key] = val;
-      }
+      if (f.id && CF_ID_MAP[f.id]) map[CF_ID_MAP[f.id]] = val;
+      if (f.fieldKey) map[f.fieldKey.replace('contact.', '')] = val;
     });
     return map;
   }
@@ -397,11 +389,9 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
     const stageMap = side === 'buyer' ? BUYER_STAGE_MAP : SELLER_STAGE_MAP;
     currentStage = stageMap[oppData.pipelineStageId] || '—';
     const progress = getProgress(currentStage);
-
     const contactName = oppData.contact?.name || oppData.name || 'Unknown';
     document.getElementById('topbarTitle').textContent = contactName;
     document.getElementById('heroName').textContent = contactName;
-
     const addrKey = side === 'buyer' ? 'buyer__subject_property_street' : 'seller__subject_property_street';
     const addr = cfMap[addrKey] || oppData.name || '—';
     const cityKey = side === 'buyer' ? 'buyer__subject_property_city' : 'seller__subject_property_city';
@@ -409,11 +399,9 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
     const fullAddr = city ? `${addr}, ${city}` : addr;
     document.getElementById('f-address').textContent = fullAddr;
     document.getElementById('heroAddress').textContent = fullAddr !== '—' ? fullAddr : oppData.contact?.name || '—';
-
     document.getElementById('stageName').textContent = currentStage;
     document.getElementById('progressPct').textContent = `${progress}%`;
     document.getElementById('progressFill').style.width = `${progress}%`;
-
     const closingVal = cfMap['tentative_closing'];
     daysToClose = getDaysUntil(closingVal);
     const cdEl = document.getElementById('countdown');
@@ -432,8 +420,7 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
     document.getElementById('f-agentphone').textContent = cfMap['opposite_agent_phone'] || '—';
     document.getElementById('f-agentemail').textContent = cfMap['opposite_agent_email'] || '—';
     document.getElementById('f-mortgage').textContent = cfMap['mortgage_company'] || '—';
-    const officerName = cfMap['mortgage_officer'] || cfMap['mortgage_officer_first_name'] || '—';
-    document.getElementById('f-officer').textContent = officerName;
+    document.getElementById('f-officer').textContent = cfMap['mortgage_officer'] || '—';
     document.getElementById('f-officerphone').textContent = cfMap['mortgage_officer_phone'] || '—';
     document.getElementById('f-inspection').textContent = cfMap['inspection_company'] || '—';
     document.getElementById('f-inspectorphone').textContent = cfMap['inspector_phone'] || '—';
@@ -446,7 +433,6 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
       if (f.buyerOnly && side === 'seller') return false;
       return true;
     });
-
     let html = '';
     fields.forEach((f, i) => {
       const val = cfMap[f.key];
@@ -478,19 +464,15 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
     const stageIndex = (side === 'buyer' ? BUYER_STAGES : SELLER_STAGES).findIndex(s => s.toLowerCase() === currentStage.toLowerCase());
     const checkedCount = stageIndex === -1 ? 0 : stageIndex + 1;
     const pct = Math.round((checkedCount / steps.length) * 100);
-
     document.getElementById('checklistLabel').textContent = `${checkedCount} of ${steps.length} complete`;
     document.getElementById('checklistPct').textContent = `${pct}%`;
     document.getElementById('checklistBar').style.width = `${pct}%`;
-
     const container = document.getElementById('checklistItems');
     container.innerHTML = steps.map((step, i) => {
       const checked = i < checkedCount;
       return `
         <div class="checklist-item ${checked ? 'checked' : ''}" onclick="toggleCheck(${i}, this)">
-          <div class="check-box">
-            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
+          <div class="check-box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
           <span class="check-label">${step}</span>
         </div>
       `;
@@ -499,9 +481,7 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
 
   function extractDocFiles(val) {
     if (!val || typeof val !== 'object' || Array.isArray(val)) return [];
-    return Object.values(val)
-      .filter(f => f.url && !f.meta?.deleted)
-      .map(f => ({ url: f.url, name: f.meta?.originalname || 'Document' }));
+    return Object.values(val).filter(f => f.url && !f.meta?.deleted).map(f => ({ url: f.url, name: f.meta?.originalname || 'Document' }));
   }
 
   function renderDocuments() {
@@ -511,16 +491,12 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
       const val = cfMap[doc.key];
       const files = extractDocFiles(val);
       const hasDoc = files.length > 0;
-      const filesHtml = hasDoc ? files.map(f => `
-        <div style="font-size:11px;color:#2d9e6e;margin-top:4px;cursor:pointer;text-decoration:underline" onclick="event.stopPropagation();openDoc('${f.url}')">${f.name}</div>
-      `).join('') : '';
+      const filesHtml = hasDoc ? files.map(f => `<div style="font-size:11px;color:#2d9e6e;margin-top:4px;cursor:pointer;text-decoration:underline" onclick="event.stopPropagation();openDoc('${f.url}')">${f.name}</div>`).join('') : '';
       return `
         <div class="doc-item">
           <div class="doc-left" style="flex-direction:column;align-items:flex-start">
             <div style="display:flex;align-items:center;gap:10px">
-              <div class="doc-icon">
-                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              </div>
+              <div class="doc-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
               <span class="doc-name">${doc.label}</span>
             </div>
             ${filesHtml}
@@ -540,18 +516,11 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
     const targetStage = stages[stageIdx];
     const stageMap = side === 'buyer' ? BUYER_STAGE_MAP : SELLER_STAGE_MAP;
     const stageId = Object.keys(stageMap).find(k => stageMap[k] === targetStage);
-
     if (!stageId) return;
-
     try {
       const res = await fetch(`https://services.leadconnectorhq.com/opportunities/${oppId}`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${GHL_API_KEY}`,
-          'Version': '2021-07-28',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ pipelineStageId: stageId, name: oppData.name, status: oppData.status || 'open' })
       });
       if (!res.ok) throw new Error(`${res.status}`);
@@ -560,21 +529,17 @@ document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifi
       currentStage = targetStage;
       renderChecklist();
       renderHero();
-    } catch(e) {
-      alert(`Could not update checklist: ${e.message}`);
-    }
+    } catch(e) { alert(`Could not update checklist: ${e.message}`); }
   }
 
   async function openAI() {
     document.getElementById('aiModal').classList.add('open');
     document.getElementById('aiBody').innerHTML = '<div class="ai-loading"><div class="spinner"></div>Generating summary...</div>';
-
     const contactName = oppData.contact?.name || oppData.name || 'Unknown';
-    const closing = cfMap['tentative_closing_date'] ? formatDate(cfMap['tentative_closing_date']) : 'not set';
+    const closing = cfMap['tentative_closing'] ? formatDate(cfMap['tentative_closing']) : 'not set';
     const steps = side === 'buyer' ? BUYER_CHECKLIST : SELLER_CHECKLIST;
     const stageIndex = (side === 'buyer' ? BUYER_STAGES : SELLER_STAGES).findIndex(s => s.toLowerCase() === currentStage.toLowerCase());
     const checkedCount = stageIndex === -1 ? 0 : stageIndex + 1;
-
     const prompt = `You are a real estate transaction coordinator assistant. Give a brief, plain-English status briefing for this transaction. Be direct and practical — 3-5 sentences max.
 
 Client: ${contactName}
@@ -583,19 +548,14 @@ Current Stage: ${currentStage}
 Progress: ${checkedCount} of ${steps.length} steps complete
 Days to Close: ${daysToClose !== null ? daysToClose + ' days' : 'No closing date set'}
 Tentative Closing Date: ${closing}
-Address: ${cfMap['buyer_subject_property_street'] || cfMap['seller_subject_property_street'] || 'Not set'}
+Address: ${cfMap['buyer__subject_property_street'] || cfMap['seller__subject_property_street'] || 'Not set'}
 
 Write a quick briefing Lex can read in 10 seconds to know exactly where this deal stands.`;
-
     try {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: prompt }]
-        })
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
       });
       const data = await res.json();
       const text = data.content?.[0]?.text || 'Could not generate summary.';
@@ -607,12 +567,8 @@ Write a quick briefing Lex can read in 10 seconds to know exactly where this dea
 
   function openDoc(url) {
     const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
 
   async function toggleGift() {
@@ -676,44 +632,25 @@ Write a quick briefing Lex can read in 10 seconds to know exactly where this dea
     const btn = document.getElementById('editSave');
     btn.disabled = true;
     btn.textContent = 'Saving...';
-
     const activeKey = editFieldKey2 ? (side === 'buyer' ? editFieldKey : editFieldKey2) : editFieldKey;
     const fieldId = CF_KEY_TO_ID[activeKey];
-
     const contactId = oppData.contactId || oppData.contact?.id;
     if (!contactId || !fieldId) {
       alert('Could not save — field ID not found.');
-      btn.disabled = false;
-      btn.textContent = 'Save';
-      return;
+      btn.disabled = false; btn.textContent = 'Save'; return;
     }
-
     try {
       const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${GHL_API_KEY}`,
-          'Version': '2021-07-28',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ customFields: [{ id: fieldId, field_value: val }] })
       });
-
       if (!res.ok) throw new Error(`${res.status}`);
-
       cfMap[activeKey] = val;
       const el = document.getElementById(editElId);
-      if (el) {
-        const svg = el.querySelector('svg');
-        el.textContent = val || '—';
-        if (svg) el.appendChild(svg);
-      }
+      if (el) { const svg = el.querySelector('svg'); el.textContent = val || '—'; if (svg) el.appendChild(svg); }
       closeEdit();
-    } catch(e) {
-      alert(`Save failed: ${e.message}`);
-    }
-
+    } catch(e) { alert(`Save failed: ${e.message}`); }
     btn.disabled = false;
     btn.textContent = 'Save';
   }
