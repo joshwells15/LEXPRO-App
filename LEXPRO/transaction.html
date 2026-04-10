@@ -298,8 +298,8 @@
   let currentStage = '';
   let daysToClose = null;
 
-  document.getElementById('backBtn').href = `transaction-list.html?side=${side}`;
-
+  const fromPage = params.get('from');
+document.getElementById('backBtn').href = fromPage === 'notifications' ? 'notifications.html' : `transaction-list.html?side=${side}`;
   function showTab(name) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
