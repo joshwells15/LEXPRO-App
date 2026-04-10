@@ -22,13 +22,15 @@
   .notif-card {
     background: #111827; border: 1px solid #1e2d40;
     border-radius: 14px; padding: 14px 16px;
-    margin-bottom: 10px; cursor: pointer;
+    margin-bottom: 10px;
     display: flex; gap: 12px; align-items: flex-start;
-    transition: transform 0.1s;
+    position: relative;
   }
-  .notif-card:active { transform: scale(0.98); }
   .notif-card.unread { border-left: 3px solid #2d9e6e; }
   .notif-card.unread.high { border-left-color: #ef4444; }
+
+  .notif-tappable { display: flex; gap: 12px; align-items: flex-start; flex: 1; cursor: pointer; }
+  .notif-tappable:active { opacity: 0.7; }
 
   .notif-icon {
     width: 40px; height: 40px; border-radius: 10px;
@@ -49,12 +51,23 @@
   .notif-text { font-size: 13px; color: #5a6a7e; }
   .notif-time { font-size: 11px; color: #2a3a50; margin-top: 4px; }
 
-  .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #2d9e6e; flex-shrink: 0; margin-top: 4px; }
+  .notif-right { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
+  .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #2d9e6e; }
   .unread-dot.high { background: #ef4444; }
+
+  .delete-btn { width: 28px; height: 28px; border-radius: 8px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .delete-btn:active { background: rgba(239,68,68,0.25); }
+  .delete-btn svg { width: 13px; height: 13px; stroke: #ef4444; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
   .empty-state { text-align: center; color: #2a3a50; font-size: 14px; padding: 80px 20px; }
   .skeleton { background: #111827; border: 1px solid #1e2d40; border-radius: 14px; height: 70px; margin-bottom: 10px; animation: pulse 1.5s ease-in-out infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(10,15,30,0.85); z-index: 100; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+  .loading-overlay.open { display: flex; }
+  .spinner { width: 28px; height: 28px; border: 3px solid rgba(45,158,110,0.3); border-top-color: #2d9e6e; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; color: #5a6a7e; }
 </style>
 </head>
 <body>
@@ -73,9 +86,15 @@
   <div class="skeleton"></div>
 </div>
 
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Opening transaction...</div>
+</div>
+
 <script>
   const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM';
+  const GHL_API_KEY = 'pit-4e98487c-3f65-409c-a264-16352f97c01a';
 
   const user = JSON.parse(sessionStorage.getItem('lexpro_user') || '{}');
   if (!user.username) window.location.href = 'index.html';
@@ -117,15 +136,21 @@
         const card = document.createElement('div');
         card.className = `notif-card ${n.is_read ? '' : 'unread'} ${isHigh ? 'high' : ''}`;
         card.innerHTML = `
-          <div class="notif-icon ${n.type}">${icon}</div>
-          <div class="notif-body">
-            <div class="notif-title">${n.title}</div>
-            <div class="notif-text">${n.body || ''}</div>
-            <div class="notif-time">${timeAgo(n.created_at)}</div>
+          <div class="notif-tappable" onclick="handleTap('${n.id}', this.closest('.notif-card'), '${n.ghl_contact_id || ''}', '${n.ghl_opportunity_id || ''}')">
+            <div class="notif-icon ${n.type}">${icon}</div>
+            <div class="notif-body">
+              <div class="notif-title">${n.title}</div>
+              <div class="notif-text">${n.body || ''}</div>
+              <div class="notif-time">${timeAgo(n.created_at)}</div>
+            </div>
           </div>
-          ${!n.is_read ? `<div class="unread-dot ${isHigh ? 'high' : ''}"></div>` : ''}
+          <div class="notif-right">
+            ${!n.is_read ? `<div class="unread-dot ${isHigh ? 'high' : ''}"></div>` : ''}
+            <div class="delete-btn" onclick="deleteNotif('${n.id}', this.closest('.notif-card'))">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </div>
+          </div>
         `;
-        card.onclick = () => markRead(n.id, card, n.ghl_contact_id, n.ghl_opportunity_id);
         content.appendChild(card);
       });
     } catch(e) {
@@ -133,7 +158,8 @@
     }
   }
 
-  async function markRead(id, card, contactId, oppId) {
+  async function handleTap(id, card, contactId, oppId) {
+    // Mark as read
     await fetch(`${SUPABASE_URL}/rest/v1/notifications?id=eq.${id}`, {
       method: 'PATCH',
       headers: {
@@ -145,8 +171,85 @@
     card.classList.remove('unread', 'high');
     card.querySelector('.unread-dot')?.remove();
 
-    if (oppId) window.location.href = `transaction.html?id=${oppId}&side=buyer`;
-    else if (contactId) window.location.href = `contact.html?id=${contactId}`;
+    // If we have an opportunity ID, fetch it and go to transaction
+    if (oppId && oppId !== 'null' && oppId !== '') {
+      await openTransaction(oppId);
+      return;
+    }
+
+    // If we have a contact ID, look up their opportunity first
+    if (contactId && contactId !== 'null' && contactId !== '') {
+      await openTransactionByContact(contactId);
+      return;
+    }
+  }
+
+  async function openTransaction(oppId) {
+    document.getElementById('loadingOverlay').classList.add('open');
+    try {
+      const res = await fetch(`https://services.leadconnectorhq.com/opportunities/${oppId}`, {
+        headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
+      });
+      const data = await res.json();
+      const opp = data.opportunity || data;
+      if (opp && opp.id) {
+        sessionStorage.setItem('lexpro_opp', JSON.stringify(opp));
+        const side = detectSide(opp);
+        window.location.href = `transaction.html?id=${opp.id}&side=${side}`;
+      } else {
+        document.getElementById('loadingOverlay').classList.remove('open');
+        alert('Could not load transaction.');
+      }
+    } catch(e) {
+      document.getElementById('loadingOverlay').classList.remove('open');
+      alert('Could not load transaction.');
+    }
+  }
+
+  async function openTransactionByContact(contactId) {
+    document.getElementById('loadingOverlay').classList.add('open');
+    try {
+      const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/opportunities`, {
+        headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
+      });
+      const data = await res.json();
+      const opps = data.opportunities || [];
+      const opp = opps.find(o => o.status === 'open') || opps[0];
+      if (opp) {
+        sessionStorage.setItem('lexpro_opp', JSON.stringify(opp));
+        const side = detectSide(opp);
+        window.location.href = `transaction.html?id=${opp.id}&side=${side}`;
+      } else {
+        document.getElementById('loadingOverlay').classList.remove('open');
+        alert('No active transaction found for this contact.');
+      }
+    } catch(e) {
+      document.getElementById('loadingOverlay').classList.remove('open');
+      alert('Could not load transaction.');
+    }
+  }
+
+  function detectSide(opp) {
+    const BUYER_PIPELINE = 'wc3q7QgK9U0FymB5jQp0';
+    return opp.pipelineId === BUYER_PIPELINE ? 'buyer' : 'seller';
+  }
+
+  async function deleteNotif(id, card) {
+    card.style.opacity = '0.4';
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/notifications?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      card.remove();
+      const content = document.getElementById('content');
+      if (content.children.length === 0) {
+        content.innerHTML = '<div class="empty-state">No notifications yet.<br>They\'ll appear here when GHL sends alerts.</div>';
+      }
+    } catch(e) {
+      card.style.opacity = '1';
+      alert('Could not delete notification.');
+    }
   }
 
   async function markAllRead() {
