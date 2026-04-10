@@ -78,7 +78,6 @@
     background: #2d9e6e;
     border-radius: 50%;
     border: 1.5px solid #0a0f1e;
-    display: none;
   }
 
   .main {
@@ -232,7 +231,7 @@
   <div class="header-icons">
     <a class="icon-btn" href="notifications.html">
       <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-      <div class="notif-dot" id="notifDot"></div>
+      <div class="notif-dot"></div>
     </a>
     <a class="icon-btn" href="calendar.html">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -281,9 +280,6 @@
 </div>
 
 <script>
-  const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM';
-
   const user = JSON.parse(sessionStorage.getItem('lexpro_user') || '{}');
   if (!user.username) window.location.href = 'index.html';
 
@@ -296,23 +292,85 @@
   else if (hour < 17) greet = 'Good afternoon,';
   document.getElementById('greeting').textContent = greet;
 
-  document.getElementById('statVolume').textContent = '$0';
-  document.getElementById('statDeals').textContent = '0';
-  document.getElementById('statClosing').textContent = '0';
+  const GHL_API_KEY = 'pit-4e98487c-3f65-409c-a264-16352f97c01a';
+  const GHL_LOCATION_ID = 'R5PobkV1CRO23kz95yYB';
+  const BUYER_PIPELINE = 'yrXgfxFIAGqdUoqLNNMc';
+  const SELLER_PIPELINE = 'vvTfRute8i8HmIdqq4Jf';
+  const COMMISSION_FIELD_ID = 'odeC6jvOHKEDSy3bmU4T';
+  const CLOSING_FIELD_ID = 'VKAdUOcBt1yvLiVyHFPT';
+  const CLOSED_STAGE_IDS = ['6f2a71ab-014b-44b3-9b88-6c37d9d8ea55', 'df0ea83b-e535-4b42-a754-19d34f8050ae'];
 
-  async function checkUnread() {
+  async function loadStats() {
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/notifications?is_read=eq.false&limit=1`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      const [buyerRes, sellerRes] = await Promise.all([
+        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${BUYER_PIPELINE}&limit=100`, {
+          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
+        }).then(r => r.json()),
+        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${SELLER_PIPELINE}&limit=100`, {
+          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
+        }).then(r => r.json())
+      ]);
+
+      const allOpps = [
+        ...(buyerRes.opportunities || []),
+        ...(sellerRes.opportunities || [])
+      ];
+
+      const activeOpps = allOpps.filter(o => o.status !== 'lost' && !CLOSED_STAGE_IDS.includes(o.pipelineStageId));
+      document.getElementById('statDeals').textContent = activeOpps.length;
+
+      let closingSoon = 0;
+      let ytdCommission = 0;
+      const now = Date.now();
+      const startOfYear = new Date(new Date().getFullYear(), 0, 1).getTime();
+
+      const contactFetches = allOpps.map(async opp => {
+        const contactId = opp.contactId || opp.contact?.id;
+        if (!contactId) return;
+        try {
+          const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+            headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
+          });
+          const data = await res.json();
+          const cf = data.contact?.customFields || [];
+
+          const closingField = cf.find(f => f.id === CLOSING_FIELD_ID);
+          if (closingField?.value) {
+            const daysUntil = Math.ceil((new Date(closingField.value).getTime() - now) / 86400000);
+            if (daysUntil >= 0 && daysUntil <= 14) closingSoon++;
+          }
+
+          const isClosed = CLOSED_STAGE_IDS.includes(opp.pipelineStageId);
+          if (isClosed) {
+            const commField = cf.find(f => f.id === COMMISSION_FIELD_ID);
+            if (commField?.value) {
+              const val = parseFloat(String(commField.value).replace(/[^0-9.]/g, ''));
+              const closeDate = closingField?.value ? new Date(closingField.value).getTime() : 0;
+              if (!isNaN(val) && closeDate >= startOfYear) ytdCommission += val;
+            }
+          }
+        } catch(e) {}
       });
-      const data = await res.json();
-      if (data && data.length > 0) {
-        document.getElementById('notifDot').style.display = 'block';
-      }
-    } catch(e) { console.error('notif check failed', e); }
+
+      await Promise.all(contactFetches);
+
+      document.getElementById('statClosing').textContent = closingSoon;
+      document.getElementById('statVolume').textContent = ytdCommission > 0
+        ? '$' + (ytdCommission >= 1000000
+            ? (ytdCommission / 1000000).toFixed(1) + 'M'
+            : ytdCommission >= 1000
+              ? (ytdCommission / 1000).toFixed(0) + 'K'
+              : ytdCommission.toLocaleString())
+        : '$0';
+
+    } catch(e) {
+      document.getElementById('statVolume').textContent = '$0';
+      document.getElementById('statDeals').textContent = '0';
+      document.getElementById('statClosing').textContent = '0';
+    }
   }
 
-  checkUnread();
+  loadStats();
 
   function logout() {
     sessionStorage.removeItem('lexpro_user');
