@@ -6,6 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LexPro">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0a0f1e">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <title>LexPro | Command App</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -267,6 +270,13 @@
 
   const saved = sessionStorage.getItem('lexpro_user');
   if (saved) window.location.href = 'home.html';
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js');
+    });
+  }
 </script>
 </body>
 </html>
