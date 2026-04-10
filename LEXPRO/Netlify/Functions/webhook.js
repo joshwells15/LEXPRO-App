@@ -67,7 +67,7 @@ async function lookupOpportunityId(contactId) {
   try {
     const data = await httpsGet(
       'services.leadconnectorhq.com',
-      `/contacts/${contactId}/opportunities`,
+      `/opportunities/search?location_id=${GHL_LOCATION_ID}&contact_id=${contactId}&status=open`,
       {
         'Authorization': `Bearer ${GHL_API_KEY}`,
         'Version': '2021-07-28',
