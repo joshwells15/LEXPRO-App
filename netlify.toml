@@ -1,0 +1,4 @@
+[build]
+  base = "LEXPRO"
+  publish = "LEXPRO"
+  functions = "LEXPRO/netlify/functions"
