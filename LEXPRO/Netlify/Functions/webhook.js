@@ -33,7 +33,7 @@ function supabaseInsert(data) {
 
 function classifyWebhook(payload) {
   const type = payload.type || payload.event || '';
-  const name = (payload.contact?.name || payload.name || 'Unknown').trim();
+  const name = (payload.contact?.name || payload.contact_name || payload.name || 'Unknown').trim();
   const oppName = payload.opportunity?.name || '';
 
   if (type.includes('closing') || type.includes('close')) {
@@ -47,27 +47,32 @@ function classifyWebhook(payload) {
   }
 
   if (type.includes('appraisal')) {
-    return { type: 'appraisal', title: 'Appraisal Received', body: name, urgency: 'normal' };
+    return { type: 'appraisal', title: 'Appraisal Received', body: payload.message || name, urgency: 'normal' };
   }
 
   if (type.includes('clear_to_close') || type.includes('cleartoclose')) {
-    return { type: 'clear_to_close', title: 'Clear to Close!', body: name, urgency: 'high' };
+    return { type: 'clear_to_close', title: 'Clear to Close!', body: payload.message || name, urgency: 'high' };
   }
 
   if (type.includes('inspection')) {
-    return { type: 'inspection', title: 'Inspection Completed', body: name, urgency: 'normal' };
+    return {
+      type: 'inspection',
+      title: payload.message ? '🔔 Inspection Reminder' : 'Inspection Notice',
+      body: payload.message || name,
+      urgency: 'normal'
+    };
   }
 
   if (type.includes('listing')) {
-    return { type: 'listing', title: 'Listing Goes Live', body: name, urgency: 'normal' };
+    return { type: 'listing', title: 'Listing Goes Live', body: payload.message || name, urgency: 'normal' };
   }
 
   if (type.includes('under_contract') || type.includes('undercontract')) {
-    return { type: 'under_contract', title: 'Under Contract', body: name, urgency: 'normal' };
+    return { type: 'under_contract', title: 'Under Contract', body: payload.message || name, urgency: 'normal' };
   }
 
   if (type.includes('contact') || type.includes('new_contact')) {
-    return { type: 'new_contact', title: 'New Contact Added', body: name, urgency: 'normal' };
+    return { type: 'new_contact', title: 'New Contact Added', body: payload.message || name, urgency: 'normal' };
   }
 
   return {
@@ -100,7 +105,7 @@ exports.handler = async (event, context) => {
     type: classified.type,
     title: classified.title,
     body: classified.body,
-    ghl_contact_id: payload.contact?.id || payload.contactId || null,
+    ghl_contact_id: payload.contact?.id || payload.contactId || payload.contact_id || null,
     ghl_opportunity_id: payload.opportunity?.id || payload.opportunityId || null,
     urgency: classified.urgency,
     is_read: false
