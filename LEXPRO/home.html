@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<title>LexPro | Home</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    min-height: 100vh;
+    background: #0a0f1e;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stats-bar {
+    background: #111827;
+    border-bottom: 1px solid #1e2d40;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .stat { flex: 1; text-align: center; }
+  .stat-val { font-size: 18px; font-weight: 700; color: #2d9e6e; line-height: 1; }
+  .stat-lbl { font-size: 10px; color: #5a6a7e; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .stat-div { width: 1px; height: 32px; background: #1e2d40; }
+
+  .header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .greeting { font-size: 13px; color: #5a6a7e; }
+  .username { font-size: 20px; font-weight: 600; color: #ffffff; margin-top: 2px; }
+
+  .header-icons { display: flex; gap: 10px; }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    background: #111827;
+    border: 1px solid #1e2d40;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    text-decoration: none;
+  }
+
+  .icon-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #8a9bb0;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .notif-dot {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 7px;
+    height: 7px;
+    background: #2d9e6e;
+    border-radius: 50%;
+    border: 1.5px solid #0a0f1e;
+  }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 28px 60px;
+    gap: 16px;
+  }
+
+  .logo-area {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .logo-mark {
+    width: 80px;
+    height: 80px;
+    background: #1a6b4a;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .logo-mark svg {
+    width: 36px;
+    height: 36px;
+    stroke: #ffffff;
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .logo-name {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-name span { color: #2d9e6e; }
+
+  .logo-sub {
+    font-size: 11px;
+    color: #5a6a7e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  .nav-btn {
+    width: 100%;
+    background: #111827;
+    border: 1px solid #1e2d40;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.1s;
+  }
+
+  .nav-btn:active { transform: scale(0.98); }
+
+  .nav-btn.primary {
+    background: #1a6b4a;
+    border-color: #2d9e6e;
+  }
+
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .btn-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: #8a9bb0;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .nav-btn.primary .btn-icon svg { stroke: #ffffff; }
+
+  .btn-text { flex: 1; }
+  .btn-title { font-size: 17px; font-weight: 600; color: #ffffff; }
+  .btn-sub { font-size: 12px; color: #5a6a7e; margin-top: 3px; }
+  .nav-btn.primary .btn-sub { color: #9fe1cb; }
+
+  .btn-arrow { font-size: 22px; color: #2a3a50; line-height: 1; }
+  .nav-btn.primary .btn-arrow { color: #9fe1cb; }
+
+  .footer {
+    text-align: center;
+    padding: 0 0 32px;
+    font-size: 11px;
+    color: #2a3a50;
+  }
+
+  .logout-btn {
+    background: none;
+    border: none;
+    color: #2a3a50;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: underline;
+    display: block;
+    margin: 6px auto 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-val" id="statVolume">—</div>
+    <div class="stat-lbl">YTD Volume</div>
+  </div>
+  <div class="stat-div"></div>
+  <div class="stat">
+    <div class="stat-val" id="statDeals">—</div>
+    <div class="stat-lbl">Active Deals</div>
+  </div>
+  <div class="stat-div"></div>
+  <div class="stat">
+    <div class="stat-val" id="statClosing">—</div>
+    <div class="stat-lbl">Closing Soon</div>
+  </div>
+</div>
+
+<div class="header">
+  <div>
+    <div class="greeting" id="greeting">Good morning,</div>
+    <div class="username" id="displayName">Lex</div>
+  </div>
+  <div class="header-icons">
+    <a class="icon-btn" href="notifications.html">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <div class="notif-dot"></div>
+    </a>
+    <a class="icon-btn" href="calendar.html">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="logo-area">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <div class="logo-name">Lex<span>Pro</span></div>
+    <div class="logo-sub">Real Estate Command</div>
+  </div>
+
+  <a class="nav-btn" href="transactions.html">
+    <div class="btn-icon">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    </div>
+    <div class="btn-text">
+      <div class="btn-title">Transactions</div>
+      <div class="btn-sub">Buyers &amp; sellers</div>
+    </div>
+    <div class="btn-arrow">›</div>
+  </a>
+
+  <a class="nav-btn primary" href="outreach.html">
+    <div class="btn-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    </div>
+    <div class="btn-text">
+      <div class="btn-title">Outreach</div>
+      <div class="btn-sub">Your contact queue</div>
+    </div>
+    <div class="btn-arrow">›</div>
+  </a>
+</div>
+
+<div class="footer">
+  LexPro Real Estate &bull; Springfield, MO
+  <button class="logout-btn" onclick="logout()">Sign out</button>
+</div>
+
+<script>
+  const user = JSON.parse(sessionStorage.getItem('lexpro_user') || '{}');
+  if (!user.username) window.location.href = 'index.html';
+
+  const name = user.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : 'Lex';
+  document.getElementById('displayName').textContent = name;
+
+  const hour = new Date().getHours();
+  let greet = 'Good evening,';
+  if (hour < 12) greet = 'Good morning,';
+  else if (hour < 17) greet = 'Good afternoon,';
+  document.getElementById('greeting').textContent = greet;
+
+  document.getElementById('statVolume').textContent = '$0';
+  document.getElementById('statDeals').textContent = '0';
+  document.getElementById('statClosing').textContent = '0';
+
+  function logout() {
+    sessionStorage.removeItem('lexpro_user');
+    window.location.href = 'index.html';
+  }
+</script>
+</body>
+</html>

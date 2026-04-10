@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<title>LexPro | Transactions</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    min-height: 100vh;
+    background: #0a0f1e;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+  }
+  .topbar {
+    background: #111827;
+    border-bottom: 1px solid #1e2d40;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-btn {
+    width: 36px; height: 36px;
+    background: #0a0f1e; border: 1px solid #1e2d40;
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    text-decoration: none; flex-shrink: 0;
+  }
+  .back-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .topbar-title { font-size: 18px; font-weight: 600; color: #ffffff; flex: 1; }
+
+
+
+  .content { flex: 1; overflow-y: auto; padding: 16px 16px 40px; }
+
+  .btn-screen {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 0 28px 60px; gap: 16px;
+  }
+  .nav-btn {
+    width: 100%; background: #111827; border: 1px solid #1e2d40;
+    border-radius: 16px; padding: 20px;
+    display: flex; align-items: center; gap: 16px;
+    cursor: pointer; text-decoration: none; transition: transform 0.1s;
+  }
+  .nav-btn:active { transform: scale(0.98); }
+  .nav-btn.primary { background: #1a6b4a; border-color: #2d9e6e; }
+  .btn-icon {
+    width: 44px; height: 44px; background: rgba(255,255,255,0.07);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .btn-icon svg { width: 20px; height: 20px; stroke: #8a9bb0; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-btn.primary .btn-icon svg { stroke: #fff; }
+  .btn-text { flex: 1; }
+  .btn-title { font-size: 17px; font-weight: 600; color: #fff; }
+  .btn-sub { font-size: 12px; color: #5a6a7e; margin-top: 3px; }
+  .nav-btn.primary .btn-sub { color: #9fe1cb; }
+  .btn-arrow { font-size: 22px; color: #2a3a50; line-height: 1; }
+  .nav-btn.primary .btn-arrow { color: #9fe1cb; }
+
+  .deal-card {
+    background: #111827; border: 1px solid #1e2d40;
+    border-radius: 16px; padding: 16px;
+    margin-bottom: 12px; cursor: pointer;
+    transition: transform 0.1s;
+    text-decoration: none; display: block;
+  }
+  .deal-card:active { transform: scale(0.98); }
+
+  .deal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .deal-name { font-size: 16px; font-weight: 600; color: #fff; }
+  .deal-address { font-size: 12px; color: #5a6a7e; margin-top: 2px; }
+
+  .countdown {
+    font-size: 13px; font-weight: 700;
+    padding: 4px 10px; border-radius: 20px;
+    flex-shrink: 0; margin-left: 8px;
+  }
+  .countdown.green { background: rgba(45,158,110,0.15); color: #2d9e6e; border: 1px solid rgba(45,158,110,0.3); }
+  .countdown.amber { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+  .countdown.red { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+  .countdown.gray { background: rgba(90,106,126,0.15); color: #5a6a7e; border: 1px solid rgba(90,106,126,0.3); }
+
+  .stage-pill {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
+    background: rgba(24,95,165,0.15); color: #378add;
+    border: 1px solid rgba(55,138,221,0.25);
+  }
+
+  .progress-bar { height: 4px; background: #1e2d40; border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: #2d9e6e; border-radius: 2px; transition: width 0.3s; }
+  .progress-label { font-size: 11px; color: #5a6a7e; }
+
+  .empty-state { text-align: center; color: #2a3a50; font-size: 14px; padding: 60px 20px; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+
+  .skeleton {
+    background: #111827; border: 1px solid #1e2d40;
+    border-radius: 16px; height: 120px; margin-bottom: 12px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="home.html">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <div class="topbar-title">Transactions</div>
+</div>
+
+<div class="btn-screen" id="btnScreen">
+  <a class="nav-btn primary" href="transaction-list.html?side=buyer">
+    <div class="btn-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    </div>
+    <div class="btn-text">
+      <div class="btn-title">Buyers</div>
+      <div class="btn-sub" id="buyerSub">Active buyer transactions</div>
+    </div>
+    <div class="btn-arrow">›</div>
+  </a>
+  <a class="nav-btn" href="transaction-list.html?side=seller">
+    <div class="btn-icon">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </div>
+    <div class="btn-text">
+      <div class="btn-title">Sellers</div>
+      <div class="btn-sub" id="sellerSub">Active seller transactions</div>
+    </div>
+    <div class="btn-arrow">›</div>
+  </a>
+</div>
+<div class="content" id="content" style="display:none"></div>
+
+<script>
+  const GHL_API_KEY = 'pit-4e98487c-3f65-409c-a264-16352f97c01a';
+  const GHL_LOCATION_ID = 'R5PobkV1CRO23kz95yYB';
+  const BUYER_PIPELINE = 'yrXgfxFIAGqdUoqLNNMc';
+  const SELLER_PIPELINE = 'vvTfRute8i8HmIdqq4Jf';
+
+  const BUYER_STAGES = ['Buyer Docs Signed','Showing Homes','Under Contract','Inspection Period','Appraisal and Financing Period','Clear To Close','Closed'];
+  const SELLER_STAGES = ['Seller Docs Signed','Listing Photos Scheduled','Listing Photos Taken','Listing Live','Under Contract','Inspection Period','Clear To Close','Closed'];
+
+  const user = JSON.parse(sessionStorage.getItem('lexpro_user') || '{}');
+  if (!user.username) window.location.href = 'index.html';
+
+
+
+  function getDaysUntil(dateStr) {
+    if (!dateStr) return null;
+    const diff = new Date(dateStr).getTime() - Date.now();
+    return Math.ceil(diff / 86400000);
+  }
+
+  function getCountdownClass(days) {
+    if (days === null) return 'gray';
+    if (days <= 7) return 'red';
+    if (days <= 14) return 'amber';
+    return 'green';
+  }
+
+  function getCountdownLabel(days) {
+    if (days === null) return 'No close date';
+    if (days < 0) return `${Math.abs(days)}d overdue`;
+    if (days === 0) return 'Closing today';
+    return `${days}d to close`;
+  }
+
+  function getProgress(stageName, side) {
+    const stages = side === 'buyer' ? BUYER_STAGES : SELLER_STAGES;
+    const idx = stages.findIndex(s => s.toLowerCase() === stageName?.toLowerCase());
+    if (idx === -1) return 0;
+    return Math.round(((idx + 1) / stages.length) * 100);
+  }
+
+  function getClosingDate(opp) {
+    const cf = opp.customFields || [];
+    const field = cf.find(f => f.fieldKey === 'contact.tentative_closing_date' || f.name?.toLowerCase().includes('tentative closing'));
+    return field?.value || null;
+  }
+
+  function getAddress(opp, side) {
+    const cf = opp.customFields || [];
+    if (side === 'buyer') {
+      const street = cf.find(f => f.fieldKey?.includes('buyer_subject_property_street') || f.name?.toLowerCase().includes('buyer subject property street'));
+      return street?.value || opp.name || '—';
+    } else {
+      const street = cf.find(f => f.fieldKey?.includes('seller_subject_property_street') || f.name?.toLowerCase().includes('seller subject property street'));
+      return street?.value || opp.name || '—';
+    }
+  }
+
+  async function loadTransactions(side) {
+    const content = document.getElementById('content');
+    content.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+
+    const pipelineId = side === 'buyer' ? BUYER_PIPELINE : SELLER_PIPELINE;
+
+    try {
+      const res = await fetch(
+        `https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${pipelineId}&limit=50`,
+        {
+          headers: {
+            'Authorization': `Bearer ${GHL_API_KEY}`,
+            'Version': '2021-07-28',
+            'Accept': 'application/json'
+          }
+        }
+      );
+
+      if (!res.ok) throw new Error(`${res.status}`);
+      const data = await res.json();
+      const opps = (data.opportunities || []).filter(o => o.status !== 'lost' && o.pipelineStage?.name !== 'Closed');
+
+      content.innerHTML = '';
+
+      if (opps.length === 0) {
+        content.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>No active ${side} transactions</div>`;
+        return;
+      }
+
+      opps.forEach(opp => {
+        const closingDate = getClosingDate(opp);
+        const days = getDaysUntil(closingDate);
+        const countdownClass = getCountdownClass(days);
+        const countdownLabel = getCountdownLabel(days);
+        const stageName = opp.pipelineStage?.name || '—';
+        const progress = getProgress(stageName, side);
+        const address = getAddress(opp, side);
+        const contactName = opp.contact?.name || opp.name || 'Unknown';
+
+        const card = document.createElement('a');
+        card.className = 'deal-card';
+        card.href = `transaction.html?id=${opp.id}&side=${side}`;
+        card.onclick = () => sessionStorage.setItem('lexpro_opp', JSON.stringify(opp));
+
+        card.innerHTML = `
+          <div class="deal-header">
+            <div>
+              <div class="deal-name">${contactName}</div>
+              <div class="deal-address">${address}</div>
+            </div>
+            <div class="countdown ${countdownClass}">${countdownLabel}</div>
+          </div>
+          <div class="stage-pill">${stageName}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+          <div class="progress-label">${progress}% complete</div>
+        `;
+
+        content.appendChild(card);
+      });
+
+    } catch (err) {
+      content.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>Could not load transactions<br><small style="color:#ef4444">${err.message}</small></div>`;
+    }
+  }
+
+  async function loadCounts() {
+    for (const side of ['buyer', 'seller']) {
+      const pipelineId = side === 'buyer' ? BUYER_PIPELINE : SELLER_PIPELINE;
+      try {
+        const res = await fetch(
+          `https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${pipelineId}&limit=50`,
+          { headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' } }
+        );
+        const data = await res.json();
+        const active = (data.opportunities || []).filter(o => o.status !== 'lost' && o.pipelineStage?.name !== 'Closed');
+        const el = document.getElementById(`${side}Sub`);
+        if (el) el.textContent = `${active.length} active ${side} transaction${active.length !== 1 ? 's' : ''}`;
+      } catch(e) {}
+    }
+  }
+
+  loadCounts();
+</script>
+</body>
+</html>

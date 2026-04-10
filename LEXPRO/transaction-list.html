@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LexPro | Transactions</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { min-height: 100vh; background: #0a0f1e; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; color: #fff; display: flex; flex-direction: column; }
+  .topbar { background: #111827; border-bottom: 1px solid #1e2d40; padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+  .back-btn { width: 36px; height: 36px; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; }
+  .back-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .topbar-title { font-size: 18px; font-weight: 600; color: #fff; flex: 1; }
+  .content { flex: 1; overflow-y: auto; padding: 16px 16px 40px; }
+  .deal-card { background: #111827; border: 1px solid #1e2d40; border-radius: 16px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: transform 0.1s; text-decoration: none; display: block; }
+  .deal-card:active { transform: scale(0.98); }
+  .deal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .deal-name { font-size: 16px; font-weight: 600; color: #fff; }
+  .deal-address { font-size: 12px; color: #5a6a7e; margin-top: 2px; }
+  .countdown { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 20px; flex-shrink: 0; margin-left: 8px; }
+  .countdown.green { background: rgba(45,158,110,0.15); color: #2d9e6e; border: 1px solid rgba(45,158,110,0.3); }
+  .countdown.amber { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+  .countdown.red { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+  .countdown.gray { background: rgba(90,106,126,0.15); color: #5a6a7e; border: 1px solid rgba(90,106,126,0.3); }
+  .stage-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; background: rgba(24,95,165,0.15); color: #378add; border: 1px solid rgba(55,138,221,0.25); }
+  .progress-bar { height: 4px; background: #1e2d40; border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: #2d9e6e; border-radius: 2px; }
+  .progress-label { font-size: 11px; color: #5a6a7e; }
+  .empty-state { text-align: center; color: #2a3a50; font-size: 14px; padding: 60px 20px; }
+  .skeleton { background: #111827; border: 1px solid #1e2d40; border-radius: 16px; height: 120px; margin-bottom: 12px; animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back-btn" href="transactions.html">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <div class="topbar-title" id="pageTitle">Transactions</div>
+</div>
+<div class="content" id="content">
+  <div class="skeleton"></div>
+  <div class="skeleton"></div>
+  <div class="skeleton"></div>
+</div>
+<script>
+  const GHL_API_KEY = 'pit-4e98487c-3f65-409c-a264-16352f97c01a';
+  const GHL_LOCATION_ID = 'R5PobkV1CRO23kz95yYB';
+  const BUYER_PIPELINE = 'yrXgfxFIAGqdUoqLNNMc';
+  const SELLER_PIPELINE = 'vvTfRute8i8HmIdqq4Jf';
+  const BUYER_STAGE_MAP = {
+    '21e2d499-cb72-4c14-8bde-7d569265e9ad': 'Buyer Docs Signed',
+    'c7c87055-b8ff-4698-8603-bf60fb4491a4': 'Showing Homes',
+    '78f5bc45-e717-4807-9658-42e00795a58a': 'Under Contract',
+    'adcf4d61-22e9-44d3-9da7-dcf301f027c8': 'Inspection Period',
+    '3f9115af-147c-465c-97a1-ac8bd2558b4b': 'Appraisal and Financing Period',
+    '3f20354e-a05d-46b3-bc0a-27c480c17438': 'Clear To Close',
+    '6f2a71ab-014b-44b3-9b88-6c37d9d8ea55': 'Closed'
+  };
+  const SELLER_STAGE_MAP = {
+    '7ddc8f53-2c74-4c31-a771-43852e5dff65': 'Seller Docs Signed',
+    'f81dfac1-934e-4459-a070-1680b46b1721': 'Listing Photos Scheduled',
+    'ba7f6a56-deec-4c17-89a9-28ed26fd68f1': 'Listing Photos Taken',
+    '79d72912-e678-4d4b-94f8-0c4f3d60da12': 'Listing Live',
+    '0a71c4b0-12a5-4c07-a2a9-3b02ab02c564': 'Under Contract',
+    '368ed270-2806-429a-9fc8-c9e0e87c4aea': 'Inspection Period',
+    '434c63a0-a3b9-42cd-add0-e2fee4e9a94f': 'Clear To Close',
+    'df0ea83b-e535-4b42-a754-19d34f8050ae': 'Closed'
+  };
+  const BUYER_STAGES = ['Buyer Docs Signed','Showing Homes','Under Contract','Inspection Period','Appraisal and Financing Period','Clear To Close','Closed'];
+  const SELLER_STAGES = ['Seller Docs Signed','Listing Photos Scheduled','Listing Photos Taken','Listing Live','Under Contract','Inspection Period','Clear To Close','Closed'];
+
+  const CF_ID_MAP = {
+    'VKAdUOcBt1yvLiVyHFPT': 'tentative_closing',
+    'UbWD9ClprLSo3iABNqDm': 'buyer__subject_property_street',
+    'rxMXJfYL8cLlZvlkgKL7': 'buyer__subject_property_city',
+    'jUrEI5UBPdfZj2mWujx7': 'seller__subject_property_street',
+    'DaJh7wCUxLyjhdsm7TCi': 'seller__subject_property_city'
+  };
+
+  function buildCFMap(customFields) {
+    const map = {};
+    (customFields || []).forEach(f => {
+      const val = Array.isArray(f.value) ? f.value[0] : f.value;
+      if (f.id && CF_ID_MAP[f.id]) map[CF_ID_MAP[f.id]] = val;
+      if (f.fieldKey) map[f.fieldKey.replace('contact.','')] = val;
+    });
+    return map;
+  }
+
+  const user = JSON.parse(sessionStorage.getItem('lexpro_user') || '{}');
+  if (!user.username) window.location.href = 'index.html';
+
+  const params = new URLSearchParams(window.location.search);
+  const side = params.get('side') || 'buyer';
+  document.getElementById('pageTitle').textContent = side === 'buyer' ? 'Buyers' : 'Sellers';
+
+  function getDaysUntil(dateStr) {
+    if (!dateStr) return null;
+    return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+  }
+  function getCountdownClass(days) {
+    if (days === null) return 'gray';
+    if (days <= 7) return 'red';
+    if (days <= 14) return 'amber';
+    return 'green';
+  }
+  function getCountdownLabel(days) {
+    if (days === null) return 'No close date';
+    if (days < 0) return `${Math.abs(days)}d overdue`;
+    if (days === 0) return 'Closing today';
+    return `${days}d to close`;
+  }
+  function getStageName(stageId, side) {
+    const map = side === 'buyer' ? BUYER_STAGE_MAP : SELLER_STAGE_MAP;
+    return map[stageId] || '—';
+  }
+  function getProgress(stageName, side) {
+    const stages = side === 'buyer' ? BUYER_STAGES : SELLER_STAGES;
+    const idx = stages.findIndex(s => s.toLowerCase() === stageName?.toLowerCase());
+    if (idx === -1) return 0;
+    return Math.round(((idx + 1) / stages.length) * 100);
+  }
+
+  async function loadTransactions() {
+    const content = document.getElementById('content');
+    const pipelineId = side === 'buyer' ? BUYER_PIPELINE : SELLER_PIPELINE;
+    try {
+      const res = await fetch(
+        `https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${pipelineId}&limit=50`,
+        { headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' } }
+      );
+      if (!res.ok) throw new Error(`${res.status}`);
+      const data = await res.json();
+      const opps = (data.opportunities || []).filter(o => o.status !== 'lost' && o.pipelineStage?.name !== 'Closed');
+      content.innerHTML = '';
+      if (opps.length === 0) {
+        content.innerHTML = `<div class="empty-state">No active ${side} transactions</div>`;
+        return;
+      }
+      for (const opp of opps) {
+        const stageName = getStageName(opp.pipelineStageId, side);
+        const progress = getProgress(stageName, side);
+        const contactName = opp.contact?.name || opp.name || 'Unknown';
+        const contactId = opp.contactId || opp.contact?.id;
+        let days = null;
+        let address = '—';
+        if (contactId) {
+          try {
+            const cr = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+              headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
+            });
+            const cd = await cr.json();
+            const cfMap = buildCFMap(cd.contact?.customFields);
+            const closingVal = cfMap['tentative_closing'];
+            days = getDaysUntil(closingVal);
+            const streetKey = side === 'buyer' ? 'buyer__subject_property_street' : 'seller__subject_property_street';
+            const cityKey = side === 'buyer' ? 'buyer__subject_property_city' : 'seller__subject_property_city';
+            const street = cfMap[streetKey];
+            const city = cfMap[cityKey];
+            address = street ? (city ? `${street}, ${city}` : street) : '—';
+          } catch(e) {}
+        }
+
+        const card = document.createElement('a');
+        card.className = 'deal-card';
+        card.href = `transaction.html?id=${opp.id}&side=${side}`;
+        card.onclick = () => sessionStorage.setItem('lexpro_opp', JSON.stringify(opp));
+        card.innerHTML = `
+          <div class="deal-header">
+            <div>
+              <div class="deal-name">${contactName}</div>
+              <div class="deal-address">${address}</div>
+            </div>
+            <div class="countdown ${getCountdownClass(days)}">${getCountdownLabel(days)}</div>
+          </div>
+          <div class="stage-pill">${stageName}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+          <div class="progress-label">${progress}% complete</div>
+        `;
+        content.appendChild(card);
+      }
+    } catch(err) {
+      content.innerHTML = `<div class="empty-state">Could not load — ${err.message}</div>`;
+    }
+  }
+
+  loadTransactions();
+</script>
+</body>
+</html>

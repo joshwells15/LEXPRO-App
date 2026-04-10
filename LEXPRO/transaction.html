@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<title>LexPro | Transaction</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { min-height: 100vh; background: #0a0f1e; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; color: #fff; display: flex; flex-direction: column; }
+
+  .topbar { background: #111827; border-bottom: 1px solid #1e2d40; padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+  .back-btn { width: 36px; height: 36px; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; }
+  .back-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .topbar-title { font-size: 17px; font-weight: 600; color: #fff; flex: 1; }
+
+  .hero {
+    background: #111827; border-bottom: 1px solid #1e2d40; padding: 16px 20px;
+  }
+  .hero-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .hero-name { font-size: 20px; font-weight: 700; color: #fff; }
+  .hero-address { font-size: 12px; color: #5a6a7e; margin-top: 2px; }
+  .countdown { font-size: 14px; font-weight: 700; padding: 5px 12px; border-radius: 20px; flex-shrink: 0; margin-left: 8px; }
+  .countdown.green { background: rgba(45,158,110,0.15); color: #2d9e6e; border: 1px solid rgba(45,158,110,0.3); }
+  .countdown.amber { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+  .countdown.red { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+  .countdown.gray { background: rgba(90,106,126,0.15); color: #5a6a7e; border: 1px solid rgba(90,106,126,0.3); }
+  .progress-bar { height: 4px; background: #1e2d40; border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: #2d9e6e; border-radius: 2px; }
+  .progress-row { display: flex; justify-content: space-between; }
+  .progress-label { font-size: 11px; color: #5a6a7e; }
+
+  .ai-btn { width: 100%; margin-top: 12px; padding: 11px; background: rgba(83,74,183,0.15); border: 1px solid rgba(83,74,183,0.35); border-radius: 10px; font-size: 14px; font-weight: 600; color: #7f77dd; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .ai-btn svg { width: 16px; height: 16px; stroke: #7f77dd; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .tabs { display: flex; background: #111827; border-bottom: 1px solid #1e2d40; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex-shrink: 0; padding: 12px 16px; font-size: 13px; font-weight: 600; color: #5a6a7e; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
+  .tab.active { color: #2d9e6e; border-bottom-color: #2d9e6e; }
+
+  .content { flex: 1; overflow-y: auto; padding: 16px 16px 40px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .section-title { font-size: 11px; font-weight: 600; color: #5a6a7e; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; margin-top: 20px; }
+  .section-title:first-child { margin-top: 0; }
+
+  .info-card { background: #111827; border: 1px solid #1e2d40; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid #0f1a2e; cursor: pointer; }
+  .info-row:last-child { border-bottom: none; }
+  .info-row:active { background: rgba(255,255,255,0.03); }
+  .info-label { font-size: 13px; color: #5a6a7e; }
+  .info-value { font-size: 13px; color: #fff; text-align: right; max-width: 60%; display: flex; align-items: center; gap: 6px; }
+  .edit-icon { width: 14px; height: 14px; stroke: #2a3a50; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .edit-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: flex-end; justify-content: center; }
+  .edit-modal.open { display: flex; }
+  .edit-modal-inner { background: #111827; border: 1px solid #1e2d40; border-radius: 24px 24px 0 0; padding: 24px 20px 48px; width: 100%; max-width: 480px; }
+  .edit-handle { width: 36px; height: 4px; background: #1e2d40; border-radius: 2px; margin: 0 auto 20px; }
+  .edit-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+  .edit-input { width: 100%; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 10px; padding: 14px; font-size: 16px; color: #fff; outline: none; font-family: inherit; }
+  .edit-input:focus { border-color: #2d9e6e; }
+  .edit-save { width: 100%; padding: 15px; background: #1a6b4a; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; color: #fff; cursor: pointer; margin-top: 12px; }
+  .edit-save:disabled { opacity: 0.5; }
+  .edit-cancel { width: 100%; padding: 12px; background: none; border: none; font-size: 14px; color: #5a6a7e; cursor: pointer; margin-top: 8px; }
+
+  /* TIMELINE */
+  .timeline { display: flex; overflow-x: auto; gap: 0; padding: 4px 0 12px; scrollbar-width: none; margin-bottom: 8px; }
+  .timeline::-webkit-scrollbar { display: none; }
+  .tl-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; width: 90px; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 50%; background: #1e2d40; border: 2px solid #2a3a50; margin-bottom: 6px; position: relative; z-index: 1; }
+  .tl-dot.filled { background: #2d9e6e; border-color: #2d9e6e; }
+  .tl-dot.upcoming { background: #0a0f1e; border-color: #378add; }
+  .tl-label { font-size: 9px; color: #5a6a7e; text-align: center; line-height: 1.3; }
+  .tl-date { font-size: 9px; color: #2d9e6e; text-align: center; margin-top: 2px; font-weight: 600; }
+  .tl-date.upcoming { color: #378add; }
+  .tl-line { flex: 1; height: 2px; background: #1e2d40; margin-top: -7px; min-width: 20px; }
+  .tl-line.filled { background: #2d9e6e; }
+  .tl-row { display: flex; align-items: center; width: 100%; margin-bottom: 4px; }
+
+  /* CHECKLIST */
+  .checklist-item { display: flex; align-items: center; gap: 12px; padding: 14px; background: #111827; border: 1px solid #1e2d40; border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
+  .checklist-item.checked { border-color: rgba(45,158,110,0.3); background: rgba(45,158,110,0.05); }
+  .check-box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid #2a3a50; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .checklist-item.checked .check-box { background: #2d9e6e; border-color: #2d9e6e; }
+  .check-box svg { width: 12px; height: 12px; stroke: #fff; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; display: none; }
+  .checklist-item.checked .check-box svg { display: block; }
+  .check-label { font-size: 14px; color: #fff; }
+  .checklist-item.checked .check-label { color: #5a6a7e; text-decoration: line-through; }
+  .checklist-progress { display: flex; justify-content: space-between; margin-bottom: 12px; }
+  .checklist-pct { font-size: 13px; color: #2d9e6e; font-weight: 600; }
+
+  /* DOCUMENTS */
+  .doc-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: #111827; border: 1px solid #1e2d40; border-radius: 12px; margin-bottom: 8px; }
+  .doc-left { display: flex; align-items: center; gap: 10px; }
+  .doc-icon { width: 36px; height: 36px; border-radius: 8px; background: #1e2d40; display: flex; align-items: center; justify-content: center; }
+  .doc-icon svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .doc-name { font-size: 13px; color: #fff; font-weight: 500; }
+  .doc-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+  .doc-badge.received { background: rgba(45,158,110,0.15); color: #2d9e6e; border: 1px solid rgba(45,158,110,0.3); }
+  .doc-badge.awaiting { background: rgba(90,106,126,0.1); color: #5a6a7e; border: 1px solid #1e2d40; }
+
+  /* AI SUMMARY MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #111827; border: 1px solid #1e2d40; border-radius: 24px 24px 0 0; padding: 24px 20px 48px; width: 100%; max-width: 480px; max-height: 70vh; overflow-y: auto; }
+  .modal-handle { width: 36px; height: 4px; background: #1e2d40; border-radius: 2px; margin: 0 auto 20px; }
+  .modal-title { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .modal-title svg { width: 18px; height: 18px; stroke: #7f77dd; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .modal-body { font-size: 14px; color: #8a9bb0; line-height: 1.7; }
+  .modal-close { width: 100%; padding: 14px; background: none; border: 1px solid #1e2d40; border-radius: 12px; font-size: 15px; color: #5a6a7e; cursor: pointer; margin-top: 20px; }
+  .ai-loading { display: flex; align-items: center; gap: 8px; color: #7f77dd; font-size: 14px; }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(127,119,221,0.3); border-top-color: #7f77dd; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" id="backBtn" href="transaction-list.html?side=buyer">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <div class="topbar-title" id="topbarTitle">Transaction</div>
+</div>
+
+<div class="hero">
+  <div class="hero-row">
+    <div>
+      <div class="hero-name" id="heroName">Loading...</div>
+      <div id="heroAddress" style="font-size:12px;color:#5a6a7e;margin-top:2px;">—</div>
+    </div>
+    <div class="countdown gray" id="countdown">—</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="progress-row">
+    <div class="progress-label" id="stageName">—</div>
+    <div class="progress-label" id="progressPct">0%</div>
+  </div>
+  <button class="ai-btn" onclick="openAI()">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    AI Summary
+  </button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('fields')">Fields</div>
+  <div class="tab" onclick="showTab('timeline')">Timeline</div>
+  <div class="tab" onclick="showTab('checklist')">Checklist</div>
+  <div class="tab" onclick="showTab('documents')">Documents</div>
+</div>
+
+<div class="content">
+  <!-- FIELDS TAB -->
+  <div class="tab-panel active" id="tab-fields">
+    <div class="section-title">Property</div>
+    <div class="info-card">
+      <div class="info-row" onclick="openEdit('Address', 'f-address', 'buyer__subject_property_street', 'seller__subject_property_street')"><span class="info-label">Address</span><span class="info-value" id="f-address">—<svg class="edit-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+      <div class="info-row"><span class="info-label">Represented Side</span><span class="info-value" id="f-side">—</span></div>
+      <div class="info-row" onclick="toggleGift()"><span class="info-label">Closing Gift Ordered</span><span class="info-value" id="f-gift">—</span></div>
+    </div>
+    <div class="section-title">Agent</div>
+    <div class="info-card">
+      <div class="info-row" onclick="openEdit('Agent First Name', 'f-agent', 'opposite_agent_first_name')"><span class="info-label">Agent Name</span><span class="info-value" id="f-agent">—<svg class="edit-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+      <div class="info-row" onclick="openEdit('Agent Phone', 'f-agentphone', 'opposite_agent_phone')"><span class="info-label">Agent Phone</span><span class="info-value" id="f-agentphone">—<svg class="edit-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+      <div class="info-row" onclick="openEdit('Agent Email', 'f-agentemail', 'opposite_agent_email')"><span class="info-label">Agent Email</span><span class="info-value" id="f-agentemail">—<svg class="edit-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+    </div>
+    <div class="section-title">Lender</div>
+    <div class="info-card">
+      <div class="info-row" onclick="openEdit('Mortgage Company', 'f-mortgage', 'mortgage_company')"><span class="info-label">Mortgage Company</span><span class="info-value" id="f-mortgage">—<svg class="edit-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+      <div class="info-row" onclick="openEdit('Mortgage Officer', 'f-officer', 'mortgage_officer')"><span class="info-label">Mortgage Officer</span><span class="info-value" id="f-officer">—<svg class="edit-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+      <div class="info-row" onclick="openEdit('Officer Phone', 'f-officerphone', 'mortgage_officer_phone')"><span class="info-label">Officer Phone</span><span class="info-value" id="f-officerphone">—<svg class="edit-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+    </div>
+    <div class="section-title">Inspection</div>
+    <div class="info-card">
+      <div class="info-row" onclick="openEdit('Inspection Company', 'f-inspection', 'inspection_company')"><span class="info-label">Inspection Company</span><span class="info-value" id="f-inspection">—<svg class="edit-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+      <div class="info-row" onclick="openEdit('Inspector Phone', 'f-inspectorphone', 'inspector_phone')"><span class="info-label">Inspector Phone</span><span class="info-value" id="f-inspectorphone">—<svg class="edit-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+    </div>
+  </div>
+
+  <!-- TIMELINE TAB -->
+  <div class="tab-panel" id="tab-timeline">
+    <div class="section-title">Transaction Dates</div>
+    <div id="timelineContainer"></div>
+  </div>
+
+  <!-- CHECKLIST TAB -->
+  <div class="tab-panel" id="tab-checklist">
+    <div class="checklist-progress">
+      <span class="info-label" id="checklistLabel">0 of 0 complete</span>
+      <span class="checklist-pct" id="checklistPct">0%</span>
+    </div>
+    <div class="progress-bar" style="margin-bottom:20px"><div class="progress-fill" id="checklistBar" style="width:0%"></div></div>
+    <div id="checklistItems"></div>
+  </div>
+
+  <!-- DOCUMENTS TAB -->
+  <div class="tab-panel" id="tab-documents">
+    <div class="section-title">Transaction Documents</div>
+    <div id="documentItems"></div>
+  </div>
+</div>
+
+<!-- EDIT FIELD MODAL -->
+<div class="edit-modal" id="editModal">
+  <div class="edit-modal-inner">
+    <div class="edit-handle"></div>
+    <div class="edit-title" id="editTitle">Edit Field</div>
+    <input class="edit-input" id="editInput" type="text" />
+    <button class="edit-save" id="editSave" onclick="saveField()">Save</button>
+    <button class="edit-cancel" onclick="closeEdit()">Cancel</button>
+  </div>
+</div>
+
+<!-- AI SUMMARY MODAL -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      AI Summary
+    </div>
+    <div class="modal-body" id="aiBody">
+      <div class="ai-loading"><div class="spinner"></div>Generating summary...</div>
+    </div>
+    <button class="modal-close" onclick="closeAI()">Close</button>
+  </div>
+</div>
+
+<script>
+  const GHL_API_KEY = 'pit-4e98487c-3f65-409c-a264-16352f97c01a';
+  const ANTHROPIC_KEY_NOTE = 'handled by API';
+
+  const BUYER_STAGE_MAP = {
+    '21e2d499-cb72-4c14-8bde-7d569265e9ad': 'Buyer Docs Signed',
+    'c7c87055-b8ff-4698-8603-bf60fb4491a4': 'Showing Homes',
+    '78f5bc45-e717-4807-9658-42e00795a58a': 'Under Contract',
+    'adcf4d61-22e9-44d3-9da7-dcf301f027c8': 'Inspection Period',
+    '3f9115af-147c-465c-97a1-ac8bd2558b4b': 'Appraisal and Financing Period',
+    '3f20354e-a05d-46b3-bc0a-27c480c17438': 'Clear To Close',
+    '6f2a71ab-014b-44b3-9b88-6c37d9d8ea55': 'Closed'
+  };
+  const SELLER_STAGE_MAP = {
+    '7ddc8f53-2c74-4c31-a771-43852e5dff65': 'Seller Docs Signed',
+    'f81dfac1-934e-4459-a070-1680b46b1721': 'Listing Photos Scheduled',
+    'ba7f6a56-deec-4c17-89a9-28ed26fd68f1': 'Listing Photos Taken',
+    '79d72912-e678-4d4b-94f8-0c4f3d60da12': 'Listing Live',
+    '0a71c4b0-12a5-4c07-a2a9-3b02ab02c564': 'Under Contract',
+    '368ed270-2806-429a-9fc8-c9e0e87c4aea': 'Inspection Period',
+    '434c63a0-a3b9-42cd-add0-e2fee4e9a94f': 'Clear To Close',
+    'df0ea83b-e535-4b42-a754-19d34f8050ae': 'Closed'
+  };
+  const BUYER_STAGES = ['Buyer Docs Signed','Showing Homes','Under Contract','Inspection Period','Appraisal and Financing Period','Clear To Close','Closed'];
+  const SELLER_STAGES = ['Seller Docs Signed','Listing Photos Scheduled','Listing Photos Taken','Listing Live','Under Contract','Inspection Period','Clear To Close','Closed'];
+
+  const BUYER_CHECKLIST = ['Documents Signed','Under Contract','Inspection Period','Appraisal Period','Clear To Close','Closed'];
+  const SELLER_CHECKLIST = ['Documents Signed','Listing Photos Scheduled','Listing Photos Taken','Listing Live','Under Contract','Inspection Period','Clear To Close','Closed'];
+
+  const BUYER_DOCS = [
+    { label: 'Pre-Approval', key: 'preapproval_1' },
+    { label: 'Contract', key: 'contract' },
+    { label: 'Inspection Report', key: 'inspection_report' },
+    { label: 'Additional Inspection Documents', key: 'additional_inspection_documents' },
+    { label: 'Inspection Notice', key: 'inspection_notice' },
+    { label: 'Appraisal', key: 'appraisal' },
+    { label: 'Title Work & Commitment', key: 'title_work' },
+    { label: 'Closing Documents', key: 'closing_documents' }
+  ];
+  const SELLER_DOCS = [
+    { label: 'Contract', key: 'contract' },
+    { label: 'Inspection Report', key: 'inspection_report' },
+    { label: 'Additional Inspection Documents', key: 'additional_inspection_documents' },
+    { label: 'Inspection Notice', key: 'inspection_notice' },
+    { label: 'Appraisal', key: 'appraisal' },
+    { label: 'Title Work & Commitment', key: 'title_work' },
+    { label: 'Closing Documents', key: 'closing_documents' }
+  ];
+
+  const TIMELINE_FIELDS = [
+    { key: 'listing_live', label: 'Listing Live', sellerOnly: true },
+    { key: 'under_contract', label: 'Under Contract', sellerOnly: false },
+    { key: 'inspection_notice_date', label: 'Inspection Notice', sellerOnly: false },
+    { key: 'inspection_notice_submission_date', label: 'Notice Submitted', sellerOnly: false },
+    { key: 'inspection_respond_date', label: 'Inspection Response', sellerOnly: false },
+    { key: 'appraisal_date', label: 'Appraisal', sellerOnly: false },
+    { key: 'final_walkthrough_date', label: 'Final Walkthrough', sellerOnly: false, buyerOnly: true },
+    { key: 'tentative_closing', label: 'Closing Date', sellerOnly: false }
+  ];
+
+  const user = JSON.parse(sessionStorage.getItem('lexpro_user') || '{}');
+  if (!user.username) window.location.href = 'index.html';
+
+  const params = new URLSearchParams(window.location.search);
+  const oppId = params.get('id');
+  const side = params.get('side') || 'buyer';
+  let oppData = JSON.parse(sessionStorage.getItem('lexpro_opp') || '{}');
+  let cfMap = {};
+  let currentStage = '';
+  let daysToClose = null;
+
+  document.getElementById('backBtn').href = `transaction-list.html?side=${side}`;
+
+  function showTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`tab-${name}`).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  function getField(key) {
+    return cfMap[key] || '—';
+  }
+
+  function formatDate(val) {
+    if (!val || val === '—') return null;
+    const d = new Date(val);
+    if (isNaN(d)) return null;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function getDaysUntil(val) {
+    if (!val) return null;
+    return Math.ceil((new Date(val).getTime() - Date.now()) / 86400000);
+  }
+
+  function getProgress(stageName) {
+    const stages = side === 'buyer' ? BUYER_STAGES : SELLER_STAGES;
+    const idx = stages.findIndex(s => s.toLowerCase() === stageName?.toLowerCase());
+    if (idx === -1) return 0;
+    return Math.round(((idx + 1) / stages.length) * 100);
+  }
+
+  const CF_ID_MAP = {
+    '4aIfP6apqTzSoIXfTji5': 'opposite_agent_first_name',
+    '58VdevreaQWoUvYsTe1x': 'inspection_company',
+    '8f6lH4pmYFDgfKsZGKzZ': 'opposite_agent_email',
+    'COLwTBWX4MJBC78HBN8u': 'opposite_agent_last_name',
+    'MagnsA9FrA1h75rSVqAX': 'appraisal_date',
+    'NheQXQlHnsYCfW3azy5A': 'under_contract',
+    'RtJ0V9Iw3qhPDhFkn3kF': 'inspection_notice_date',
+    'TrI8GY1i4uWR1NF95467': 'closing_gift_ordered',
+    'UByID7VDqXAvHDYGxmfk': 'inspection_notice_submission_date',
+    'Ui594kueuQlieHIH2Zb7': 'final_walkthrough_date',
+    'VH5nixLt6zDzSj4AAb94': 'inspector_phone',
+    'VKAdUOcBt1yvLiVyHFPT': 'tentative_closing',
+    'XUIgppUr9Tz3H9RCKj31': 'opposite_agent_phone',
+    'XY6ih9V1puuc6iuAfz39': 'listing_live',
+    'aFXLhf4D6ABsm5ka4iBp': 'mortgage_company',
+    'qLmOkC1rHaVwMKjF3l96': 'mortgage_officer_phone',
+    'qiiGsLo06Q3cZDToZPjf': 'inspection_respond_date',
+    'RTRFT9ZMWYFBX2TR8HKK': 'nonrealestate',
+    'WJpjUfmXknuiu0YA2bWZ': 'under_contract_high_priority',
+    'iRKaQwflgSSw1dAkVjSj': 'past_client_high_priority',
+    '14HDsXBAy5pRkTB4DpTK': 'contract',
+    '7aZs2okRLyqEjIjALdXF': 'inspection_report',
+    '94MOs3vaksGELH9i0NQa': 'buyer_documents',
+    'DpoyryTAyJ9qQdO9mkbc': 'closing_documents',
+    'JTL0TDalgUZvQFsuxlep': 'inspection_notice',
+    'RRKwAowJ6GK143zx7m8H': 'additional_inspection_documents',
+    'YidEZOvZ7EOtBLHaRfN4': 'preapproval_1',
+    'jlNkmUb2o7vkJYoUeEXV': 'preapproval_2',
+    'm26A2fjUJY1dVsajDxAS': 'appraisal',
+    'tReYG0o2Mqro51KmAcif': 'title_work',
+    'iolxFSaonN4oH4WRPj7b': 'seller_documents',
+    'RB09sOPNJQrGGbIRm3fq': 'additional_contract_documents',
+    'vuYBhmyrVu3v2ERCUAiP': 'contract_coversheet',
+    'x1nXUJVSfuEJkeGT6qks': 'earnest_money_receipt',
+    'UbWD9ClprLSo3iABNqDm': 'buyer__subject_property_street',
+    'rxMXJfYL8cLlZvlkgKL7': 'buyer__subject_property_city',
+    'hUNzUZaYMkW4IJlGdhzP': 'buyer__subject_property_state',
+    'x7SX2j4yTeYMK6hw28MG': 'buyer__subject_property_zip_code',
+    'jUrEI5UBPdfZj2mWujx7': 'seller__subject_property_street',
+    'DaJh7wCUxLyjhdsm7TCi': 'seller__subject_property_city',
+    'ZeGIXVunGta2IFxjboOV': 'seller__subject_property_state',
+    '54Gdv2cEKg93vHm8HQwT': 'seller__subject_property_zip_code',
+    '68CnDjdBQPeGyhm8aXqb': 'mortgage_officer_email',
+    'Y7FQh9wPSKrBx9sipzAp': 'mortgage_officer_last_name',
+    'x5SZAX9TfGPr5BYT71JS': 'mortgage_officer'
+  };
+
+  function buildCFMap(customFields) {
+    const map = {};
+    (customFields || []).forEach(f => {
+      const val = Array.isArray(f.value) ? f.value[0] : f.value;
+      if (f.id && CF_ID_MAP[f.id]) {
+        map[CF_ID_MAP[f.id]] = val;
+      }
+      if (f.fieldKey) {
+        const key = f.fieldKey.replace('contact.', '');
+        map[key] = val;
+      }
+    });
+    return map;
+  }
+
+  function renderHero() {
+    const stageMap = side === 'buyer' ? BUYER_STAGE_MAP : SELLER_STAGE_MAP;
+    currentStage = stageMap[oppData.pipelineStageId] || '—';
+    const progress = getProgress(currentStage);
+
+    const contactName = oppData.contact?.name || oppData.name || 'Unknown';
+    document.getElementById('topbarTitle').textContent = contactName;
+    document.getElementById('heroName').textContent = contactName;
+
+    const addrKey = side === 'buyer' ? 'buyer__subject_property_street' : 'seller__subject_property_street';
+    const addr = cfMap[addrKey] || oppData.name || '—';
+    const cityKey = side === 'buyer' ? 'buyer__subject_property_city' : 'seller__subject_property_city';
+    const city = cfMap[cityKey];
+    const fullAddr = city ? `${addr}, ${city}` : addr;
+    document.getElementById('f-address').textContent = fullAddr;
+    document.getElementById('heroAddress').textContent = fullAddr !== '—' ? fullAddr : oppData.contact?.name || '—';
+
+    document.getElementById('stageName').textContent = currentStage;
+    document.getElementById('progressPct').textContent = `${progress}%`;
+    document.getElementById('progressFill').style.width = `${progress}%`;
+
+    const closingVal = cfMap['tentative_closing'];
+    daysToClose = getDaysUntil(closingVal);
+    const cdEl = document.getElementById('countdown');
+    if (daysToClose === null) { cdEl.textContent = 'No close date'; cdEl.className = 'countdown gray'; }
+    else if (daysToClose <= 7) { cdEl.textContent = `${daysToClose}d to close`; cdEl.className = 'countdown red'; }
+    else if (daysToClose <= 14) { cdEl.textContent = `${daysToClose}d to close`; cdEl.className = 'countdown amber'; }
+    else { cdEl.textContent = `${daysToClose}d to close`; cdEl.className = 'countdown green'; }
+  }
+
+  function renderFields() {
+    document.getElementById('f-side').textContent = side === 'buyer' ? 'Buyer' : 'Seller';
+    document.getElementById('f-gift').textContent = cfMap['closing_gift_ordered'] || '—';
+    const agentFirst = cfMap['opposite_agent_first_name'] || '';
+    const agentLast = cfMap['opposite_agent_last_name'] || '';
+    document.getElementById('f-agent').textContent = `${agentFirst} ${agentLast}`.trim() || '—';
+    document.getElementById('f-agentphone').textContent = cfMap['opposite_agent_phone'] || '—';
+    document.getElementById('f-agentemail').textContent = cfMap['opposite_agent_email'] || '—';
+    document.getElementById('f-mortgage').textContent = cfMap['mortgage_company'] || '—';
+    const officerName = cfMap['mortgage_officer'] || cfMap['mortgage_officer_first_name'] || '—';
+    document.getElementById('f-officer').textContent = officerName;
+    document.getElementById('f-officerphone').textContent = cfMap['mortgage_officer_phone'] || '—';
+    document.getElementById('f-inspection').textContent = cfMap['inspection_company'] || '—';
+    document.getElementById('f-inspectorphone').textContent = cfMap['inspector_phone'] || '—';
+  }
+
+  function renderTimeline() {
+    const container = document.getElementById('timelineContainer');
+    const fields = TIMELINE_FIELDS.filter(f => {
+      if (f.sellerOnly && side === 'buyer') return false;
+      if (f.buyerOnly && side === 'seller') return false;
+      return true;
+    });
+
+    let html = '';
+    fields.forEach((f, i) => {
+      const val = cfMap[f.key];
+      const formatted = formatDate(val);
+      const filled = !!formatted;
+      const isLast = i === fields.length - 1;
+      const dotColor = filled ? '#2d9e6e' : '#0a0f1e';
+      const dotBorder = filled ? '#2d9e6e' : '#2a3a50';
+      const lineColor = filled ? '#2d9e6e' : '#1e2d40';
+      const dateColor = filled ? '#2d9e6e' : '#2a3a50';
+      html += `
+        <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:${isLast ? '0' : '4px'}">
+          <div style="display:flex;flex-direction:column;align-items:center;width:16px;flex-shrink:0;padding-top:2px">
+            <div style="width:12px;height:12px;border-radius:50%;background:${dotColor};border:2px solid ${dotBorder};flex-shrink:0"></div>
+            ${!isLast ? `<div style="width:2px;flex:1;min-height:24px;background:${lineColor};margin-top:3px"></div>` : ''}
+          </div>
+          <div style="flex:1;padding-bottom:${isLast ? '0' : '16px'}">
+            <div style="font-size:14px;font-weight:600;color:${filled ? '#fff' : '#5a6a7e'}">${f.label}</div>
+            <div style="font-size:12px;color:${dateColor};margin-top:2px;font-weight:600">${formatted || 'Not set'}</div>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  function renderChecklist() {
+    const steps = side === 'buyer' ? BUYER_CHECKLIST : SELLER_CHECKLIST;
+    const stageIndex = (side === 'buyer' ? BUYER_STAGES : SELLER_STAGES).findIndex(s => s.toLowerCase() === currentStage.toLowerCase());
+    const checkedCount = stageIndex === -1 ? 0 : stageIndex + 1;
+    const pct = Math.round((checkedCount / steps.length) * 100);
+
+    document.getElementById('checklistLabel').textContent = `${checkedCount} of ${steps.length} complete`;
+    document.getElementById('checklistPct').textContent = `${pct}%`;
+    document.getElementById('checklistBar').style.width = `${pct}%`;
+
+    const container = document.getElementById('checklistItems');
+    container.innerHTML = steps.map((step, i) => {
+      const checked = i < checkedCount;
+      return `
+        <div class="checklist-item ${checked ? 'checked' : ''}" onclick="toggleCheck(${i}, this)">
+          <div class="check-box">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="check-label">${step}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function extractDocFiles(val) {
+    if (!val || typeof val !== 'object' || Array.isArray(val)) return [];
+    return Object.values(val)
+      .filter(f => f.url && !f.meta?.deleted)
+      .map(f => ({ url: f.url, name: f.meta?.originalname || 'Document' }));
+  }
+
+  function renderDocuments() {
+    const docs = side === 'buyer' ? BUYER_DOCS : SELLER_DOCS;
+    const container = document.getElementById('documentItems');
+    container.innerHTML = docs.map(doc => {
+      const val = cfMap[doc.key];
+      const files = extractDocFiles(val);
+      const hasDoc = files.length > 0;
+      const filesHtml = hasDoc ? files.map(f => `
+        <div style="font-size:11px;color:#2d9e6e;margin-top:4px;cursor:pointer;text-decoration:underline" onclick="event.stopPropagation();openDoc('${f.url}')">${f.name}</div>
+      `).join('') : '';
+      return `
+        <div class="doc-item">
+          <div class="doc-left" style="flex-direction:column;align-items:flex-start">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="doc-icon">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <span class="doc-name">${doc.label}</span>
+            </div>
+            ${filesHtml}
+          </div>
+          <span class="doc-badge ${hasDoc ? 'received' : 'awaiting'}" style="align-self:flex-start">${hasDoc ? 'Received' : 'Awaiting'}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function toggleCheck(idx, el) {
+    const steps = side === 'buyer' ? BUYER_CHECKLIST : SELLER_CHECKLIST;
+    const stages = side === 'buyer' ? BUYER_STAGES : SELLER_STAGES;
+    const isChecked = el.classList.contains('checked');
+    const newCheckedCount = isChecked ? idx : idx + 1;
+    const stageIdx = Math.max(0, Math.min(newCheckedCount - 1, stages.length - 1));
+    const targetStage = stages[stageIdx];
+    const stageMap = side === 'buyer' ? BUYER_STAGE_MAP : SELLER_STAGE_MAP;
+    const stageId = Object.keys(stageMap).find(k => stageMap[k] === targetStage);
+
+    if (!stageId) return;
+
+    try {
+      const res = await fetch(`https://services.leadconnectorhq.com/opportunities/${oppId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${GHL_API_KEY}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ pipelineStageId: stageId, name: oppData.name, status: oppData.status || 'open' })
+      });
+      if (!res.ok) throw new Error(`${res.status}`);
+      oppData.pipelineStageId = stageId;
+      sessionStorage.setItem('lexpro_opp', JSON.stringify(oppData));
+      currentStage = targetStage;
+      renderChecklist();
+      renderHero();
+    } catch(e) {
+      alert(`Could not update checklist: ${e.message}`);
+    }
+  }
+
+  async function openAI() {
+    document.getElementById('aiModal').classList.add('open');
+    document.getElementById('aiBody').innerHTML = '<div class="ai-loading"><div class="spinner"></div>Generating summary...</div>';
+
+    const contactName = oppData.contact?.name || oppData.name || 'Unknown';
+    const closing = cfMap['tentative_closing_date'] ? formatDate(cfMap['tentative_closing_date']) : 'not set';
+    const steps = side === 'buyer' ? BUYER_CHECKLIST : SELLER_CHECKLIST;
+    const stageIndex = (side === 'buyer' ? BUYER_STAGES : SELLER_STAGES).findIndex(s => s.toLowerCase() === currentStage.toLowerCase());
+    const checkedCount = stageIndex === -1 ? 0 : stageIndex + 1;
+
+    const prompt = `You are a real estate transaction coordinator assistant. Give a brief, plain-English status briefing for this transaction. Be direct and practical — 3-5 sentences max.
+
+Client: ${contactName}
+Side: ${side === 'buyer' ? 'Buyer' : 'Seller'}
+Current Stage: ${currentStage}
+Progress: ${checkedCount} of ${steps.length} steps complete
+Days to Close: ${daysToClose !== null ? daysToClose + ' days' : 'No closing date set'}
+Tentative Closing Date: ${closing}
+Address: ${cfMap['buyer_subject_property_street'] || cfMap['seller_subject_property_street'] || 'Not set'}
+
+Write a quick briefing Lex can read in 10 seconds to know exactly where this deal stands.`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      const data = await res.json();
+      const text = data.content?.[0]?.text || 'Could not generate summary.';
+      document.getElementById('aiBody').innerHTML = `<p style="color:#c8d0da;line-height:1.7">${text}</p>`;
+    } catch(e) {
+      document.getElementById('aiBody').innerHTML = '<p style="color:#ef4444">Could not generate summary. Please try again.</p>';
+    }
+  }
+
+  function openDoc(url) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  async function toggleGift() {
+    const current = cfMap['closing_gift_ordered'];
+    const newVal = (current === 'Yes' || current === 'yes') ? 'No' : 'Yes';
+    const contactId = oppData.contactId || oppData.contact?.id;
+    if (!contactId) return;
+    try {
+      const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ customFields: [{ id: 'TrI8GY1i4uWR1NF95467', field_value: newVal }] })
+      });
+      if (!res.ok) throw new Error(res.status);
+      cfMap['closing_gift_ordered'] = newVal;
+      const el = document.getElementById('f-gift');
+      if (el) el.textContent = newVal;
+    } catch(e) { alert('Could not update: ' + e.message); }
+  }
+
+  let editFieldKey = null;
+  let editFieldKey2 = null;
+  let editElId = null;
+
+  const CF_KEY_TO_ID = {
+    'opposite_agent_first_name': '4aIfP6apqTzSoIXfTji5',
+    'opposite_agent_email': '8f6lH4pmYFDgfKsZGKzZ',
+    'opposite_agent_last_name': 'COLwTBWX4MJBC78HBN8u',
+    'opposite_agent_phone': 'XUIgppUr9Tz3H9RCKj31',
+    'mortgage_company': 'aFXLhf4D6ABsm5ka4iBp',
+    'mortgage_officer_phone': 'qLmOkC1rHaVwMKjF3l96',
+    'mortgage_officer': 'x5SZAX9TfGPr5BYT71JS',
+    'inspection_company': '58VdevreaQWoUvYsTe1x',
+    'inspector_phone': 'VH5nixLt6zDzSj4AAb94',
+    'closing_gift_ordered': 'TrI8GY1i4uWR1NF95467',
+    'buyer__subject_property_street': 'UbWD9ClprLSo3iABNqDm',
+    'seller__subject_property_street': 'jUrEI5UBPdfZj2mWujx7'
+  };
+
+  function openEdit(title, elId, fieldKey, fieldKey2) {
+    editFieldKey = fieldKey;
+    editFieldKey2 = fieldKey2 || null;
+    editElId = elId;
+    const activeKey = fieldKey2 ? (side === 'buyer' ? fieldKey : fieldKey2) : fieldKey;
+    document.getElementById('editTitle').textContent = `Edit ${title}`;
+    const el = document.getElementById(elId);
+    const currentVal = el?.firstChild?.textContent?.trim() || '';
+    document.getElementById('editInput').value = currentVal === '—' ? '' : currentVal;
+    document.getElementById('editModal').classList.add('open');
+    setTimeout(() => document.getElementById('editInput').focus(), 100);
+  }
+
+  function closeEdit() {
+    document.getElementById('editModal').classList.remove('open');
+    editFieldKey = null;
+    editElId = null;
+  }
+
+  async function saveField() {
+    const val = document.getElementById('editInput').value.trim();
+    const btn = document.getElementById('editSave');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    const activeKey = editFieldKey2 ? (side === 'buyer' ? editFieldKey : editFieldKey2) : editFieldKey;
+    const fieldId = CF_KEY_TO_ID[activeKey];
+
+    const contactId = oppData.contactId || oppData.contact?.id;
+    if (!contactId || !fieldId) {
+      alert('Could not save — field ID not found.');
+      btn.disabled = false;
+      btn.textContent = 'Save';
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${GHL_API_KEY}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ customFields: [{ id: fieldId, field_value: val }] })
+      });
+
+      if (!res.ok) throw new Error(`${res.status}`);
+
+      cfMap[activeKey] = val;
+      const el = document.getElementById(editElId);
+      if (el) {
+        const svg = el.querySelector('svg');
+        el.textContent = val || '—';
+        if (svg) el.appendChild(svg);
+      }
+      closeEdit();
+    } catch(e) {
+      alert(`Save failed: ${e.message}`);
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Save';
+  }
+
+  function closeAI() { document.getElementById('aiModal').classList.remove('open'); }
+
+  async function loadFullOpp() {
+    if (!oppId) return;
+    try {
+      const contactId = oppData.contactId || oppData.contact?.id;
+      if (contactId) {
+        const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.contact) {
+          oppData.customFields = data.contact.customFields || [];
+          oppData.contact = { ...oppData.contact, ...data.contact };
+          sessionStorage.setItem('lexpro_opp', JSON.stringify(oppData));
+        }
+      }
+    } catch(e) { console.error('loadFullOpp error:', e); }
+    cfMap = buildCFMap(oppData.customFields);
+    renderHero();
+    renderFields();
+    renderTimeline();
+    renderChecklist();
+    renderDocuments();
+  }
+
+  cfMap = buildCFMap(oppData.customFields);
+  renderHero();
+  renderFields();
+  renderTimeline();
+  renderChecklist();
+  renderDocuments();
+  loadFullOpp();
+</script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<title>LexPro | Command App</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    min-height: 100vh;
+    background: #0a0f1e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    padding: 24px;
+  }
+
+  .login-wrap {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .brand-logo {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #1a6b4a, #2d9e6e);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 32px rgba(45, 158, 110, 0.35);
+  }
+
+  .brand-logo svg {
+    width: 32px;
+    height: 32px;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .brand-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+  }
+
+  .brand-name span {
+    color: #2d9e6e;
+  }
+
+  .brand-sub {
+    font-size: 13px;
+    color: #5a6a7e;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .card {
+    background: #111827;
+    border: 1px solid #1e2d40;
+    border-radius: 20px;
+    padding: 32px 28px;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #5a6a7e;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .field input {
+    width: 100%;
+    background: #0a0f1e;
+    border: 1px solid #1e2d40;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 16px;
+    color: #ffffff;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .field input::placeholder { color: #2a3a50; }
+
+  .field input:focus {
+    border-color: #2d9e6e;
+    box-shadow: 0 0 0 3px rgba(45, 158, 110, 0.15);
+  }
+
+  .btn-login {
+    width: 100%;
+    margin-top: 8px;
+    padding: 16px;
+    background: linear-gradient(135deg, #1a6b4a, #2d9e6e);
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: opacity 0.2s, transform 0.1s;
+    box-shadow: 0 4px 20px rgba(45, 158, 110, 0.3);
+  }
+
+  .btn-login:active { transform: scale(0.98); opacity: 0.9; }
+  .btn-login:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .error-msg {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(220, 53, 69, 0.12);
+    border: 1px solid rgba(220, 53, 69, 0.25);
+    border-radius: 10px;
+    font-size: 14px;
+    color: #ff6b7a;
+    text-align: center;
+  }
+
+  .error-msg.visible { display: block; }
+
+  .footer-note {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 12px;
+    color: #2a3a50;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="brand">
+    <div class="brand-logo">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <div class="brand-name">Lex<span>Pro</span></div>
+    <div class="brand-sub">Real Estate Command</div>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="Enter your username" autocomplete="username" autocapitalize="none" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+    </div>
+    <button class="btn-login" id="loginBtn" onclick="handleLogin()">Sign In</button>
+    <div class="error-msg" id="errorMsg">Incorrect username or password.</div>
+  </div>
+
+  <div class="footer-note">LexPro Real Estate &bull; Springfield, MO</div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM';
+
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function handleLogin() {
+    const username = document.getElementById('username').value.trim().toLowerCase();
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('loginBtn');
+    const err = document.getElementById('errorMsg');
+
+    if (!username || !password) {
+      err.textContent = 'Please enter your username and password.';
+      err.classList.add('visible');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Signing in...';
+    err.classList.remove('visible');
+
+    try {
+      const hash = await sha256(password);
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(username)}&password_hash=eq.${hash}&select=id,username,role`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+
+      const data = await res.json();
+
+      if (data && data.length > 0) {
+        const user = data[0];
+        sessionStorage.setItem('lexpro_user', JSON.stringify(user));
+        btn.innerHTML = 'Welcome back!';
+        setTimeout(() => {
+          window.location.href = 'home.html';
+        }, 800);
+      } else {
+        err.textContent = 'Incorrect username or password.';
+        err.classList.add('visible');
+        btn.disabled = false;
+        btn.innerHTML = 'Sign In';
+      }
+    } catch (e) {
+      err.textContent = 'Connection error. Please try again.';
+      err.classList.add('visible');
+      btn.disabled = false;
+      btn.innerHTML = 'Sign In';
+    }
+  }
+
+  document.getElementById('password').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleLogin();
+  });
+
+  document.getElementById('username').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('password').focus();
+  });
+
+  const saved = sessionStorage.getItem('lexpro_user');
+  if (saved) window.location.href = 'home.html';
+</script>
+</body>
+</html>
