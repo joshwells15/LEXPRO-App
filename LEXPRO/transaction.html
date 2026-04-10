@@ -570,7 +570,7 @@
     document.getElementById('aiBody').innerHTML = '<div class="ai-loading"><div class="spinner"></div>Generating summary...</div>';
 
     const contactName = oppData.contact?.name || oppData.name || 'Unknown';
-    const closing = cfMap['tentative_closing_date'] ? formatDate(cfMap['tentative_closing_date']) : 'not set';
+    const closing = cfMap['tentative_closing'] ? formatDate(cfMap['tentative_closing']) : 'not set';
     const steps = side === 'buyer' ? BUYER_CHECKLIST : SELLER_CHECKLIST;
     const stageIndex = (side === 'buyer' ? BUYER_STAGES : SELLER_STAGES).findIndex(s => s.toLowerCase() === currentStage.toLowerCase());
     const checkedCount = stageIndex === -1 ? 0 : stageIndex + 1;
@@ -754,4 +754,3 @@ Write a quick briefing Lex can read in 10 seconds to know exactly where this dea
 </script>
 </body>
 </html>
-
