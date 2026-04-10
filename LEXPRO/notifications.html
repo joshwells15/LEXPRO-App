@@ -195,7 +195,7 @@
       if (opp && opp.id) {
         sessionStorage.setItem('lexpro_opp', JSON.stringify(opp));
         const side = detectSide(opp);
-        window.location.href = `transaction.html?id=${opp.id}&side=${side}`;
+        window.location.href = `transaction.html?id=${opp.id}&side=${side}&from=notifications`;
       } else {
         document.getElementById('loadingOverlay').classList.remove('open');
         alert('Could not load transaction.');
