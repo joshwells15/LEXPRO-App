@@ -230,8 +230,11 @@
   }
 
   function detectSide(opp) {
-    const BUYER_PIPELINE = 'wc3q7QgK9U0FymB5jQp0';
-    return opp.pipelineId === BUYER_PIPELINE ? 'buyer' : 'seller';
+    const BUYER_PIPELINE = 'yrXgfxFIAGqdUoqLNNMc';
+    const SELLER_PIPELINE = 'vvTfRute8i8HmIdqq4Jf';
+    if (opp.pipelineId === BUYER_PIPELINE) return 'buyer';
+    if (opp.pipelineId === SELLER_PIPELINE) return 'seller';
+    return 'buyer';
   }
 
   async function deleteNotif(id, card) {
