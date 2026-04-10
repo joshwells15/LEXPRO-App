@@ -575,17 +575,26 @@
     const stageIndex = (side === 'buyer' ? BUYER_STAGES : SELLER_STAGES).findIndex(s => s.toLowerCase() === currentStage.toLowerCase());
     const checkedCount = stageIndex === -1 ? 0 : stageIndex + 1;
 
-    const prompt = `You are a real estate transaction coordinator assistant. Give a brief, plain-English status briefing for this transaction. Be direct and practical — 3-5 sentences max.
+    const timelineKeys = [
+      { key: 'under_contract', label: 'Under Contract' },
+      { key: 'inspection_notice_date', label: 'Inspection Notice' },
+      { key: 'inspection_notice_submission_date', label: 'Notice Submitted' },
+      { key: 'inspection_respond_date', label: 'Inspection Response' },
+      { key: 'appraisal_date', label: 'Appraisal' },
+      { key: 'final_walkthrough_date', label: 'Final Walkthrough' },
+      { key: 'listing_live', label: 'Listing Live' },
+      { key: 'tentative_closing', label: 'Closing' }
+    ];
+    const upcomingDates = timelineKeys.map(f => {
+      const val = cfMap[f.key];
+      if (!val) return null;
+      const days = Math.ceil((new Date(val).getTime() - Date.now()) / 86400000);
+      if (days >= 0 && days <= 5) return f.label + ' — ' + (days === 0 ? 'TODAY' : 'in ' + days + ' day' + (days === 1 ? '' : 's')) + ' (' + formatDate(val) + ')';
+      return null;
+    }).filter(Boolean);
+    const upcomingText = upcomingDates.length > 0 ? 'URGENT - Coming up within 5 days:\n' + upcomingDates.join('\n') : 'No dates coming up in the next 5 days.';
 
-Client: ${contactName}
-Side: ${side === 'buyer' ? 'Buyer' : 'Seller'}
-Current Stage: ${currentStage}
-Progress: ${checkedCount} of ${steps.length} steps complete
-Days to Close: ${daysToClose !== null ? daysToClose + ' days' : 'No closing date set'}
-Tentative Closing Date: ${closing}
-Address: ${cfMap['buyer_subject_property_street'] || cfMap['seller_subject_property_street'] || 'Not set'}
-
-Write a quick briefing Lex can read in 10 seconds to know exactly where this deal stands.`;
+    const prompt = 'You are a real estate transaction coordinator assistant. Give a brief, plain-English status briefing for this transaction. Be direct and practical - 3-5 sentences max. If there are urgent upcoming dates lead with those.\n\nClient: ' + contactName + '\nSide: ' + (side === 'buyer' ? 'Buyer' : 'Seller') + '\nCurrent Stage: ' + currentStage + '\nProgress: ' + checkedCount + ' of ' + steps.length + ' steps complete\nDays to Close: ' + (daysToClose !== null ? daysToClose + ' days' : 'No closing date set') + '\nTentative Closing Date: ' + closing + '\nAddress: ' + (cfMap['buyer__subject_property_street'] || cfMap['seller__subject_property_street'] || 'Not set') + '\n\n' + upcomingText + '\n\nWrite a quick briefing Lex can read in 10 seconds to know exactly where this deal stands. Call out any urgent dates first.';
 
     try {
       const res = await fetch('/.netlify/functions/ai-summary', {
