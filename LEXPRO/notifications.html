@@ -206,19 +206,13 @@
     }
   }
 
-  async function openTransactionByContact(contactId) {
+async function openTransactionByContact(contactId) {
     document.getElementById('loadingOverlay').classList.add('open');
     try {
-      const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/opportunities`, {
-        headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
-      });
+      const res = await fetch(`/.netlify/functions/get-opportunity?contact_id=${contactId}`);
       const data = await res.json();
-      const opps = data.opportunities || [];
-      const opp = opps.find(o => o.status === 'open') || opps[0];
-      if (opp) {
-        sessionStorage.setItem('lexpro_opp', JSON.stringify(opp));
-        const side = detectSide(opp);
-        window.location.href = `transaction.html?id=${opp.id}&side=${side}`;
+      if (data.opportunity_id) {
+        await openTransaction(data.opportunity_id);
       } else {
         document.getElementById('loadingOverlay').classList.remove('open');
         alert('No active transaction found for this contact.');
