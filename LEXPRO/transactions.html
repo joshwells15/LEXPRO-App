@@ -6,112 +6,87 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LexPro">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <title>LexPro | Transactions</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    min-height: 100vh;
-    background: #0a0f1e;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-    color: #ffffff;
-    display: flex;
-    flex-direction: column;
-  }
-  .topbar {
-    background: #111827;
-    border-bottom: 1px solid #1e2d40;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .back-btn {
-    width: 36px; height: 36px;
-    background: #0a0f1e; border: 1px solid #1e2d40;
-    border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    text-decoration: none; flex-shrink: 0;
-  }
-  .back-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-  .topbar-title { font-size: 18px; font-weight: 600; color: #ffffff; flex: 1; }
-  .topbar-icons { display: flex; gap: 8px; }
-  .icon-btn {
-    width: 36px; height: 36px;
-    background: #0a0f1e; border: 1px solid #1e2d40;
-    border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    text-decoration: none; position: relative; flex-shrink: 0;
-  }
-  .icon-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .notif-dot {
-    position: absolute; top: 7px; right: 7px;
-    width: 6px; height: 6px;
-    background: #2d9e6e; border-radius: 50%;
-    border: 1.5px solid #0a0f1e; display: none;
+  :root {
+    --bg:           #ffffff;
+    --surface:      #f7f7f7;
+    --surface-2:    #f0f0f0;
+    --border:       #e8e8e8;
+    --primary:      #111111;
+    --text:         #111111;
+    --text-muted:   #666666;
+    --text-hint:    #999999;
+    --font:         'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm:    10px;
+    --radius-md:    14px;
+    --radius-lg:    20px;
   }
 
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { min-height: 100vh; background: var(--bg); font-family: var(--font); color: var(--text); display: flex; flex-direction: column; }
+
+  /* ── Top Bar ── */
+  .topbar { background: var(--primary); padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+  .back-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; transition: background 0.15s; }
+  .back-btn:active { background: rgba(255,255,255,0.15); }
+  .back-btn svg { width: 16px; height: 16px; stroke: #ffffff; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .topbar-title { font-size: 18px; font-weight: 600; color: #ffffff; flex: 1; letter-spacing: -0.2px; }
+  .topbar-icons { display: flex; gap: 8px; }
+  .icon-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; text-decoration: none; position: relative; flex-shrink: 0; }
+  .icon-btn svg { width: 16px; height: 16px; stroke: rgba(255,255,255,0.7); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .notif-dot { position: absolute; top: 7px; right: 7px; width: 6px; height: 6px; background: #ffffff; border-radius: 50%; border: 1.5px solid var(--primary); display: none; }
+
+  /* ── Button Screen ── */
+  .btn-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 24px 60px; gap: 14px; }
+
+  .nav-btn { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; text-decoration: none; transition: transform 0.1s, background 0.15s; }
+  .nav-btn:active { transform: scale(0.98); background: var(--surface-2); }
+  .nav-btn.primary { background: var(--primary); border-color: var(--primary); }
+  .nav-btn.primary:active { background: #2a2a2a; }
+
+  .btn-icon { width: 46px; height: 46px; background: var(--surface-2); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .nav-btn.primary .btn-icon { background: rgba(255,255,255,0.1); }
+  .btn-icon svg { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-btn.primary .btn-icon svg { stroke: #ffffff; }
+
+  .btn-text { flex: 1; }
+  .btn-title { font-size: 17px; font-weight: 600; color: var(--text); }
+  .btn-sub { font-size: 12px; color: var(--text-hint); margin-top: 3px; }
+  .nav-btn.primary .btn-title { color: #ffffff; }
+  .nav-btn.primary .btn-sub { color: rgba(255,255,255,0.5); }
+
+  .btn-arrow { font-size: 22px; color: var(--text-hint); line-height: 1; }
+  .nav-btn.primary .btn-arrow { color: rgba(255,255,255,0.35); }
+
+  /* ── Deal Cards (unused in this file but kept for consistency) ── */
   .content { flex: 1; overflow-y: auto; padding: 16px 16px 40px; }
 
-  .btn-screen {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 0 28px 60px; gap: 16px;
-  }
-  .nav-btn {
-    width: 100%; background: #111827; border: 1px solid #1e2d40;
-    border-radius: 16px; padding: 20px;
-    display: flex; align-items: center; gap: 16px;
-    cursor: pointer; text-decoration: none; transition: transform 0.1s;
-  }
-  .nav-btn:active { transform: scale(0.98); }
-  .nav-btn.primary { background: #1a6b4a; border-color: #2d9e6e; }
-  .btn-icon {
-    width: 44px; height: 44px; background: rgba(255,255,255,0.07);
-    border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  .btn-icon svg { width: 20px; height: 20px; stroke: #8a9bb0; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .nav-btn.primary .btn-icon svg { stroke: #fff; }
-  .btn-text { flex: 1; }
-  .btn-title { font-size: 17px; font-weight: 600; color: #fff; }
-  .btn-sub { font-size: 12px; color: #5a6a7e; margin-top: 3px; }
-  .nav-btn.primary .btn-sub { color: #9fe1cb; }
-  .btn-arrow { font-size: 22px; color: #2a3a50; line-height: 1; }
-  .nav-btn.primary .btn-arrow { color: #9fe1cb; }
-
-  .deal-card {
-    background: #111827; border: 1px solid #1e2d40;
-    border-radius: 16px; padding: 16px;
-    margin-bottom: 12px; cursor: pointer;
-    transition: transform 0.1s;
-    text-decoration: none; display: block;
-  }
+  .deal-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; cursor: pointer; transition: transform 0.1s; text-decoration: none; display: block; }
   .deal-card:active { transform: scale(0.98); }
   .deal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-  .deal-name { font-size: 16px; font-weight: 600; color: #fff; }
-  .deal-address { font-size: 12px; color: #5a6a7e; margin-top: 2px; }
-  .countdown {
-    font-size: 13px; font-weight: 700;
-    padding: 4px 10px; border-radius: 20px;
-    flex-shrink: 0; margin-left: 8px;
-  }
-  .countdown.green { background: rgba(45,158,110,0.15); color: #2d9e6e; border: 1px solid rgba(45,158,110,0.3); }
-  .countdown.amber { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
-  .countdown.red { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
-  .countdown.gray { background: rgba(90,106,126,0.15); color: #5a6a7e; border: 1px solid rgba(90,106,126,0.3); }
-  .stage-pill {
-    display: inline-block; font-size: 11px; font-weight: 600;
-    padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
-    background: rgba(24,95,165,0.15); color: #378add;
-    border: 1px solid rgba(55,138,221,0.25);
-  }
-  .progress-bar { height: 4px; background: #1e2d40; border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
-  .progress-fill { height: 100%; background: #2d9e6e; border-radius: 2px; transition: width 0.3s; }
-  .progress-label { font-size: 11px; color: #5a6a7e; }
-  .empty-state { text-align: center; color: #2a3a50; font-size: 14px; padding: 60px 20px; }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
-  .skeleton {
-    background: #111827; border: 1px solid #1e2d40;
-    border-radius: 16px; height: 120px; margin-bottom: 12px;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
+  .deal-name { font-size: 16px; font-weight: 600; color: var(--text); }
+  .deal-address { font-size: 12px; color: var(--text-hint); margin-top: 2px; }
+
+  .countdown { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 20px; flex-shrink: 0; margin-left: 8px; }
+  .countdown.green { background: rgba(34,139,34,0.08); color: #1a7a1a; border: 1px solid rgba(34,139,34,0.2); }
+  .countdown.amber { background: rgba(184,110,0,0.08); color: #b86e00; border: 1px solid rgba(184,110,0,0.2); }
+  .countdown.red { background: rgba(204,34,51,0.08); color: #cc2233; border: 1px solid rgba(204,34,51,0.2); }
+  .countdown.gray { background: var(--surface-2); color: var(--text-hint); border: 1px solid var(--border); }
+
+  .stage-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+
+  .progress-bar { height: 3px; background: var(--surface-2); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width 0.3s; }
+  .progress-label { font-size: 11px; color: var(--text-hint); }
+
+  .empty-state { text-align: center; color: var(--text-hint); font-size: 14px; padding: 60px 20px; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+
+  .skeleton { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); height: 120px; margin-bottom: 12px; animation: pulse 1.5s ease-in-out infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 </style>
 </head>
