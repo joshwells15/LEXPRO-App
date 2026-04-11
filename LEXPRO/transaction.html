@@ -306,7 +306,25 @@
   let currentStage = '';
   let daysToClose = null;
 
-  document.getElementById('backBtn').href = `transaction-list.html?side=${side}`;
+  const fromParam = new URLSearchParams(window.location.search).get('from');
+  if (fromParam === 'notifications') {
+    document.getElementById('backBtn').href = 'notifications.html';
+  } else {
+    document.getElementById('backBtn').href = `transaction-list.html?side=${side}`;
+  }
+
+  // Notification dot
+  async function checkUnread() {
+    try {
+      const res = await fetch('https://dqiiekdfmocvizzvmwlc.supabase.co/rest/v1/notifications?is_read=eq.false&limit=1', {
+        headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM' }
+      });
+      const data = await res.json();
+      const dots = document.querySelectorAll('.notif-dot');
+      dots.forEach(d => d.style.display = data.length > 0 ? '' : 'none');
+    } catch(e) {}
+  }
+  checkUnread();
 
   function showTab(name, el) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));

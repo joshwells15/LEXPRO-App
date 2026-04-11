@@ -6,41 +6,22 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LexPro">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <title>LexPro | Home</title>
 <style>
-  /* ── Design Tokens ── */
-  :root {
-    --bg:           #ffffff;
-    --surface:      #f7f7f7;
-    --surface-2:    #f0f0f0;
-    --border:       #e8e8e8;
-    --primary:      #111111;
-    --text:         #111111;
-    --text-muted:   #666666;
-    --text-hint:    #999999;
-    --font:         'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-    --radius-sm:    10px;
-    --radius-md:    14px;
-    --radius-lg:    20px;
-  }
-
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   body {
     min-height: 100vh;
-    background: var(--bg);
-    font-family: var(--font);
-    color: var(--text);
+    background: #0a0f1e;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    color: #ffffff;
     display: flex;
     flex-direction: column;
   }
 
-  /* ── Stats Bar ── */
   .stats-bar {
-    background: var(--primary);
+    background: #111827;
+    border-bottom: 1px solid #1e2d40;
     padding: 14px 20px;
     display: flex;
     justify-content: space-between;
@@ -48,56 +29,40 @@
   }
 
   .stat { flex: 1; text-align: center; }
-  .stat-val {
-    font-size: 18px;
-    font-weight: 700;
-    color: #ffffff;
-    line-height: 1;
-  }
-  .stat-lbl {
-    font-size: 9px;
-    color: rgba(255,255,255,0.45);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-top: 4px;
-  }
-  .stat-div { width: 1px; height: 32px; background: rgba(255,255,255,0.1); }
+  .stat-val { font-size: 18px; font-weight: 700; color: #2d9e6e; line-height: 1; }
+  .stat-lbl { font-size: 10px; color: #5a6a7e; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .stat-div { width: 1px; height: 32px; background: #1e2d40; }
 
-  /* ── Header ── */
   .header {
-    padding: 18px 20px 12px;
+    padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border);
   }
 
-  .greeting { font-size: 12px; color: var(--text-hint); letter-spacing: 0.02em; }
-  .username { font-size: 22px; font-weight: 700; color: var(--text); margin-top: 2px; letter-spacing: -0.3px; }
+  .greeting { font-size: 13px; color: #5a6a7e; }
+  .username { font-size: 20px; font-weight: 600; color: #ffffff; margin-top: 2px; }
 
   .header-icons { display: flex; gap: 10px; }
 
   .icon-btn {
     width: 42px;
     height: 42px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    background: #111827;
+    border: 1px solid #1e2d40;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     position: relative;
     text-decoration: none;
-    transition: background 0.15s;
   }
-
-  .icon-btn:active { background: var(--surface-2); }
 
   .icon-btn svg {
     width: 18px;
     height: 18px;
-    stroke: var(--text-muted);
+    stroke: #8a9bb0;
     fill: none;
     stroke-width: 2;
     stroke-linecap: round;
@@ -110,149 +75,132 @@
     right: 9px;
     width: 7px;
     height: 7px;
-    background: var(--primary);
+    background: #2d9e6e;
     border-radius: 50%;
-    border: 1.5px solid var(--bg);
+    border: 1.5px solid #0a0f1e;
   }
 
-  /* ── Main ── */
   .main {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 0 24px 48px;
-    gap: 14px;
+    padding: 0 28px 60px;
+    gap: 16px;
   }
 
-  /* ── Logo Area ── */
   .logo-area {
     text-align: center;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
   .logo-mark {
-    display: inline-flex;
+    width: 80px;
+    height: 80px;
+    background: #1a6b4a;
+    border-radius: 22px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 8px;
+    margin: 0 auto 16px;
   }
 
-  .logo-lex {
-    font-size: 38px;
+  .logo-mark svg {
+    width: 36px;
+    height: 36px;
+    stroke: #ffffff;
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .logo-name {
+    font-size: 32px;
     font-weight: 700;
-    color: var(--primary);
-    letter-spacing: 4px;
-    line-height: 1;
+    color: #ffffff;
+    letter-spacing: -0.5px;
   }
 
-  .logo-pro-box {
-    border: 3px solid var(--primary);
-    border-radius: 9px;
-    padding: 3px 10px;
-    margin-left: 7px;
-  }
-
-  .logo-pro {
-    font-size: 38px;
-    font-weight: 700;
-    color: var(--primary);
-    letter-spacing: 4px;
-    line-height: 1;
-    display: block;
-  }
+  .logo-name span { color: #2d9e6e; }
 
   .logo-sub {
-    font-size: 10px;
-    color: var(--text-hint);
+    font-size: 11px;
+    color: #5a6a7e;
     text-transform: uppercase;
-    letter-spacing: 0.22em;
-    margin-top: 6px;
+    letter-spacing: 1px;
+    margin-top: 4px;
   }
 
-  /* ── Nav Buttons ── */
   .nav-btn {
     width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    background: #111827;
+    border: 1px solid #1e2d40;
+    border-radius: 16px;
     padding: 20px;
     display: flex;
     align-items: center;
     gap: 16px;
     cursor: pointer;
     text-decoration: none;
-    transition: transform 0.1s, background 0.15s;
+    transition: transform 0.1s;
   }
 
-  .nav-btn:active { transform: scale(0.98); background: var(--surface-2); }
+  .nav-btn:active { transform: scale(0.98); }
 
   .nav-btn.primary {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: #1a6b4a;
+    border-color: #2d9e6e;
   }
 
-  .nav-btn.primary:active { background: #2a2a2a; }
-
   .btn-icon {
-    width: 46px;
-    height: 46px;
-    background: rgba(255,255,255,0.08);
-    border-radius: var(--radius-sm);
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
   }
 
-  .nav-btn:not(.primary) .btn-icon {
-    background: var(--surface-2);
-  }
-
   .btn-icon svg {
     width: 20px;
     height: 20px;
-    stroke: #ffffff;
+    stroke: #8a9bb0;
     fill: none;
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
 
-  .nav-btn:not(.primary) .btn-icon svg { stroke: var(--text-muted); }
+  .nav-btn.primary .btn-icon svg { stroke: #ffffff; }
 
   .btn-text { flex: 1; }
-  .btn-title { font-size: 17px; font-weight: 600; color: var(--text); }
-  .btn-sub { font-size: 12px; color: var(--text-hint); margin-top: 3px; }
+  .btn-title { font-size: 17px; font-weight: 600; color: #ffffff; }
+  .btn-sub { font-size: 12px; color: #5a6a7e; margin-top: 3px; }
+  .nav-btn.primary .btn-sub { color: #9fe1cb; }
 
-  .nav-btn.primary .btn-title { color: #ffffff; }
-  .nav-btn.primary .btn-sub { color: rgba(255,255,255,0.5); }
+  .btn-arrow { font-size: 22px; color: #2a3a50; line-height: 1; }
+  .nav-btn.primary .btn-arrow { color: #9fe1cb; }
 
-  .btn-arrow { font-size: 22px; color: var(--text-hint); line-height: 1; }
-  .nav-btn.primary .btn-arrow { color: rgba(255,255,255,0.35); }
-
-  /* ── Footer ── */
   .footer {
     text-align: center;
-    padding: 0 0 36px;
+    padding: 0 0 32px;
     font-size: 11px;
-    color: var(--text-hint);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    color: #2a3a50;
   }
 
   .logout-btn {
     background: none;
     border: none;
-    color: var(--text-hint);
+    color: #2a3a50;
     font-size: 11px;
-    font-family: var(--font);
     cursor: pointer;
     text-decoration: underline;
     display: block;
     margin: 6px auto 0;
-    letter-spacing: 0.05em;
   }
 </style>
 </head>
@@ -294,9 +242,12 @@
 <div class="main">
   <div class="logo-area">
     <div class="logo-mark">
-      <span class="logo-lex">LEX</span>
-      <div class="logo-pro-box"><span class="logo-pro">PRO</span></div>
+      <svg viewBox="0 0 24 24">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
     </div>
+    <div class="logo-name">Lex<span>Pro</span></div>
     <div class="logo-sub">Real Estate Command</div>
   </div>
 
@@ -420,6 +371,19 @@
   }
 
   loadStats();
+
+  // Dynamic notification dot
+  async function checkUnread() {
+    try {
+      const res = await fetch('https://dqiiekdfmocvizzvmwlc.supabase.co/rest/v1/notifications?is_read=eq.false&limit=1', {
+        headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM' }
+      });
+      const data = await res.json();
+      const dot = document.querySelector('.notif-dot');
+      if (dot) dot.style.display = data.length > 0 ? '' : 'none';
+    } catch(e) {}
+  }
+  checkUnread();
 
   function logout() {
     sessionStorage.removeItem('lexpro_user');
