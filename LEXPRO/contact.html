@@ -9,61 +9,152 @@
 <title>LexPro | Contact</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { min-height: 100vh; background: #0a0f1e; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; color: #ffffff; display: flex; flex-direction: column; }
-  .topbar { background: #111827; border-bottom: 1px solid #1e2d40; padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
-  .back-btn { width: 36px; height: 36px; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; cursor: pointer; }
+  body {
+    min-height: 100vh;
+    background: #0a0f1e;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+  }
+  .topbar {
+    background: #111827;
+    border-bottom: 1px solid #1e2d40;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-btn {
+    width: 36px; height: 36px;
+    background: #0a0f1e;
+    border: 1px solid #1e2d40;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none; flex-shrink: 0; cursor: pointer;
+  }
   .back-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .topbar-title { font-size: 18px; font-weight: 600; color: #ffffff; flex: 1; }
-  .topbar-icons { display: flex; gap: 8px; }
-  .icon-btn { width: 36px; height: 36px; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; position: relative; flex-shrink: 0; }
-  .icon-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .notif-dot { position: absolute; top: 7px; right: 7px; width: 6px; height: 6px; background: #2d9e6e; border-radius: 50%; border: 1.5px solid #0a0f1e; display: none; }
+
   .content { flex: 1; overflow-y: auto; padding-bottom: 120px; }
-  .profile-section { display: flex; flex-direction: column; align-items: center; padding: 32px 20px 24px; border-bottom: 1px solid #1e2d40; }
-  .avatar { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 16px; overflow: hidden; flex-shrink: 0; }
+
+  .profile-section {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 32px 20px 24px;
+    border-bottom: 1px solid #1e2d40;
+  }
+  .avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 700; color: #fff;
+    margin-bottom: 16px; overflow: hidden; flex-shrink: 0;
+  }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
   .contact-name { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-  .contact-category { font-size: 12px; color: #2d9e6e; background: rgba(45,158,110,0.12); border: 1px solid rgba(45,158,110,0.25); padding: 3px 10px; border-radius: 20px; margin-bottom: 16px; }
+  .contact-category {
+    font-size: 12px; color: #2d9e6e;
+    background: rgba(45,158,110,0.12);
+    border: 1px solid rgba(45,158,110,0.25);
+    padding: 3px 10px; border-radius: 20px; margin-bottom: 16px;
+  }
   .contact-meta { display: flex; gap: 20px; }
   .meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5a6a7e; text-decoration: none; }
   .meta-item svg { width: 14px; height: 14px; stroke: #5a6a7e; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
   .section { padding: 20px; border-bottom: 1px solid #1e2d40; }
   .section-title { font-size: 11px; font-weight: 600; color: #5a6a7e; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+
   .info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f1a2e; }
   .info-row:last-child { border-bottom: none; }
   .info-label { font-size: 13px; color: #5a6a7e; }
   .info-value { font-size: 13px; color: #ffffff; text-align: right; }
-  .touchpoint { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid #0f1a2e; }
+
+  .touchpoint {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 0; border-bottom: 1px solid #0f1a2e;
+  }
   .touchpoint:last-child { border-bottom: none; }
-  .tp-icon { width: 32px; height: 32px; border-radius: 8px; background: #1e2d40; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+  .tp-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: #1e2d40; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 14px;
+  }
   .tp-content { flex: 1; }
   .tp-method { font-size: 13px; font-weight: 600; color: #fff; }
   .tp-date { font-size: 11px; color: #5a6a7e; margin-top: 2px; }
   .tp-note { font-size: 12px; color: #8a9bb0; margin-top: 4px; font-style: italic; }
+
   .empty-touchpoints { text-align: center; color: #2a3a50; font-size: 13px; padding: 20px 0; }
-  .log-btn { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 20px 32px; background: linear-gradient(to top, #0a0f1e 60%, transparent); }
-  .log-btn button { width: 100%; padding: 16px; background: #1a6b4a; border: 1px solid #2d9e6e; border-radius: 14px; font-size: 17px; font-weight: 600; color: #fff; cursor: pointer; }
+
+  .log-btn {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 16px 20px 32px;
+    background: linear-gradient(to top, #0a0f1e 60%, transparent);
+  }
+  .log-btn button {
+    width: 100%; padding: 16px;
+    background: #1a6b4a; border: 1px solid #2d9e6e;
+    border-radius: 14px; font-size: 17px; font-weight: 600;
+    color: #fff; cursor: pointer;
+  }
   .log-btn button:active { opacity: 0.85; }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; align-items: flex-end; justify-content: center; }
+
+  /* LOG CONNECTION MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 100;
+    align-items: flex-end; justify-content: center;
+  }
   .modal-overlay.open { display: flex; }
-  .modal { background: #111827; border: 1px solid #1e2d40; border-radius: 24px 24px 0 0; padding: 24px 20px 48px; width: 100%; max-width: 480px; }
+  .modal {
+    background: #111827; border: 1px solid #1e2d40;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 48px; width: 100%; max-width: 480px;
+  }
   .modal-handle { width: 36px; height: 4px; background: #1e2d40; border-radius: 2px; margin: 0 auto 20px; }
   .modal-title { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 6px; }
   .modal-sub { font-size: 13px; color: #5a6a7e; margin-bottom: 20px; }
+
   .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .method-btn { padding: 14px 12px; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: border-color 0.15s; }
+  .method-btn {
+    padding: 14px 12px; background: #0a0f1e;
+    border: 1px solid #1e2d40; border-radius: 12px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; transition: border-color 0.15s;
+  }
   .method-btn:active { opacity: 0.8; }
   .method-btn.selected { border-color: #2d9e6e; background: rgba(45,158,110,0.1); }
   .method-icon { font-size: 20px; }
   .method-label { font-size: 14px; font-weight: 500; color: #fff; }
+
   .note-field { margin-bottom: 16px; }
   .note-field label { display: block; font-size: 11px; font-weight: 600; color: #5a6a7e; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
-  .note-field textarea { width: 100%; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #fff; outline: none; resize: none; height: 80px; font-family: inherit; }
+  .note-field textarea {
+    width: 100%; background: #0a0f1e; border: 1px solid #1e2d40;
+    border-radius: 10px; padding: 12px 14px; font-size: 14px;
+    color: #fff; outline: none; resize: none; height: 80px;
+    font-family: inherit;
+  }
   .note-field textarea:focus { border-color: #2d9e6e; }
-  .done-btn { width: 100%; padding: 15px; background: #1a6b4a; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; color: #fff; cursor: pointer; }
+
+  .done-btn {
+    width: 100%; padding: 15px; background: #1a6b4a;
+    border: none; border-radius: 12px; font-size: 16px;
+    font-weight: 600; color: #fff; cursor: pointer;
+  }
   .done-btn:disabled { opacity: 0.5; }
-  .cancel-btn { width: 100%; padding: 12px; background: none; border: none; font-size: 14px; color: #5a6a7e; cursor: pointer; margin-top: 8px; }
-  .success-banner { display: none; position: fixed; top: 80px; left: 20px; right: 20px; background: rgba(45,158,110,0.15); border: 1px solid rgba(45,158,110,0.4); border-radius: 12px; padding: 14px 16px; font-size: 14px; color: #2d9e6e; text-align: center; z-index: 200; }
+  .cancel-btn {
+    width: 100%; padding: 12px; background: none;
+    border: none; font-size: 14px; color: #5a6a7e;
+    cursor: pointer; margin-top: 8px;
+  }
+
+  .success-banner {
+    display: none; position: fixed; top: 80px; left: 20px; right: 20px;
+    background: rgba(45,158,110,0.15); border: 1px solid rgba(45,158,110,0.4);
+    border-radius: 12px; padding: 14px 16px;
+    font-size: 14px; color: #2d9e6e; text-align: center; z-index: 200;
+  }
 </style>
 </head>
 <body>
@@ -73,20 +164,16 @@
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </a>
   <div class="topbar-title" id="topbarName">Contact</div>
-  <div class="topbar-icons">
-    <a class="icon-btn" href="notifications.html">
-      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-      <div class="notif-dot" id="notifDot"></div>
-    </a>
-    <a class="icon-btn" href="calendar.html">
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    </a>
-  </div>
 </div>
 
 <div class="content">
   <div class="profile-section">
-    <div class="avatar" id="avatar" style="background:#1a6b4a">?</div>
+    <div class="avatar" id="avatar" style="background:#1a6b4a;cursor:pointer;position:relative" onclick="document.getElementById('photoInput').click()">?
+      <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#2d9e6e;border-radius:50%;border:2px solid #0a0f1e;display:flex;align-items:center;justify-content:center">
+        <svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+    </div>
+    <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="uploadPhoto(event)">
     <div class="contact-name" id="contactName">Loading...</div>
     <div class="contact-category" id="contactCategory">—</div>
     <div class="contact-meta">
@@ -124,6 +211,7 @@
 
 <div class="success-banner" id="successBanner">Connection logged successfully!</div>
 
+<!-- LOG CONNECTION MODAL -->
 <div class="modal-overlay" id="logModal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -163,18 +251,6 @@
 
   const user = JSON.parse(sessionStorage.getItem('lexpro_user') || '{}');
   if (!user.username) window.location.href = 'index.html';
-
-  async function checkUnread() {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/notifications?is_read=eq.false&limit=1`, {
-        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-      });
-      const data = await res.json();
-      if (data && data.length > 0) document.getElementById('notifDot').style.display = 'block';
-    } catch(e) {}
-  }
-
-  checkUnread();
 
   function getInitials(first, last) {
     return ((first?.[0] || '') + (last?.[0] || '')).toUpperCase() || '?';
@@ -228,6 +304,7 @@
 
     document.getElementById('infoSource').textContent = c.source || '—';
     document.getElementById('infoAdded').textContent = formatDate(c.dateAdded);
+
     const days = getDaysSince(c.dateLastContacted || c.dateUpdated);
     document.getElementById('infoLastContact').textContent = days === null ? '—' : days === 0 ? 'Today' : `${days} days ago`;
   }
@@ -240,10 +317,12 @@
       });
       const logs = await res.json();
       const list = document.getElementById('touchpointList');
+
       if (!logs || logs.length === 0) {
         list.innerHTML = '<div class="empty-touchpoints">No touchpoints logged yet</div>';
         return;
       }
+
       list.innerHTML = logs.map(log => `
         <div class="touchpoint">
           <div class="tp-icon">${METHOD_ICONS[log.method] || '📋'}</div>
@@ -254,7 +333,9 @@
           </div>
         </div>
       `).join('');
-    } catch(e) { console.error('Touchpoints error:', e); }
+    } catch (e) {
+      console.error('Touchpoints error:', e);
+    }
   }
 
   function selectMethod(method) {
@@ -264,7 +345,6 @@
   }
 
   function openModal() { document.getElementById('logModal').classList.add('open'); }
-
   function closeModal() {
     document.getElementById('logModal').classList.remove('open');
     selectedMethod = null;
@@ -282,33 +362,121 @@
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/touchpoint_log`, {
         method: 'POST',
-        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ ghl_contact_id: contactId, method: selectedMethod, notes: note || null, logged_by: user.username })
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          ghl_contact_id: contactId,
+          method: selectedMethod,
+          notes: note || null,
+          logged_by: user.username
+        })
       });
 
       await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${GHL_API_KEY}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ dateLastContacted: new Date().toISOString() })
       });
 
       closeModal();
       btn.disabled = false;
       btn.textContent = 'Done';
+
       const banner = document.getElementById('successBanner');
       banner.style.display = 'block';
       setTimeout(() => { banner.style.display = 'none'; }, 2500);
+
       loadTouchpoints();
       document.getElementById('infoLastContact').textContent = 'Today';
-    } catch(e) {
+
+    } catch (e) {
       alert('Error logging connection. Please try again.');
       btn.disabled = false;
       btn.textContent = 'Done';
     }
   }
 
-  if (contact && contact.id) renderContact(contact);
+  if (contact && contact.id) {
+    renderContact(contact);
+  }
   loadTouchpoints();
+  loadSavedPhoto();
+
+  async function uploadPhoto(event) {
+    const file = event.target.files[0];
+    if (!file || !contactId) return;
+
+    const avatarEl = document.getElementById('avatar');
+    avatarEl.style.opacity = '0.5';
+
+    try {
+      const ext = file.name.split('.').pop();
+      const fileName = `${contactId}.${ext}`;
+
+      const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/contact-photos/${fileName}`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': file.type,
+          'x-upsert': 'true'
+        },
+        body: file
+      });
+
+      if (!uploadRes.ok) throw new Error('Upload failed');
+
+      const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/contact-photos/${fileName}`;
+
+      await fetch(`${SUPABASE_URL}/rest/v1/contact_photos`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({ ghl_contact_id: contactId, photo_url: photoUrl })
+      });
+
+      avatarEl.style.opacity = '1';
+      avatarEl.innerHTML = `<img src="${photoUrl}?t=${Date.now()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
+        <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#2d9e6e;border-radius:50%;border:2px solid #0a0f1e;display:flex;align-items:center;justify-content:center">
+          <svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>`;
+
+    } catch(e) {
+      avatarEl.style.opacity = '1';
+      alert('Could not upload photo. Please try again.');
+    }
+  }
+
+  async function loadSavedPhoto() {
+    if (!contactId) return;
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/contact_photos?ghl_contact_id=eq.${contactId}&select=photo_url`, {
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      const data = await res.json();
+      if (data?.[0]?.photo_url) {
+        const avatarEl = document.getElementById('avatar');
+        avatarEl.innerHTML = `<img src="${data[0].photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'" />
+          <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#2d9e6e;border-radius:50%;border:2px solid #0a0f1e;display:flex;align-items:center;justify-content:center">
+            <svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>`;
+      }
+    } catch(e) {}
+  }
+
 </script>
 </body>
 </html>
