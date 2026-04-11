@@ -161,6 +161,7 @@
   <div class="tab" onclick="showTab('timeline', this)">Timeline</div>
   <div class="tab" onclick="showTab('checklist', this)">Checklist</div>
   <div class="tab" onclick="showTab('documents', this)">Documents</div>
+  <div class="tab" id="feedbackTab" onclick="showTab('feedback', this)" style="display:none">Feedback</div>
 </div>
 
 <div class="content">
@@ -207,6 +208,10 @@
   <div class="tab-panel" id="tab-documents">
     <div class="section-title">Transaction Documents</div>
     <div id="documentItems"></div>
+  </div>
+
+  <div class="tab-panel" id="tab-feedback">
+    <div id="feedbackContent"><div style="text-align:center;color:var(--text-hint);padding:40px 20px;font-size:14px">Loading feedback...</div></div>
   </div>
 </div>
 
@@ -374,7 +379,10 @@
     '54Gdv2cEKg93vHm8HQwT': 'seller__subject_property_zip_code',
     '68CnDjdBQPeGyhm8aXqb': 'mortgage_officer_email',
     'Y7FQh9wPSKrBx9sipzAp': 'mortgage_officer_last_name',
-    'x5SZAX9TfGPr5BYT71JS': 'mortgage_officer'
+    'x5SZAX9TfGPr5BYT71JS': 'mortgage_officer',
+    'WvWahmu2p2F5iB803LjN': 'showing_feedback_log',
+    '9OGoCRoGiCIOWM5S6Jlq': 'showing_feedback_request',
+    'n9dYdOwNYlQ2ErhXJolo': 'showing_feedback'
   };
 
   function buildCFMap(customFields) {
@@ -565,8 +573,7 @@
       return null;
     }).filter(Boolean);
     const upcomingText = upcomingDates.length > 0 ? 'URGENT - Coming up within 5 days:\n' + upcomingDates.join('\n') : 'No dates coming up in the next 5 days.';
-    const sideContext = side === 'buyer' ? 'Lex represents the BUYER. The buyer submits inspection notices and awaits the SELLER response on repairs/credits. Frame all inspection urgency from the buyer perspective.' : 'Lex represents the SELLER. The seller receives inspection notices and must respond with repair offers or credits. Frame all inspection urgency from the seller perspective.';
-    const prompt = 'You are a real estate transaction coordinator assistant for a Springfield MO real estate agent named Lex. Give a brief, plain-English status briefing for this transaction. Be direct and practical - 3-5 sentences max. If there are urgent upcoming dates lead with those. ' + sideContext + '\n\nClient: ' + contactName + '\nSide: ' + (side === 'buyer' ? 'Buyer' : 'Seller') + '\nCurrent Stage: ' + currentStage + '\nProgress: ' + checkedCount + ' of ' + steps.length + ' steps complete\nDays to Close: ' + (daysToClose !== null ? daysToClose + ' days' : 'No closing date set') + '\nTentative Closing Date: ' + closing + '\nAddress: ' + (cfMap['buyer__subject_property_street'] || cfMap['seller__subject_property_street'] || 'Not set') + '\n\n' + upcomingText + '\n\nWrite a quick briefing Lex can read in 10 seconds to know exactly where this deal stands. Call out any urgent dates first.';
+    const prompt = 'You are a real estate transaction coordinator assistant. Give a brief, plain-English status briefing for this transaction. Be direct and practical - 3-5 sentences max. If there are urgent upcoming dates lead with those.\n\nClient: ' + contactName + '\nSide: ' + (side === 'buyer' ? 'Buyer' : 'Seller') + '\nCurrent Stage: ' + currentStage + '\nProgress: ' + checkedCount + ' of ' + steps.length + ' steps complete\nDays to Close: ' + (daysToClose !== null ? daysToClose + ' days' : 'No closing date set') + '\nTentative Closing Date: ' + closing + '\nAddress: ' + (cfMap['buyer__subject_property_street'] || cfMap['seller__subject_property_street'] || 'Not set') + '\n\n' + upcomingText + '\n\nWrite a quick briefing Lex can read in 10 seconds to know exactly where this deal stands. Call out any urgent dates first.';
     try {
       const res = await fetch('/.netlify/functions/ai-summary', {
         method: 'POST',
@@ -665,6 +672,35 @@
 
   function closeAI() { document.getElementById('aiModal').classList.remove('open'); }
 
+  function renderFeedback() {
+    const container = document.getElementById('feedbackContent');
+    const log = cfMap['showing_feedback_log'];
+    if (!log || log.trim() === '') {
+      container.innerHTML = '<div style="text-align:center;color:var(--text-hint);padding:40px 20px;font-size:14px">No showing feedback yet.</div>';
+      return;
+    }
+    const entries = log.split(/Showing Feedback - /).filter(e => e.trim());
+    if (entries.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:var(--text-hint);padding:40px 20px;font-size:14px">No showing feedback yet.</div>';
+      return;
+    }
+    container.innerHTML = entries.reverse().map(entry => {
+      const lines = entry.trim().split('\n').filter(l => l.trim());
+      const timestamp = lines[0] || '';
+      const agentLine = lines.find(l => l.startsWith('Agent:')) || '';
+      const feedbackLine = lines.find(l => l.startsWith('Feedback:')) || '';
+      const agentName = agentLine.replace('Agent:', '').trim();
+      const feedbackText = feedbackLine.replace('Feedback:', '').trim();
+      const otherLines = lines.filter(l => !l.startsWith('Agent:') && !l.startsWith('Feedback:') && l !== lines[0]);
+      return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;margin-bottom:12px">' +
+        '<div style="font-size:10px;color:var(--text-hint);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em">' + timestamp + '</div>' +
+        (agentName ? '<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">' + agentName + '</div>' : '') +
+        (feedbackText ? '<div style="font-size:13px;color:var(--text-muted);line-height:1.65;margin-bottom:8px">' + feedbackText + '</div>' : '') +
+        otherLines.map(l => '<div style="font-size:12px;color:var(--text-hint)">' + l + '</div>').join('') +
+        '</div>';
+    }).join('');
+  }
+
   async function loadFullOpp() {
     if (!oppId) return;
     try {
@@ -683,10 +719,18 @@
     } catch(e) { console.error('loadFullOpp error:', e); }
     cfMap = buildCFMap(oppData.customFields);
     renderHero(); renderFields(); renderTimeline(); renderChecklist(); renderDocuments();
+    if (side === 'seller') {
+      document.getElementById('feedbackTab').style.display = '';
+      renderFeedback();
+    }
   }
 
   cfMap = buildCFMap(oppData.customFields);
   renderHero(); renderFields(); renderTimeline(); renderChecklist(); renderDocuments();
+  if (side === 'seller') {
+    document.getElementById('feedbackTab').style.display = '';
+    renderFeedback();
+  }
   loadFullOpp();
 </script>
 </body>
