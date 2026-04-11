@@ -6,155 +6,102 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LexPro">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <title>LexPro | Contact</title>
 <style>
+  :root {
+    --bg:           #ffffff;
+    --surface:      #f7f7f7;
+    --surface-2:    #f0f0f0;
+    --border:       #e8e8e8;
+    --border-inner: #f0f0f0;
+    --primary:      #111111;
+    --text:         #111111;
+    --text-muted:   #666666;
+    --text-hint:    #999999;
+    --success-bg:   rgba(34,139,34,0.07);
+    --success-border: rgba(34,139,34,0.2);
+    --success-text: #1a7a1a;
+    --font:         'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm:    10px;
+    --radius-md:    14px;
+    --radius-lg:    20px;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    min-height: 100vh;
-    background: #0a0f1e;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-    color: #ffffff;
-    display: flex;
-    flex-direction: column;
-  }
-  .topbar {
-    background: #111827;
-    border-bottom: 1px solid #1e2d40;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .back-btn {
-    width: 36px; height: 36px;
-    background: #0a0f1e;
-    border: 1px solid #1e2d40;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    text-decoration: none; flex-shrink: 0; cursor: pointer;
-  }
-  .back-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-  .topbar-title { font-size: 18px; font-weight: 600; color: #ffffff; flex: 1; }
+  body { min-height: 100vh; background: var(--bg); font-family: var(--font); color: var(--text); display: flex; flex-direction: column; }
+
+  .topbar { background: var(--primary); padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+  .back-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; cursor: pointer; transition: background 0.15s; }
+  .back-btn:active { background: rgba(255,255,255,0.15); }
+  .back-btn svg { width: 16px; height: 16px; stroke: #ffffff; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .topbar-title { font-size: 18px; font-weight: 600; color: #ffffff; flex: 1; letter-spacing: -0.2px; }
 
   .content { flex: 1; overflow-y: auto; padding-bottom: 120px; }
 
-  .profile-section {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 32px 20px 24px;
-    border-bottom: 1px solid #1e2d40;
-  }
-  .avatar {
-    width: 80px; height: 80px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px; font-weight: 700; color: #fff;
-    margin-bottom: 16px; overflow: hidden; flex-shrink: 0;
-  }
+  .profile-section { display: flex; flex-direction: column; align-items: center; padding: 32px 20px 24px; border-bottom: 1px solid var(--border); background: var(--bg); }
+
+  .avatar { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 16px; overflow: hidden; flex-shrink: 0; position: relative; cursor: pointer; }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .contact-name { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-  .contact-category {
-    font-size: 12px; color: #2d9e6e;
-    background: rgba(45,158,110,0.12);
-    border: 1px solid rgba(45,158,110,0.25);
-    padding: 3px 10px; border-radius: 20px; margin-bottom: 16px;
-  }
-  .contact-meta { display: flex; gap: 20px; }
-  .meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5a6a7e; text-decoration: none; }
-  .meta-item svg { width: 14px; height: 14px; stroke: #5a6a7e; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .avatar-plus { position: absolute; bottom: 0; right: 0; width: 22px; height: 22px; background: var(--primary); border-radius: 50%; border: 2px solid var(--bg); display: flex; align-items: center; justify-content: center; }
+  .avatar-plus svg { width: 10px; height: 10px; stroke: #fff; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 
-  .section { padding: 20px; border-bottom: 1px solid #1e2d40; }
-  .section-title { font-size: 11px; font-weight: 600; color: #5a6a7e; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+  .contact-name { font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 6px; letter-spacing: -0.3px; }
+  .contact-category { font-size: 11px; color: var(--text-muted); background: var(--surface-2); border: 1px solid var(--border); padding: 3px 12px; border-radius: 20px; margin-bottom: 18px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
 
-  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f1a2e; }
+  .contact-meta { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); text-decoration: none; padding: 6px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); transition: background 0.15s; }
+  .meta-item:active { background: var(--surface-2); }
+  .meta-item svg { width: 14px; height: 14px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .section { padding: 20px; border-bottom: 1px solid var(--border); }
+  .section-title { font-size: 10px; font-weight: 600; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 14px; }
+
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-inner); }
   .info-row:last-child { border-bottom: none; }
-  .info-label { font-size: 13px; color: #5a6a7e; }
-  .info-value { font-size: 13px; color: #ffffff; text-align: right; }
+  .info-label { font-size: 13px; color: var(--text-muted); }
+  .info-value { font-size: 13px; color: var(--text); font-weight: 500; text-align: right; }
 
-  .touchpoint {
-    display: flex; gap: 12px; align-items: flex-start;
-    padding: 12px 0; border-bottom: 1px solid #0f1a2e;
-  }
+  .touchpoint { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border-inner); }
   .touchpoint:last-child { border-bottom: none; }
-  .tp-icon {
-    width: 32px; height: 32px; border-radius: 8px;
-    background: #1e2d40; display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; font-size: 14px;
-  }
+  .tp-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
   .tp-content { flex: 1; }
-  .tp-method { font-size: 13px; font-weight: 600; color: #fff; }
-  .tp-date { font-size: 11px; color: #5a6a7e; margin-top: 2px; }
-  .tp-note { font-size: 12px; color: #8a9bb0; margin-top: 4px; font-style: italic; }
+  .tp-method { font-size: 13px; font-weight: 600; color: var(--text); }
+  .tp-date { font-size: 11px; color: var(--text-hint); margin-top: 2px; }
+  .tp-note { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-style: italic; }
+  .empty-touchpoints { text-align: center; color: var(--text-hint); font-size: 13px; padding: 20px 0; }
 
-  .empty-touchpoints { text-align: center; color: #2a3a50; font-size: 13px; padding: 20px 0; }
-
-  .log-btn {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    padding: 16px 20px 32px;
-    background: linear-gradient(to top, #0a0f1e 60%, transparent);
-  }
-  .log-btn button {
-    width: 100%; padding: 16px;
-    background: #1a6b4a; border: 1px solid #2d9e6e;
-    border-radius: 14px; font-size: 17px; font-weight: 600;
-    color: #fff; cursor: pointer;
-  }
+  .log-btn { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 20px 36px; background: linear-gradient(to top, var(--bg) 65%, transparent); }
+  .log-btn button { width: 100%; padding: 16px; background: var(--primary); border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; font-family: var(--font); color: #fff; cursor: pointer; letter-spacing: 0.04em; transition: opacity 0.15s; }
   .log-btn button:active { opacity: 0.85; }
 
-  /* LOG CONNECTION MODAL */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75); z-index: 100;
-    align-items: flex-end; justify-content: center;
-  }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: flex-end; justify-content: center; }
   .modal-overlay.open { display: flex; }
-  .modal {
-    background: #111827; border: 1px solid #1e2d40;
-    border-radius: 24px 24px 0 0;
-    padding: 24px 20px 48px; width: 100%; max-width: 480px;
-  }
-  .modal-handle { width: 36px; height: 4px; background: #1e2d40; border-radius: 2px; margin: 0 auto 20px; }
-  .modal-title { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 6px; }
-  .modal-sub { font-size: 13px; color: #5a6a7e; margin-bottom: 20px; }
+  .modal { background: var(--bg); border: 1px solid var(--border); border-radius: 24px 24px 0 0; padding: 24px 20px 48px; width: 100%; max-width: 480px; box-shadow: 0 -4px 32px rgba(0,0,0,0.1); }
+  .modal-handle { width: 36px; height: 4px; background: var(--surface-2); border-radius: 2px; margin: 0 auto 20px; }
+  .modal-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; letter-spacing: -0.2px; }
+  .modal-sub { font-size: 13px; color: var(--text-hint); margin-bottom: 20px; }
 
   .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .method-btn {
-    padding: 14px 12px; background: #0a0f1e;
-    border: 1px solid #1e2d40; border-radius: 12px;
-    display: flex; align-items: center; gap: 10px;
-    cursor: pointer; transition: border-color 0.15s;
-  }
+  .method-btn { padding: 13px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; align-items: center; gap: 10px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
   .method-btn:active { opacity: 0.8; }
-  .method-btn.selected { border-color: #2d9e6e; background: rgba(45,158,110,0.1); }
-  .method-icon { font-size: 20px; }
-  .method-label { font-size: 14px; font-weight: 500; color: #fff; }
+  .method-btn.selected { border-color: var(--primary); background: var(--surface-2); }
+  .method-icon { font-size: 18px; }
+  .method-label { font-size: 13px; font-weight: 500; color: var(--text); }
 
   .note-field { margin-bottom: 16px; }
-  .note-field label { display: block; font-size: 11px; font-weight: 600; color: #5a6a7e; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
-  .note-field textarea {
-    width: 100%; background: #0a0f1e; border: 1px solid #1e2d40;
-    border-radius: 10px; padding: 12px 14px; font-size: 14px;
-    color: #fff; outline: none; resize: none; height: 80px;
-    font-family: inherit;
-  }
-  .note-field textarea:focus { border-color: #2d9e6e; }
+  .note-field label { display: block; font-size: 9px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 6px; }
+  .note-field textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 14px; font-family: var(--font); color: var(--text); outline: none; resize: none; height: 80px; transition: border-color 0.15s; }
+  .note-field textarea:focus { border-color: var(--primary); background: var(--bg); }
+  .note-field textarea::placeholder { color: var(--text-hint); }
 
-  .done-btn {
-    width: 100%; padding: 15px; background: #1a6b4a;
-    border: none; border-radius: 12px; font-size: 16px;
-    font-weight: 600; color: #fff; cursor: pointer;
-  }
-  .done-btn:disabled { opacity: 0.5; }
-  .cancel-btn {
-    width: 100%; padding: 12px; background: none;
-    border: none; font-size: 14px; color: #5a6a7e;
-    cursor: pointer; margin-top: 8px;
-  }
+  .done-btn { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: var(--font); color: #fff; cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase; transition: opacity 0.15s; }
+  .done-btn:disabled { opacity: 0.45; }
+  .cancel-btn { width: 100%; padding: 12px; background: none; border: none; font-size: 14px; font-family: var(--font); color: var(--text-hint); cursor: pointer; margin-top: 6px; }
 
-  .success-banner {
-    display: none; position: fixed; top: 80px; left: 20px; right: 20px;
-    background: rgba(45,158,110,0.15); border: 1px solid rgba(45,158,110,0.4);
-    border-radius: 12px; padding: 14px 16px;
-    font-size: 14px; color: #2d9e6e; text-align: center; z-index: 200;
-  }
+  .success-banner { display: none; position: fixed; top: 80px; left: 20px; right: 20px; background: var(--success-bg); border: 1px solid var(--success-border); border-radius: var(--radius-md); padding: 14px 16px; font-size: 14px; font-weight: 500; color: var(--success-text); text-align: center; z-index: 200; }
 </style>
 </head>
 <body>
@@ -168,9 +115,9 @@
 
 <div class="content">
   <div class="profile-section">
-    <div class="avatar" id="avatar" style="background:#1a6b4a;cursor:pointer;position:relative" onclick="document.getElementById('photoInput').click()">?
-      <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#2d9e6e;border-radius:50%;border:2px solid #0a0f1e;display:flex;align-items:center;justify-content:center">
-        <svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <div class="avatar" id="avatar" style="background:#333333;" onclick="document.getElementById('photoInput').click()">?
+      <div class="avatar-plus">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </div>
     </div>
     <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="uploadPhoto(event)">
@@ -211,19 +158,18 @@
 
 <div class="success-banner" id="successBanner">Connection logged successfully!</div>
 
-<!-- LOG CONNECTION MODAL -->
 <div class="modal-overlay" id="logModal">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Log Connection</div>
     <div class="modal-sub" id="modalSub">How did you connect?</div>
     <div class="method-grid">
-      <div class="method-btn" onclick="selectMethod('Call')"><span class="method-icon">📞</span><span class="method-label">Call</span></div>
-      <div class="method-btn" onclick="selectMethod('Text')"><span class="method-icon">💬</span><span class="method-label">Text</span></div>
-      <div class="method-btn" onclick="selectMethod('Coffee / Lunch')"><span class="method-icon">☕</span><span class="method-label">Coffee / Lunch</span></div>
-      <div class="method-btn" onclick="selectMethod('Stopped By')"><span class="method-icon">🚗</span><span class="method-label">Stopped By</span></div>
-      <div class="method-btn" onclick="selectMethod('Event / Open House')"><span class="method-icon">🎉</span><span class="method-label">Event</span></div>
-      <div class="method-btn" onclick="selectMethod('Social Media')"><span class="method-icon">📱</span><span class="method-label">Social Media</span></div>
+      <div class="method-btn" onclick="selectMethod('Call', this)"><span class="method-icon">📞</span><span class="method-label">Call</span></div>
+      <div class="method-btn" onclick="selectMethod('Text', this)"><span class="method-icon">💬</span><span class="method-label">Text</span></div>
+      <div class="method-btn" onclick="selectMethod('Coffee / Lunch', this)"><span class="method-icon">☕</span><span class="method-label">Coffee / Lunch</span></div>
+      <div class="method-btn" onclick="selectMethod('Stopped By', this)"><span class="method-icon">🚗</span><span class="method-label">Stopped By</span></div>
+      <div class="method-btn" onclick="selectMethod('Event / Open House', this)"><span class="method-icon">🎉</span><span class="method-label">Event</span></div>
+      <div class="method-btn" onclick="selectMethod('Social Media', this)"><span class="method-icon">📱</span><span class="method-label">Social Media</span></div>
     </div>
     <div class="note-field">
       <label>Quick Note (optional)</label>
@@ -239,7 +185,7 @@
   const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM';
 
-  const AVATAR_COLORS = ['#1a6b4a','#185fa5','#854f0b','#993556','#534ab7','#993c1d'];
+  const AVATAR_COLORS = ['#2a2a2a','#444444','#333333','#555555','#1a1a1a','#3a3a3a'];
   const CAT_LABELS = { undercontract: 'Under Contract', pastclient: 'Past Client', nonrealestate: 'Non-Real Estate' };
   const METHOD_ICONS = { 'Call':'📞','Text':'💬','Coffee / Lunch':'☕','Stopped By':'🚗','Event / Open House':'🎉','Social Media':'📱' };
 
@@ -286,10 +232,11 @@
 
     const avatarEl = document.getElementById('avatar');
     avatarEl.style.background = color;
+    const plusBtn = `<div class="avatar-plus"><svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>`;
     if (c.profilePhoto) {
-      avatarEl.innerHTML = `<img src="${c.profilePhoto}" onerror="this.parentElement.textContent='${initials}'" />`;
+      avatarEl.innerHTML = `<img src="${c.profilePhoto}" onerror="this.style.display='none'" />${plusBtn}`;
     } else {
-      avatarEl.textContent = initials;
+      avatarEl.innerHTML = initials + plusBtn;
     }
 
     if (c.phone) {
@@ -317,12 +264,10 @@
       });
       const logs = await res.json();
       const list = document.getElementById('touchpointList');
-
       if (!logs || logs.length === 0) {
         list.innerHTML = '<div class="empty-touchpoints">No touchpoints logged yet</div>';
         return;
       }
-
       list.innerHTML = logs.map(log => `
         <div class="touchpoint">
           <div class="tp-icon">${METHOD_ICONS[log.method] || '📋'}</div>
@@ -333,15 +278,13 @@
           </div>
         </div>
       `).join('');
-    } catch (e) {
-      console.error('Touchpoints error:', e);
-    }
+    } catch (e) { console.error('Touchpoints error:', e); }
   }
 
-  function selectMethod(method) {
+  function selectMethod(method, el) {
     selectedMethod = method;
     document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
+    el.classList.add('selected');
   }
 
   function openModal() { document.getElementById('logModal').classList.add('open'); }
@@ -358,46 +301,25 @@
     const btn = document.getElementById('doneBtn');
     btn.disabled = true;
     btn.textContent = 'Logging...';
-
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/touchpoint_log`, {
         method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          ghl_contact_id: contactId,
-          method: selectedMethod,
-          notes: note || null,
-          logged_by: user.username
-        })
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ ghl_contact_id: contactId, method: selectedMethod, notes: note || null, logged_by: user.username })
       });
-
       await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${GHL_API_KEY}`,
-          'Version': '2021-07-28',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ dateLastContacted: new Date().toISOString() })
       });
-
       closeModal();
       btn.disabled = false;
       btn.textContent = 'Done';
-
       const banner = document.getElementById('successBanner');
       banner.style.display = 'block';
       setTimeout(() => { banner.style.display = 'none'; }, 2500);
-
       loadTouchpoints();
       document.getElementById('infoLastContact').textContent = 'Today';
-
     } catch (e) {
       alert('Error logging connection. Please try again.');
       btn.disabled = false;
@@ -405,38 +327,11 @@
     }
   }
 
-  if (contact && contact.id) {
-    renderContact(contact);
-  }
-  loadTouchpoints();
-  loadSavedPhoto();
-
-  // Smart back button
-  const fromParam = new URLSearchParams(window.location.search).get('from');
-  if (fromParam === 'notifications') {
-    document.getElementById('backBtn').href = 'notifications.html';
-  }
-
-  // Notification dot
-  async function checkUnread() {
-    try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/notifications?is_read=eq.false&limit=1', {
-        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
-      });
-      const data = await res.json();
-      const dots = document.querySelectorAll('.notif-dot');
-      dots.forEach(d => d.style.display = data.length > 0 ? '' : 'none');
-    } catch(e) {}
-  }
-  checkUnread();
-
   async function uploadPhoto(event) {
     const file = event.target.files[0];
     if (!file || !contactId) return;
-
     const avatarEl = document.getElementById('avatar');
     avatarEl.style.opacity = '0.5';
-
     try {
       let ext = file.name.split('.').pop().toLowerCase();
       if (ext === 'jfif' || ext === 'jpeg') ext = 'jpg';
@@ -444,36 +339,22 @@
 
       const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/contact-photos/${fileName}`, {
         method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': file.type,
-          'x-upsert': 'true'
-        },
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': file.type, 'x-upsert': 'true' },
         body: file
       });
-
       if (!uploadRes.ok) throw new Error('Upload failed');
 
       const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/contact-photos/${fileName}`;
 
       await fetch(`${SUPABASE_URL}/rest/v1/contact_photos`, {
         method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates'
-        },
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
         body: JSON.stringify({ ghl_contact_id: contactId, photo_url: photoUrl })
       });
 
+      const plusBtn = `<div class="avatar-plus"><svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>`;
       avatarEl.style.opacity = '1';
-      avatarEl.innerHTML = `<img src="${photoUrl}?t=${Date.now()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
-        <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#2d9e6e;border-radius:50%;border:2px solid #0a0f1e;display:flex;align-items:center;justify-content:center">
-          <svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </div>`;
-
+      avatarEl.innerHTML = `<img src="${photoUrl}?t=${Date.now()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />${plusBtn}`;
     } catch(e) {
       avatarEl.style.opacity = '1';
       alert('Could not upload photo. Please try again.');
@@ -488,15 +369,35 @@
       });
       const data = await res.json();
       if (data?.[0]?.photo_url) {
+        const plusBtn = `<div class="avatar-plus"><svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>`;
         const avatarEl = document.getElementById('avatar');
-        avatarEl.innerHTML = `<img src="${data[0].photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'" />
-          <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#2d9e6e;border-radius:50%;border:2px solid #0a0f1e;display:flex;align-items:center;justify-content:center">
-            <svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </div>`;
+        avatarEl.innerHTML = `<img src="${data[0].photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'" />${plusBtn}`;
       }
     } catch(e) {}
   }
 
+  if (contact && contact.id) { renderContact(contact); }
+  loadTouchpoints();
+  loadSavedPhoto();
+
+  // Smart back button
+  const fromParam = new URLSearchParams(window.location.search).get('from');
+  if (fromParam === 'notifications') {
+    document.getElementById('backBtn').href = 'notifications.html';
+  }
+
+  // Dynamic notification dot
+  async function checkUnread() {
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/notifications?is_read=eq.false&limit=1', {
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+      });
+      const data = await res.json();
+      const dots = document.querySelectorAll('.notif-dot');
+      dots.forEach(d => d.style.display = data.length > 0 ? '' : 'none');
+    } catch(e) {}
+  }
+  checkUnread();
 </script>
 </body>
 </html>
