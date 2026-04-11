@@ -6,135 +6,112 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LexPro">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <title>LexPro | Transaction</title>
 <style>
-  :root {
-    --bg:           #ffffff;
-    --surface:      #f7f7f7;
-    --surface-2:    #f0f0f0;
-    --border:       #e8e8e8;
-    --border-inner: #f0f0f0;
-    --primary:      #111111;
-    --text:         #111111;
-    --text-muted:   #666666;
-    --text-hint:    #999999;
-    --font:         'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-    --radius-sm:    10px;
-    --radius-md:    14px;
-    --radius-lg:    20px;
-  }
-
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { min-height: 100vh; background: var(--bg); font-family: var(--font); color: var(--text); display: flex; flex-direction: column; }
+  body { min-height: 100vh; background: #0a0f1e; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; color: #fff; display: flex; flex-direction: column; }
 
-  /* ── Top Bar ── */
-  .topbar { background: var(--primary); padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
-  .back-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; }
-  .back-btn svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-  .topbar-title { font-size: 17px; font-weight: 600; color: #fff; flex: 1; letter-spacing: -0.2px; }
+  .topbar { background: #111827; border-bottom: 1px solid #1e2d40; padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+  .back-btn { width: 36px; height: 36px; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; }
+  .back-btn svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .topbar-title { font-size: 17px; font-weight: 600; color: #fff; flex: 1; }
 
-  /* ── Hero ── */
-  .hero { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 20px; }
-  .hero-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-  .hero-name { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
-  .hero-address { font-size: 12px; color: var(--text-hint); margin-top: 3px; }
-
-  .countdown { font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 20px; flex-shrink: 0; margin-left: 10px; white-space: nowrap; }
-  .countdown.green { background: rgba(34,139,34,0.08); color: #1a7a1a; border: 1px solid rgba(34,139,34,0.2); }
-  .countdown.amber { background: rgba(184,110,0,0.08); color: #b86e00; border: 1px solid rgba(184,110,0,0.2); }
-  .countdown.red { background: rgba(204,34,51,0.08); color: #cc2233; border: 1px solid rgba(204,34,51,0.2); }
-  .countdown.gray { background: var(--surface-2); color: var(--text-hint); border: 1px solid var(--border); }
-
-  .progress-bar { height: 3px; background: var(--surface-2); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
-  .progress-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width 0.3s; }
+  .hero {
+    background: #111827; border-bottom: 1px solid #1e2d40; padding: 16px 20px;
+  }
+  .hero-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .hero-name { font-size: 20px; font-weight: 700; color: #fff; }
+  .hero-address { font-size: 12px; color: #5a6a7e; margin-top: 2px; }
+  .countdown { font-size: 14px; font-weight: 700; padding: 5px 12px; border-radius: 20px; flex-shrink: 0; margin-left: 8px; }
+  .countdown.green { background: rgba(45,158,110,0.15); color: #2d9e6e; border: 1px solid rgba(45,158,110,0.3); }
+  .countdown.amber { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+  .countdown.red { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+  .countdown.gray { background: rgba(90,106,126,0.15); color: #5a6a7e; border: 1px solid rgba(90,106,126,0.3); }
+  .progress-bar { height: 4px; background: #1e2d40; border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: #2d9e6e; border-radius: 2px; }
   .progress-row { display: flex; justify-content: space-between; }
-  .progress-label { font-size: 11px; color: var(--text-hint); }
+  .progress-label { font-size: 11px; color: #5a6a7e; }
 
-  .ai-btn { width: 100%; margin-top: 14px; padding: 11px; background: var(--primary); border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: var(--font); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.06em; text-transform: uppercase; transition: opacity 0.15s; }
-  .ai-btn:active { opacity: 0.85; }
-  .ai-btn svg { width: 15px; height: 15px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .ai-btn { width: 100%; margin-top: 12px; padding: 11px; background: rgba(83,74,183,0.15); border: 1px solid rgba(83,74,183,0.35); border-radius: 10px; font-size: 14px; font-weight: 600; color: #7f77dd; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .ai-btn svg { width: 16px; height: 16px; stroke: #7f77dd; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-  /* ── Tabs ── */
-  .tabs { display: flex; background: var(--bg); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+  .tabs { display: flex; background: #111827; border-bottom: 1px solid #1e2d40; overflow-x: auto; scrollbar-width: none; }
   .tabs::-webkit-scrollbar { display: none; }
-  .tab { flex-shrink: 0; padding: 13px 18px; font-size: 13px; font-weight: 600; color: var(--text-hint); border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; transition: color 0.15s; }
-  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab { flex-shrink: 0; padding: 12px 16px; font-size: 13px; font-weight: 600; color: #5a6a7e; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
+  .tab.active { color: #2d9e6e; border-bottom-color: #2d9e6e; }
 
-  /* ── Content ── */
   .content { flex: 1; overflow-y: auto; padding: 16px 16px 40px; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
-  .section-title { font-size: 10px; font-weight: 600; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 10px; margin-top: 20px; }
+  .section-title { font-size: 11px; font-weight: 600; color: #5a6a7e; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; margin-top: 20px; }
   .section-title:first-child { margin-top: 0; }
 
-  /* ── Info Cards ── */
-  .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px; }
-  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 14px; border-bottom: 1px solid var(--border-inner); cursor: pointer; transition: background 0.12s; }
+  .info-card { background: #111827; border: 1px solid #1e2d40; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid #0f1a2e; cursor: pointer; }
   .info-row:last-child { border-bottom: none; }
-  .info-row:active { background: var(--surface-2); }
-  .info-label { font-size: 13px; color: var(--text-muted); }
-  .info-value { font-size: 13px; color: var(--text); text-align: right; max-width: 60%; display: flex; align-items: center; gap: 6px; font-weight: 500; }
-  .edit-icon { width: 13px; height: 13px; stroke: var(--text-hint); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-
-  /* ── Edit Modal ── */
-  .edit-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: flex-end; justify-content: center; }
+  .info-row:active { background: rgba(255,255,255,0.03); }
+  .info-label { font-size: 13px; color: #5a6a7e; }
+  .info-value { font-size: 13px; color: #fff; text-align: right; max-width: 60%; display: flex; align-items: center; gap: 6px; }
+  .edit-icon { width: 14px; height: 14px; stroke: #2a3a50; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .edit-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: flex-end; justify-content: center; }
   .edit-modal.open { display: flex; }
-  .edit-modal-inner { background: var(--bg); border: 1px solid var(--border); border-radius: 24px 24px 0 0; padding: 24px 20px 48px; width: 100%; max-width: 480px; box-shadow: 0 -4px 32px rgba(0,0,0,0.08); }
-  .edit-handle { width: 36px; height: 4px; background: var(--surface-2); border-radius: 2px; margin: 0 auto 20px; }
-  .edit-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
-  .edit-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-size: 16px; font-family: var(--font); color: var(--text); outline: none; transition: border-color 0.15s; }
-  .edit-input:focus { border-color: var(--primary); background: var(--bg); }
-  .edit-save { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: var(--font); color: #fff; cursor: pointer; margin-top: 12px; letter-spacing: 0.06em; text-transform: uppercase; transition: opacity 0.15s; }
-  .edit-save:disabled { opacity: 0.45; }
-  .edit-cancel { width: 100%; padding: 12px; background: none; border: none; font-size: 14px; font-family: var(--font); color: var(--text-hint); cursor: pointer; margin-top: 6px; }
+  .edit-modal-inner { background: #111827; border: 1px solid #1e2d40; border-radius: 24px 24px 0 0; padding: 24px 20px 48px; width: 100%; max-width: 480px; }
+  .edit-handle { width: 36px; height: 4px; background: #1e2d40; border-radius: 2px; margin: 0 auto 20px; }
+  .edit-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+  .edit-input { width: 100%; background: #0a0f1e; border: 1px solid #1e2d40; border-radius: 10px; padding: 14px; font-size: 16px; color: #fff; outline: none; font-family: inherit; }
+  .edit-input:focus { border-color: #2d9e6e; }
+  .edit-save { width: 100%; padding: 15px; background: #1a6b4a; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; color: #fff; cursor: pointer; margin-top: 12px; }
+  .edit-save:disabled { opacity: 0.5; }
+  .edit-cancel { width: 100%; padding: 12px; background: none; border: none; font-size: 14px; color: #5a6a7e; cursor: pointer; margin-top: 8px; }
 
-  /* ── Timeline ── */
-  .tl-item { display: flex; gap: 12px; align-items: flex-start; }
-  .tl-spine { display: flex; flex-direction: column; align-items: center; width: 16px; flex-shrink: 0; padding-top: 2px; }
-  .tl-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-  .tl-line { width: 2px; flex: 1; min-height: 24px; margin-top: 3px; }
-  .tl-content { flex: 1; padding-bottom: 16px; }
-  .tl-label { font-size: 14px; font-weight: 600; }
-  .tl-date { font-size: 12px; margin-top: 2px; font-weight: 500; }
+  /* TIMELINE */
+  .timeline { display: flex; overflow-x: auto; gap: 0; padding: 4px 0 12px; scrollbar-width: none; margin-bottom: 8px; }
+  .timeline::-webkit-scrollbar { display: none; }
+  .tl-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; width: 90px; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 50%; background: #1e2d40; border: 2px solid #2a3a50; margin-bottom: 6px; position: relative; z-index: 1; }
+  .tl-dot.filled { background: #2d9e6e; border-color: #2d9e6e; }
+  .tl-dot.upcoming { background: #0a0f1e; border-color: #378add; }
+  .tl-label { font-size: 9px; color: #5a6a7e; text-align: center; line-height: 1.3; }
+  .tl-date { font-size: 9px; color: #2d9e6e; text-align: center; margin-top: 2px; font-weight: 600; }
+  .tl-date.upcoming { color: #378add; }
+  .tl-line { flex: 1; height: 2px; background: #1e2d40; margin-top: -7px; min-width: 20px; }
+  .tl-line.filled { background: #2d9e6e; }
+  .tl-row { display: flex; align-items: center; width: 100%; margin-bottom: 4px; }
 
-  /* ── Checklist ── */
-  .checklist-item { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
-  .checklist-item.checked { border-color: rgba(34,139,34,0.25); background: rgba(34,139,34,0.04); }
-  .checklist-item:active { background: var(--surface-2); }
-  .check-box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--bg); transition: background 0.15s, border-color 0.15s; }
-  .checklist-item.checked .check-box { background: var(--primary); border-color: var(--primary); }
+  /* CHECKLIST */
+  .checklist-item { display: flex; align-items: center; gap: 12px; padding: 14px; background: #111827; border: 1px solid #1e2d40; border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
+  .checklist-item.checked { border-color: rgba(45,158,110,0.3); background: rgba(45,158,110,0.05); }
+  .check-box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid #2a3a50; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .checklist-item.checked .check-box { background: #2d9e6e; border-color: #2d9e6e; }
   .check-box svg { width: 12px; height: 12px; stroke: #fff; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; display: none; }
   .checklist-item.checked .check-box svg { display: block; }
-  .check-label { font-size: 14px; color: var(--text); font-weight: 500; }
-  .checklist-item.checked .check-label { color: var(--text-hint); text-decoration: line-through; }
-  .checklist-progress { display: flex; justify-content: space-between; margin-bottom: 10px; }
-  .checklist-pct { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+  .check-label { font-size: 14px; color: #fff; }
+  .checklist-item.checked .check-label { color: #5a6a7e; text-decoration: line-through; }
+  .checklist-progress { display: flex; justify-content: space-between; margin-bottom: 12px; }
+  .checklist-pct { font-size: 13px; color: #2d9e6e; font-weight: 600; }
 
-  /* ── Documents ── */
-  .doc-item { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 8px; }
-  .doc-left { display: flex; align-items: flex-start; gap: 10px; flex: 1; }
-  .doc-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .doc-icon svg { width: 15px; height: 15px; stroke: var(--text-hint); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .doc-name { font-size: 13px; color: var(--text); font-weight: 500; }
-  .doc-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
-  .doc-badge.received { background: rgba(34,139,34,0.08); color: #1a7a1a; border: 1px solid rgba(34,139,34,0.2); }
-  .doc-badge.awaiting { background: var(--surface-2); color: var(--text-hint); border: 1px solid var(--border); }
+  /* DOCUMENTS */
+  .doc-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: #111827; border: 1px solid #1e2d40; border-radius: 12px; margin-bottom: 8px; }
+  .doc-left { display: flex; align-items: center; gap: 10px; }
+  .doc-icon { width: 36px; height: 36px; border-radius: 8px; background: #1e2d40; display: flex; align-items: center; justify-content: center; }
+  .doc-icon svg { width: 16px; height: 16px; stroke: #8a9bb0; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .doc-name { font-size: 13px; color: #fff; font-weight: 500; }
+  .doc-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+  .doc-badge.received { background: rgba(45,158,110,0.15); color: #2d9e6e; border: 1px solid rgba(45,158,110,0.3); }
+  .doc-badge.awaiting { background: rgba(90,106,126,0.1); color: #5a6a7e; border: 1px solid #1e2d40; }
 
-  /* ── AI Modal ── */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: flex-end; justify-content: center; }
+  /* AI SUMMARY MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; align-items: flex-end; justify-content: center; }
   .modal-overlay.open { display: flex; }
-  .modal { background: var(--bg); border: 1px solid var(--border); border-radius: 24px 24px 0 0; padding: 24px 20px 48px; width: 100%; max-width: 480px; max-height: 70vh; overflow-y: auto; box-shadow: 0 -4px 32px rgba(0,0,0,0.08); }
-  .modal-handle { width: 36px; height: 4px; background: var(--surface-2); border-radius: 2px; margin: 0 auto 20px; }
-  .modal-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.2px; }
-  .modal-title svg { width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .modal-body { font-size: 14px; color: var(--text-muted); line-height: 1.75; }
-  .modal-close { width: 100%; padding: 14px; background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); color: var(--text-hint); cursor: pointer; margin-top: 20px; }
-  .ai-loading { display: flex; align-items: center; gap: 8px; color: var(--text-hint); font-size: 14px; }
-  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  .modal { background: #111827; border: 1px solid #1e2d40; border-radius: 24px 24px 0 0; padding: 24px 20px 48px; width: 100%; max-width: 480px; max-height: 70vh; overflow-y: auto; }
+  .modal-handle { width: 36px; height: 4px; background: #1e2d40; border-radius: 2px; margin: 0 auto 20px; }
+  .modal-title { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .modal-title svg { width: 18px; height: 18px; stroke: #7f77dd; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .modal-body { font-size: 14px; color: #8a9bb0; line-height: 1.7; }
+  .modal-close { width: 100%; padding: 14px; background: none; border: 1px solid #1e2d40; border-radius: 12px; font-size: 15px; color: #5a6a7e; cursor: pointer; margin-top: 20px; }
+  .ai-loading { display: flex; align-items: center; gap: 8px; color: #7f77dd; font-size: 14px; }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(127,119,221,0.3); border-top-color: #7f77dd; border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
@@ -151,7 +128,7 @@
   <div class="hero-row">
     <div>
       <div class="hero-name" id="heroName">Loading...</div>
-      <div id="heroAddress" class="hero-address">—</div>
+      <div id="heroAddress" style="font-size:12px;color:#5a6a7e;margin-top:2px;">—</div>
     </div>
     <div class="countdown gray" id="countdown">—</div>
   </div>
@@ -167,10 +144,10 @@
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('fields', this)">Fields</div>
-  <div class="tab" onclick="showTab('timeline', this)">Timeline</div>
-  <div class="tab" onclick="showTab('checklist', this)">Checklist</div>
-  <div class="tab" onclick="showTab('documents', this)">Documents</div>
+  <div class="tab active" onclick="showTab('fields')">Fields</div>
+  <div class="tab" onclick="showTab('timeline')">Timeline</div>
+  <div class="tab" onclick="showTab('checklist')">Checklist</div>
+  <div class="tab" onclick="showTab('documents')">Documents</div>
 </div>
 
 <div class="content">
@@ -253,6 +230,7 @@
 <script>
   const GHL_API_KEY = 'pit-4e98487c-3f65-409c-a264-16352f97c01a';
 
+
   const BUYER_STAGE_MAP = {
     '21e2d499-cb72-4c14-8bde-7d569265e9ad': 'Buyer Docs Signed',
     'c7c87055-b8ff-4698-8603-bf60fb4491a4': 'Showing Homes',
@@ -274,8 +252,10 @@
   };
   const BUYER_STAGES = ['Buyer Docs Signed','Showing Homes','Under Contract','Inspection Period','Appraisal and Financing Period','Clear To Close','Closed'];
   const SELLER_STAGES = ['Seller Docs Signed','Listing Photos Scheduled','Listing Photos Taken','Listing Live','Under Contract','Inspection Period','Clear To Close','Closed'];
-  const BUYER_CHECKLIST = ['Documents Signed','Under Contract','Inspection Period','Appraisal Period','Clear To Close','Closed'];
-  const SELLER_CHECKLIST = ['Documents Signed','Listing Photos Scheduled','Listing Photos Taken','Listing Live','Under Contract','Inspection Period','Clear To Close','Closed'];
+
+  const BUYER_CHECKLIST = ['Docs Signed','Showing Homes','Under Contract','Inspection Period','Appraisal & Financing','Clear To Close','Closed'];
+  const SELLER_CHECKLIST = ['Docs Signed','Listing Photos Scheduled','Listing Photos Taken','Listing Live','Under Contract','Inspection Period','Clear To Close','Closed'];
+
   const BUYER_DOCS = [
     { label: 'Pre-Approval', key: 'preapproval_1' },
     { label: 'Contract', key: 'contract' },
@@ -295,6 +275,7 @@
     { label: 'Title Work & Commitment', key: 'title_work' },
     { label: 'Closing Documents', key: 'closing_documents' }
   ];
+
   const TIMELINE_FIELDS = [
     { key: 'listing_live', label: 'Listing Live', sellerOnly: true },
     { key: 'under_contract', label: 'Under Contract', sellerOnly: false },
@@ -319,14 +300,16 @@
 
   document.getElementById('backBtn').href = `transaction-list.html?side=${side}`;
 
-  function showTab(name, el) {
+  function showTab(name) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById(`tab-${name}`).classList.add('active');
-    el.classList.add('active');
+    event.currentTarget.classList.add('active');
   }
 
-  function getField(key) { return cfMap[key] || '—'; }
+  function getField(key) {
+    return cfMap[key] || '—';
+  }
 
   function formatDate(val) {
     if (!val || val === '—') return null;
@@ -399,8 +382,13 @@
     const map = {};
     (customFields || []).forEach(f => {
       const val = Array.isArray(f.value) ? f.value[0] : f.value;
-      if (f.id && CF_ID_MAP[f.id]) map[CF_ID_MAP[f.id]] = val;
-      if (f.fieldKey) map[f.fieldKey.replace('contact.','')] = val;
+      if (f.id && CF_ID_MAP[f.id]) {
+        map[CF_ID_MAP[f.id]] = val;
+      }
+      if (f.fieldKey) {
+        const key = f.fieldKey.replace('contact.', '');
+        map[key] = val;
+      }
     });
     return map;
   }
@@ -409,9 +397,11 @@
     const stageMap = side === 'buyer' ? BUYER_STAGE_MAP : SELLER_STAGE_MAP;
     currentStage = stageMap[oppData.pipelineStageId] || '—';
     const progress = getProgress(currentStage);
+
     const contactName = oppData.contact?.name || oppData.name || 'Unknown';
     document.getElementById('topbarTitle').textContent = contactName;
     document.getElementById('heroName').textContent = contactName;
+
     const addrKey = side === 'buyer' ? 'buyer__subject_property_street' : 'seller__subject_property_street';
     const addr = cfMap[addrKey] || oppData.name || '—';
     const cityKey = side === 'buyer' ? 'buyer__subject_property_city' : 'seller__subject_property_city';
@@ -419,9 +409,11 @@
     const fullAddr = city ? `${addr}, ${city}` : addr;
     document.getElementById('f-address').textContent = fullAddr;
     document.getElementById('heroAddress').textContent = fullAddr !== '—' ? fullAddr : oppData.contact?.name || '—';
+
     document.getElementById('stageName').textContent = currentStage;
     document.getElementById('progressPct').textContent = `${progress}%`;
     document.getElementById('progressFill').style.width = `${progress}%`;
+
     const closingVal = cfMap['tentative_closing'];
     daysToClose = getDaysUntil(closingVal);
     const cdEl = document.getElementById('countdown');
@@ -440,7 +432,8 @@
     document.getElementById('f-agentphone').textContent = cfMap['opposite_agent_phone'] || '—';
     document.getElementById('f-agentemail').textContent = cfMap['opposite_agent_email'] || '—';
     document.getElementById('f-mortgage').textContent = cfMap['mortgage_company'] || '—';
-    document.getElementById('f-officer').textContent = cfMap['mortgage_officer'] || cfMap['mortgage_officer_first_name'] || '—';
+    const officerName = cfMap['mortgage_officer'] || cfMap['mortgage_officer_first_name'] || '—';
+    document.getElementById('f-officer').textContent = officerName;
     document.getElementById('f-officerphone').textContent = cfMap['mortgage_officer_phone'] || '—';
     document.getElementById('f-inspection').textContent = cfMap['inspection_company'] || '—';
     document.getElementById('f-inspectorphone').textContent = cfMap['inspector_phone'] || '—';
@@ -453,26 +446,26 @@
       if (f.buyerOnly && side === 'seller') return false;
       return true;
     });
+
     let html = '';
     fields.forEach((f, i) => {
       const val = cfMap[f.key];
       const formatted = formatDate(val);
       const filled = !!formatted;
       const isLast = i === fields.length - 1;
-      const dotBg = filled ? '#111111' : '#f0f0f0';
-      const dotBorder = filled ? '#111111' : '#e8e8e8';
-      const lineColor = filled ? '#111111' : '#f0f0f0';
-      const labelColor = filled ? '#111111' : '#999999';
-      const dateColor = filled ? '#666666' : '#cccccc';
+      const dotColor = filled ? '#2d9e6e' : '#0a0f1e';
+      const dotBorder = filled ? '#2d9e6e' : '#2a3a50';
+      const lineColor = filled ? '#2d9e6e' : '#1e2d40';
+      const dateColor = filled ? '#2d9e6e' : '#2a3a50';
       html += `
-        <div class="tl-item">
-          <div class="tl-spine">
-            <div class="tl-dot" style="background:${dotBg};border:2px solid ${dotBorder};"></div>
-            ${!isLast ? `<div class="tl-line" style="background:${lineColor};"></div>` : ''}
+        <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:${isLast ? '0' : '4px'}">
+          <div style="display:flex;flex-direction:column;align-items:center;width:16px;flex-shrink:0;padding-top:2px">
+            <div style="width:12px;height:12px;border-radius:50%;background:${dotColor};border:2px solid ${dotBorder};flex-shrink:0"></div>
+            ${!isLast ? `<div style="width:2px;flex:1;min-height:24px;background:${lineColor};margin-top:3px"></div>` : ''}
           </div>
-          <div class="tl-content" style="${isLast ? 'padding-bottom:0' : ''}">
-            <div class="tl-label" style="color:${labelColor}">${f.label}</div>
-            <div class="tl-date" style="color:${dateColor}">${formatted || 'Not set'}</div>
+          <div style="flex:1;padding-bottom:${isLast ? '0' : '16px'}">
+            <div style="font-size:14px;font-weight:600;color:${filled ? '#fff' : '#5a6a7e'}">${f.label}</div>
+            <div style="font-size:12px;color:${dateColor};margin-top:2px;font-weight:600">${formatted || 'Not set'}</div>
           </div>
         </div>
       `;
@@ -485,15 +478,19 @@
     const stageIndex = (side === 'buyer' ? BUYER_STAGES : SELLER_STAGES).findIndex(s => s.toLowerCase() === currentStage.toLowerCase());
     const checkedCount = stageIndex === -1 ? 0 : stageIndex + 1;
     const pct = Math.round((checkedCount / steps.length) * 100);
+
     document.getElementById('checklistLabel').textContent = `${checkedCount} of ${steps.length} complete`;
     document.getElementById('checklistPct').textContent = `${pct}%`;
     document.getElementById('checklistBar').style.width = `${pct}%`;
+
     const container = document.getElementById('checklistItems');
     container.innerHTML = steps.map((step, i) => {
       const checked = i < checkedCount;
       return `
         <div class="checklist-item ${checked ? 'checked' : ''}" onclick="toggleCheck(${i}, this)">
-          <div class="check-box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="check-box">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
           <span class="check-label">${step}</span>
         </div>
       `;
@@ -502,7 +499,9 @@
 
   function extractDocFiles(val) {
     if (!val || typeof val !== 'object' || Array.isArray(val)) return [];
-    return Object.values(val).filter(f => f.url && !f.meta?.deleted).map(f => ({ url: f.url, name: f.meta?.originalname || 'Document' }));
+    return Object.values(val)
+      .filter(f => f.url && !f.meta?.deleted)
+      .map(f => ({ url: f.url, name: f.meta?.originalname || 'Document' }));
   }
 
   function renderDocuments() {
@@ -513,24 +512,27 @@
       const files = extractDocFiles(val);
       const hasDoc = files.length > 0;
       const filesHtml = hasDoc ? files.map(f => `
-        <div style="font-size:11px;color:#1a7a1a;margin-top:4px;cursor:pointer;text-decoration:underline" onclick="event.stopPropagation();openDoc('${f.url}')">${f.name}</div>
+        <div style="font-size:11px;color:#2d9e6e;margin-top:4px;cursor:pointer;text-decoration:underline" onclick="event.stopPropagation();openDoc('${f.url}')">${f.name}</div>
       `).join('') : '';
       return `
         <div class="doc-item">
           <div class="doc-left" style="flex-direction:column;align-items:flex-start">
             <div style="display:flex;align-items:center;gap:10px">
-              <div class="doc-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="doc-icon">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
               <span class="doc-name">${doc.label}</span>
             </div>
             ${filesHtml}
           </div>
-          <span class="doc-badge ${hasDoc ? 'received' : 'awaiting'}">${hasDoc ? 'Received' : 'Awaiting'}</span>
+          <span class="doc-badge ${hasDoc ? 'received' : 'awaiting'}" style="align-self:flex-start">${hasDoc ? 'Received' : 'Awaiting'}</span>
         </div>
       `;
     }).join('');
   }
 
   async function toggleCheck(idx, el) {
+    const steps = side === 'buyer' ? BUYER_CHECKLIST : SELLER_CHECKLIST;
     const stages = side === 'buyer' ? BUYER_STAGES : SELLER_STAGES;
     const isChecked = el.classList.contains('checked');
     const newCheckedCount = isChecked ? idx : idx + 1;
@@ -538,11 +540,18 @@
     const targetStage = stages[stageIdx];
     const stageMap = side === 'buyer' ? BUYER_STAGE_MAP : SELLER_STAGE_MAP;
     const stageId = Object.keys(stageMap).find(k => stageMap[k] === targetStage);
+
     if (!stageId) return;
+
     try {
       const res = await fetch(`https://services.leadconnectorhq.com/opportunities/${oppId}`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${GHL_API_KEY}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ pipelineStageId: stageId, name: oppData.name, status: oppData.status || 'open' })
       });
       if (!res.ok) throw new Error(`${res.status}`);
@@ -551,28 +560,34 @@
       currentStage = targetStage;
       renderChecklist();
       renderHero();
-    } catch(e) { alert(`Could not update checklist: ${e.message}`); }
+    } catch(e) {
+      alert(`Could not update checklist: ${e.message}`);
+    }
   }
 
   async function openAI() {
     document.getElementById('aiModal').classList.add('open');
     document.getElementById('aiBody').innerHTML = '<div class="ai-loading"><div class="spinner"></div>Generating summary...</div>';
+
     const contactName = oppData.contact?.name || oppData.name || 'Unknown';
     const closing = cfMap['tentative_closing'] ? formatDate(cfMap['tentative_closing']) : 'not set';
     const steps = side === 'buyer' ? BUYER_CHECKLIST : SELLER_CHECKLIST;
     const stageIndex = (side === 'buyer' ? BUYER_STAGES : SELLER_STAGES).findIndex(s => s.toLowerCase() === currentStage.toLowerCase());
     const checkedCount = stageIndex === -1 ? 0 : stageIndex + 1;
+
+    const noticeSubmitted = !!cfMap['inspection_notice_submission_date'];
     const timelineKeys = [
       { key: 'under_contract', label: 'Under Contract' },
-      { key: 'inspection_notice_date', label: 'Inspection Notice' },
+      { key: 'inspection_notice_date', label: 'Inspection Notice Due', skip: noticeSubmitted },
       { key: 'inspection_notice_submission_date', label: 'Notice Submitted' },
-      { key: 'inspection_respond_date', label: 'Inspection Response' },
+      { key: 'inspection_respond_date', label: 'Inspection Response Deadline' },
       { key: 'appraisal_date', label: 'Appraisal' },
       { key: 'final_walkthrough_date', label: 'Final Walkthrough' },
       { key: 'listing_live', label: 'Listing Live' },
       { key: 'tentative_closing', label: 'Closing' }
     ];
     const upcomingDates = timelineKeys.map(f => {
+      if (f.skip) return null;
       const val = cfMap[f.key];
       if (!val) return null;
       const days = Math.ceil((new Date(val).getTime() - Date.now()) / 86400000);
@@ -580,25 +595,35 @@
       return null;
     }).filter(Boolean);
     const upcomingText = upcomingDates.length > 0 ? 'URGENT - Coming up within 5 days:\n' + upcomingDates.join('\n') : 'No dates coming up in the next 5 days.';
+
     const prompt = 'You are a real estate transaction coordinator assistant. Give a brief, plain-English status briefing for this transaction. Be direct and practical - 3-5 sentences max. If there are urgent upcoming dates lead with those.\n\nClient: ' + contactName + '\nSide: ' + (side === 'buyer' ? 'Buyer' : 'Seller') + '\nCurrent Stage: ' + currentStage + '\nProgress: ' + checkedCount + ' of ' + steps.length + ' steps complete\nDays to Close: ' + (daysToClose !== null ? daysToClose + ' days' : 'No closing date set') + '\nTentative Closing Date: ' + closing + '\nAddress: ' + (cfMap['buyer__subject_property_street'] || cfMap['seller__subject_property_street'] || 'Not set') + '\n\n' + upcomingText + '\n\nWrite a quick briefing Lex can read in 10 seconds to know exactly where this deal stands. Call out any urgent dates first.';
+
     try {
       const res = await fetch('/.netlify/functions/ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
       });
       const data = await res.json();
       const text = data.content?.[0]?.text || 'Could not generate summary.';
-      document.getElementById('aiBody').innerHTML = `<p style="line-height:1.75;color:#444444">${text}</p>`;
+      document.getElementById('aiBody').innerHTML = `<p style="color:#c8d0da;line-height:1.7">${text}</p>`;
     } catch(e) {
-      document.getElementById('aiBody').innerHTML = '<p style="color:#cc2233">Could not generate summary. Please try again.</p>';
+      document.getElementById('aiBody').innerHTML = '<p style="color:#ef4444">Could not generate summary. Please try again.</p>';
     }
   }
 
   function openDoc(url) {
     const a = document.createElement('a');
-    a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   async function toggleGift() {
@@ -639,7 +664,9 @@
   };
 
   function openEdit(title, elId, fieldKey, fieldKey2) {
-    editFieldKey = fieldKey; editFieldKey2 = fieldKey2 || null; editElId = elId;
+    editFieldKey = fieldKey;
+    editFieldKey2 = fieldKey2 || null;
+    editElId = elId;
     const activeKey = fieldKey2 ? (side === 'buyer' ? fieldKey : fieldKey2) : fieldKey;
     document.getElementById('editTitle').textContent = `Edit ${title}`;
     const el = document.getElementById(elId);
@@ -651,30 +678,55 @@
 
   function closeEdit() {
     document.getElementById('editModal').classList.remove('open');
-    editFieldKey = null; editElId = null;
+    editFieldKey = null;
+    editElId = null;
   }
 
   async function saveField() {
     const val = document.getElementById('editInput').value.trim();
     const btn = document.getElementById('editSave');
-    btn.disabled = true; btn.textContent = 'Saving...';
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
     const activeKey = editFieldKey2 ? (side === 'buyer' ? editFieldKey : editFieldKey2) : editFieldKey;
     const fieldId = CF_KEY_TO_ID[activeKey];
+
     const contactId = oppData.contactId || oppData.contact?.id;
-    if (!contactId || !fieldId) { alert('Could not save — field ID not found.'); btn.disabled = false; btn.textContent = 'Save'; return; }
+    if (!contactId || !fieldId) {
+      alert('Could not save — field ID not found.');
+      btn.disabled = false;
+      btn.textContent = 'Save';
+      return;
+    }
+
     try {
       const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${GHL_API_KEY}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ customFields: [{ id: fieldId, field_value: val }] })
       });
+
       if (!res.ok) throw new Error(`${res.status}`);
+
       cfMap[activeKey] = val;
       const el = document.getElementById(editElId);
-      if (el) { const svg = el.querySelector('svg'); el.textContent = val || '—'; if (svg) el.appendChild(svg); }
+      if (el) {
+        const svg = el.querySelector('svg');
+        el.textContent = val || '—';
+        if (svg) el.appendChild(svg);
+      }
       closeEdit();
-    } catch(e) { alert(`Save failed: ${e.message}`); }
-    btn.disabled = false; btn.textContent = 'Save';
+    } catch(e) {
+      alert(`Save failed: ${e.message}`);
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Save';
   }
 
   function closeAI() { document.getElementById('aiModal').classList.remove('open'); }
@@ -696,11 +748,19 @@
       }
     } catch(e) { console.error('loadFullOpp error:', e); }
     cfMap = buildCFMap(oppData.customFields);
-    renderHero(); renderFields(); renderTimeline(); renderChecklist(); renderDocuments();
+    renderHero();
+    renderFields();
+    renderTimeline();
+    renderChecklist();
+    renderDocuments();
   }
 
   cfMap = buildCFMap(oppData.customFields);
-  renderHero(); renderFields(); renderTimeline(); renderChecklist(); renderDocuments();
+  renderHero();
+  renderFields();
+  renderTimeline();
+  renderChecklist();
+  renderDocuments();
   loadFullOpp();
 </script>
 </body>
