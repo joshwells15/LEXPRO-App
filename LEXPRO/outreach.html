@@ -260,6 +260,25 @@
     return '';
   }
 
+  async function fetchLastTouchpointDates(contactIds) {
+    const dateMap = {};
+    if (!contactIds.length) return dateMap;
+    try {
+      const ids = contactIds.map(id => `ghl_contact_id.eq.${id}`).join(',');
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/touchpoint_log?or=(${ids})&select=ghl_contact_id,logged_at&order=logged_at.desc`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+      );
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        data.forEach(row => {
+          if (!dateMap[row.ghl_contact_id]) dateMap[row.ghl_contact_id] = row.logged_at;
+        });
+      }
+    } catch(e) {}
+    return dateMap;
+  }
+
   async function fetchSmartList(key) {
     try {
       const res = await fetch(
@@ -289,20 +308,25 @@
         });
       });
 
+      const contactIds = contacts.map(c => c.id).filter(Boolean);
+      const [touchpointDates] = await Promise.all([
+        fetchLastTouchpointDates(contactIds),
+        fetchPhotos(contactIds)
+      ]);
+
       contacts.sort((a, b) => {
-        const da = getDaysSince(a.dateLastContacted || a.dateUpdated);
-        const db = getDaysSince(b.dateLastContacted || b.dateUpdated);
+        const da = getDaysSince(touchpointDates[a.id] || a.dateLastContacted || a.dateUpdated);
+        const db = getDaysSince(touchpointDates[b.id] || b.dateLastContacted || b.dateUpdated);
         return (db ?? 9999) - (da ?? 9999);
       });
 
-      await fetchPhotos(contacts.map(c => c.id).filter(Boolean));
-      renderCategory(key, contacts);
+      renderCategory(key, contacts, touchpointDates);
     } catch (err) {
       renderCategoryError(key, err.message);
     }
   }
 
-  function renderCategory(key, contacts) {
+  function renderCategory(key, contacts, touchpointDates = {}) {
     const section = document.getElementById(`section-${key}`);
     const countEl = document.getElementById(`count-${key}`);
     countEl.textContent = contacts.length;
@@ -320,7 +344,7 @@
     row.className = 'cards-row';
 
     for (const c of contacts) {
-      const days = getDaysSince(c.dateLastContacted || c.dateUpdated);
+      const days = getDaysSince(touchpointDates[c.id] || c.dateLastContacted || c.dateUpdated);
       const daysClass = getDaysClass(days);
       const initials = getInitials(c.firstName, c.lastName);
       const color = getAvatarColor((c.firstName || '') + (c.lastName || ''));
