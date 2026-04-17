@@ -188,6 +188,7 @@
   const AVATAR_COLORS = ['#2a2a2a','#444444','#333333','#555555','#1a1a1a','#3a3a3a'];
   const CAT_LABELS = { undercontract: 'Under Contract', pastclient: 'Past Client', nonrealestate: 'Non-Real Estate' };
   const METHOD_ICONS = { 'Call':'📞','Text':'💬','Coffee / Lunch':'☕','Stopped By':'🚗','Event / Open House':'🎉','Social Media':'📱' };
+  const METHOD_EMOJIS = { 'Call':'📞','Text':'💬','Coffee / Lunch':'☕','Stopped By':'🚗','Event / Open House':'🎉','Social Media':'📱' };
 
   const params = new URLSearchParams(window.location.search);
   const contactId = params.get('id');
@@ -295,6 +296,27 @@
     document.getElementById('noteInput').value = '';
   }
 
+  async function postGHLNote(contactId, method, note) {
+    const emoji = METHOD_EMOJIS[method] || '📋';
+    const contactName = contact?.firstName ? `${contact.firstName} ${contact.lastName || ''}`.trim() : 'Contact';
+    let body = `${emoji} ${method} — logged via LexPro app`;
+    if (note) body += `\n\n${note}`;
+    try {
+      await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/notes`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${GHL_API_KEY}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ body })
+      });
+    } catch(e) {
+      console.log('GHL note post failed silently:', e);
+    }
+  }
+
   async function submitLog() {
     if (!selectedMethod) { alert('Please select a connection method.'); return; }
     const note = document.getElementById('noteInput').value.trim();
@@ -302,16 +324,23 @@
     btn.disabled = true;
     btn.textContent = 'Logging...';
     try {
+      // 1. Log to Supabase
       await fetch(`${SUPABASE_URL}/rest/v1/touchpoint_log`, {
         method: 'POST',
         headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
         body: JSON.stringify({ ghl_contact_id: contactId, method: selectedMethod, notes: note || null, logged_by: user.username })
       });
-      await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+
+      // 2. Post note to GHL contact timeline (fire and forget — won't block if it fails)
+      postGHLNote(contactId, selectedMethod, note);
+
+      // 3. Update GHL last contacted date
+      fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ dateLastContacted: new Date().toISOString() })
       });
+
       closeModal();
       btn.disabled = false;
       btn.textContent = 'Done';
@@ -336,22 +365,18 @@
       let ext = file.name.split('.').pop().toLowerCase();
       if (ext === 'jfif' || ext === 'jpeg') ext = 'jpg';
       const fileName = `${contactId}.${ext}`;
-
       const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/contact-photos/${fileName}`, {
         method: 'POST',
         headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': file.type, 'x-upsert': 'true' },
         body: file
       });
       if (!uploadRes.ok) throw new Error('Upload failed');
-
       const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/contact-photos/${fileName}`;
-
       await fetch(`${SUPABASE_URL}/rest/v1/contact_photos`, {
         method: 'POST',
         headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
         body: JSON.stringify({ ghl_contact_id: contactId, photo_url: photoUrl })
       });
-
       const plusBtn = `<div class="avatar-plus"><svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>`;
       avatarEl.style.opacity = '1';
       avatarEl.innerHTML = `<img src="${photoUrl}?t=${Date.now()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />${plusBtn}`;
@@ -380,13 +405,11 @@
   loadTouchpoints();
   loadSavedPhoto();
 
-  // Smart back button
   const fromParam = new URLSearchParams(window.location.search).get('from');
   if (fromParam === 'notifications') {
     document.getElementById('backBtn').href = 'notifications.html';
   }
 
-  // Dynamic notification dot
   async function checkUnread() {
     try {
       const res = await fetch(SUPABASE_URL + '/rest/v1/notifications?is_read=eq.false&limit=1', {
