@@ -351,21 +351,29 @@
 
   async function loadStats() {
     try {
-      const [buyerRes, sellerRes] = await Promise.all([
+      const [buyerRes, sellerRes, buyerWonRes, sellerWonRes] = await Promise.all([
         fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${BUYER_PIPELINE}&limit=100`, {
           headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
         }).then(r => r.json()),
         fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${SELLER_PIPELINE}&limit=100`, {
+          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
+        }).then(r => r.json()),
+        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${BUYER_PIPELINE}&status=won&limit=100`, {
+          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
+        }).then(r => r.json()),
+        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${SELLER_PIPELINE}&status=won&limit=100`, {
           headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
         }).then(r => r.json())
       ]);
 
       const allOpps = [
         ...(buyerRes.opportunities || []),
-        ...(sellerRes.opportunities || [])
+        ...(sellerRes.opportunities || []),
+        ...(buyerWonRes.opportunities || []),
+        ...(sellerWonRes.opportunities || [])
       ];
 
-      const activeOpps = allOpps.filter(o => o.status !== 'lost' && !CLOSED_STAGE_IDS.includes(o.pipelineStageId));
+      const activeOpps = allOpps.filter(o => o.status !== 'lost' && o.status !== 'won' && !CLOSED_STAGE_IDS.includes(o.pipelineStageId));
       document.getElementById('statDeals').textContent = activeOpps.length;
 
       let closingSoon = 0;
@@ -389,13 +397,13 @@
             if (daysUntil >= 0 && daysUntil <= 14) closingSoon++;
           }
 
-          const isClosed = CLOSED_STAGE_IDS.includes(opp.pipelineStageId);
+          const isClosed = CLOSED_STAGE_IDS.includes(opp.pipelineStageId) || opp.status === 'won';
           if (isClosed) {
             const commField = cf.find(f => f.id === COMMISSION_FIELD_ID);
             if (commField?.value) {
               const val = parseFloat(String(commField.value).replace(/[^0-9.]/g, ''));
-              const closeDate = closingField?.value ? new Date(closingField.value).getTime() : 0;
-              if (!isNaN(val) && closeDate >= startOfYear) ytdCommission += val;
+              const closeDate = closingField?.value ? new Date(closingField.value).getTime() : Date.now();
+              if (!isNaN(val) && val > 0 && closeDate >= startOfYear) ytdCommission += val;
             }
           }
         } catch(e) {}
@@ -420,22 +428,6 @@
   }
 
   loadStats();
-
-  // Dynamic notification dot
-  const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM';
-
-  async function checkUnread() {
-    try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/notifications?is_read=eq.false&limit=1', {
-        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
-      });
-      const data = await res.json();
-      const dot = document.querySelector('.notif-dot');
-      if (dot) dot.style.display = data.length > 0 ? '' : 'none';
-    } catch(e) {}
-  }
-  checkUnread();
 
   function logout() {
     sessionStorage.removeItem('lexpro_user');
