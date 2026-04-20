@@ -601,11 +601,19 @@
                               interestLevel.toLowerCase().includes('not') ? '#cc2233' : '#666666';
 
         return `<div class="feedback-card">
-          <div class="feedback-date">${dateStr}</div>
-          ${agentName ? `<div class="feedback-agent">${agentName}${agentPhone ? ` · ${agentPhone}` : ''}</div>` : ''}
-          ${interestLevel ? `<div style="display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${interestColor}14;color:${interestColor};border:1px solid ${interestColor}33;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em">${interestLevel}</div>` : ''}
-          ${makingOffer ? `<div style="font-size:12px;color:var(--text-hint);margin-bottom:6px">Making an offer: <strong style="color:var(--text)">${makingOffer}</strong></div>` : ''}
-          ${feedback ? `<div class="feedback-text">${feedback}</div>` : ''}
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div>
+              ${agentName ? `<div style="font-size:15px;font-weight:600;color:var(--text)">${agentName}</div>` : ''}
+              ${agentPhone ? `<div style="font-size:12px;color:var(--text-hint);margin-top:2px">${agentPhone}</div>` : ''}
+              ${fieldMap['showing agent email'] ? `<div style="font-size:12px;color:var(--text-hint);margin-top:1px">${fieldMap['showing agent email']}</div>` : ''}
+            </div>
+            <div style="font-size:10px;color:var(--text-hint);font-weight:500;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;margin-left:12px;padding-top:2px">${dateStr}</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:${feedback ? '10px' : '0'}">
+            ${interestLevel ? `<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:${interestColor}12;color:${interestColor};border:1px solid ${interestColor}30;text-transform:uppercase;letter-spacing:0.06em">${interestLevel}</span>` : ''}
+            ${makingOffer ? `<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--surface-2);color:var(--text-muted);border:1px solid var(--border)">Offer: ${makingOffer}</span>` : ''}
+          </div>
+          ${feedback ? `<div style="font-size:13px;color:var(--text-muted);line-height:1.6;border-top:1px solid var(--border);padding-top:10px">${feedback}</div>` : ''}
         </div>`;
       }).join('');
     } catch(e) {
