@@ -567,30 +567,24 @@
       notes.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
 
       container.innerHTML = notes.map(note => {
-        // Split on any line ending type and clean up
-        const lines = note.body.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
-
         const dateStr = note.dateAdded
           ? new Date(note.dateAdded).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : '';
 
-        // Parse key:value — strips spaces, handles both "Key: val" and "Key:val"
+        const body = note.body || '';
+
+        // Extract value after a field label regardless of line breaks or spacing
         const getValue = (key) => {
-          const keyClean = key.toLowerCase().replace(/\s+/g, '');
-          const line = lines.find(l => {
-            const beforeColon = l.substring(0, l.indexOf(':')).toLowerCase().replace(/\s+/g, '');
-            return beforeColon === keyClean;
-          });
-          if (!line) return '';
-          const colonIdx = line.indexOf(':');
-          return colonIdx !== -1 ? line.substring(colonIdx + 1).trim() : '';
+          const regex = new RegExp(key.replace(/\s+/g, '\\s*') + '\\s*:\\s*([^\\n\\r]*)', 'i');
+          const match = body.match(regex);
+          return match ? match[1].trim() : '';
         };
 
-        const agentName = getValue('Showing Agent');
+        const agentName = getValue('Showing Agent(?! Phone| Email)');
         const agentPhone = getValue('Showing Agent Phone');
         const makingOffer = getValue('Making An Offer');
         const interestLevel = getValue('Interest Level');
-        const feedback = getValue('Showing Feedback');
+        const feedback = getValue('Showing Feedback(?! for)');
 
         // Badge color for interest level
         const interestColor = interestLevel.toLowerCase().includes('very') ? '#1a7a1a' :
