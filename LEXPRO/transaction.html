@@ -600,21 +600,28 @@
                               interestLevel.toLowerCase().includes('interested') ? '#185fa5' :
                               interestLevel.toLowerCase().includes('not') ? '#cc2233' : '#666666';
 
-        return `<div class="feedback-card">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-            <div>
-              ${agentName ? `<div style="font-size:15px;font-weight:600;color:var(--text)">${agentName}</div>` : ''}
-              ${agentPhone ? `<div style="display:flex;gap:10px;margin-top:2px"><a href="tel:${agentPhone}" style="font-size:12px;color:var(--text-hint);text-decoration:none">${agentPhone}</a><a href="sms:${agentPhone}" style="font-size:12px;color:var(--text-hint);text-decoration:none">· Text</a></div>` : ''}
-              ${fieldMap['showing agent email'] ? `<a href="mailto:${fieldMap['showing agent email']}" style="font-size:12px;color:var(--text-hint);margin-top:1px;display:block;text-decoration:none">${fieldMap['showing agent email']}</a>` : ''}
-            </div>
-            <div style="font-size:10px;color:var(--text-hint);font-weight:500;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;margin-left:12px;padding-top:2px">${dateStr}</div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:${feedback ? '10px' : '0'}">
-            ${interestLevel ? `<span style="align-self:flex-start;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:${interestColor}12;color:${interestColor};border:1px solid ${interestColor}30;text-transform:uppercase;letter-spacing:0.06em">${interestLevel}</span>` : ''}
-            ${makingOffer ? `<span style="align-self:flex-start;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--surface-2);color:var(--text-muted);border:1px solid var(--border)">Offer: ${makingOffer}</span>` : ''}
-          </div>
-          ${feedback ? `<div style="font-size:13px;color:var(--text-muted);line-height:1.6;border-top:1px solid var(--border);padding-top:10px">${feedback}</div>` : ''}
-        </div>`;
+        const agentEmail = fieldMap['showing agent email'] || '';
+        let html = '<div class="feedback-card">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">';
+        html += '<div>';
+        if (agentName) html += '<div style="font-size:15px;font-weight:600;color:var(--text)">' + agentName + '</div>';
+        if (agentPhone) {
+          html += '<div style="display:flex;gap:10px;margin-top:2px">';
+          html += '<a href="tel:' + agentPhone + '" style="font-size:12px;color:var(--text-hint);text-decoration:none">' + agentPhone + '</a>';
+          html += '<a href="sms:' + agentPhone + '" style="font-size:12px;color:var(--text-hint);text-decoration:none">&middot; Text</a>';
+          html += '</div>';
+        }
+        if (agentEmail) html += '<a href="mailto:' + agentEmail + '" style="font-size:12px;color:var(--text-hint);margin-top:1px;display:block;text-decoration:none">' + agentEmail + '</a>';
+        html += '</div>';
+        html += '<div style="font-size:10px;color:var(--text-hint);font-weight:500;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;margin-left:12px;padding-top:2px">' + dateStr + '</div>';
+        html += '</div>';
+        html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:' + (feedback ? '10px' : '0') + '">';
+        if (interestLevel) html += '<span style="align-self:flex-start;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:' + interestColor + '18;color:' + interestColor + ';border:1px solid ' + interestColor + '33;text-transform:uppercase;letter-spacing:0.06em">' + interestLevel + '</span>';
+        if (makingOffer) html += '<span style="align-self:flex-start;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:#f0f0f0;color:#666;border:1px solid #e8e8e8">Offer: ' + makingOffer + '</span>';
+        html += '</div>';
+        if (feedback) html += '<div style="font-size:13px;color:var(--text-muted);line-height:1.6;border-top:1px solid var(--border);padding-top:10px">' + feedback + '</div>';
+        html += '</div>';
+        return html;
       }).join('');
     } catch(e) {
       container.innerHTML = '<div style="text-align:center;color:var(--text-hint);padding:40px 20px;font-size:14px">Could not load feedback.</div>';
