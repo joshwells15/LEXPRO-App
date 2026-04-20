@@ -573,20 +573,22 @@
 
         const body = note.body || '';
 
-        // Split body into key:value pairs by detecting known field names
+        // Parse fields from note body
         const fieldNames = ['Showing Agent Phone', 'Showing Agent Email', 'Showing Agent', 'Making An Offer', 'Interest Level', 'Showing Feedback'];
         const fieldMap = {};
         fieldNames.forEach(field => {
-          const regex = new RegExp(field + '\\s*:\\s*', 'i');
-          const idx = body.search(regex);
-          if (idx === -1) return;
-          const afterColon = body.slice(body.indexOf(':', idx) + 1).trim();
-          let endIdx = afterColon.length;
+          const regex = new RegExp(field + '[\\s]*:[\\s]*', 'i');
+          const match = body.match(regex);
+          if (!match) return;
+          const startIdx = match.index + match[0].length;
+          let value = body.slice(startIdx);
+          // Trim at next known field name
           fieldNames.forEach(other => {
-            const otherIdx = afterColon.search(new RegExp(other + '\\s*:', 'i'));
-            if (otherIdx !== -1 && otherIdx < endIdx) endIdx = otherIdx;
+            if (other === field) return;
+            const otherMatch = value.match(new RegExp(other + '[\\s]*:', 'i'));
+            if (otherMatch) value = value.slice(0, otherMatch.index);
           });
-          fieldMap[field.toLowerCase()] = afterColon.slice(0, endIdx).trim();
+          fieldMap[field.toLowerCase()] = value.trim();
         });
 
         const agentName = fieldMap['showing agent'] || '';
