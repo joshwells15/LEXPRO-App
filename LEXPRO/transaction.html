@@ -567,15 +567,23 @@
       notes.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
 
       container.innerHTML = notes.map(note => {
-        const lines = note.body.trim().split('\n').filter(l => l.trim());
+        // Split on any line ending type and clean up
+        const lines = note.body.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+
         const dateStr = note.dateAdded
           ? new Date(note.dateAdded).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : '';
 
-        // Parse key: value format used by GHL workflow
+        // Parse key:value — strips spaces, handles both "Key: val" and "Key:val"
         const getValue = (key) => {
-          const line = lines.find(l => l.toLowerCase().startsWith(key.toLowerCase() + ':'));
-          return line ? line.substring(line.indexOf(':') + 1).trim() : '';
+          const keyClean = key.toLowerCase().replace(/\s+/g, '');
+          const line = lines.find(l => {
+            const beforeColon = l.substring(0, l.indexOf(':')).toLowerCase().replace(/\s+/g, '');
+            return beforeColon === keyClean;
+          });
+          if (!line) return '';
+          const colonIdx = line.indexOf(':');
+          return colonIdx !== -1 ? line.substring(colonIdx + 1).trim() : '';
         };
 
         const agentName = getValue('Showing Agent');
