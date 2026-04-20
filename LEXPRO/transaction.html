@@ -598,6 +598,8 @@
         const makingOffer = fieldMap['making an offer'] || '';
         const interestLevel = fieldMap['interest level'] || '';
         const feedback = fieldMap['showing feedback'] || '';
+        console.log('FIELDMAP:', JSON.stringify(fieldMap));
+        console.log('BODY:', body);
 
         // Badge color for interest level
         const interestColor = interestLevel.toLowerCase().includes('very') ? '#1a7a1a' :
