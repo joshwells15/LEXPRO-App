@@ -572,20 +572,15 @@
           : '';
 
         const body = note.body || '';
-        const dateStr = note.dateAdded
-          ? new Date(note.dateAdded).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          : '';
 
         // Split body into key:value pairs by detecting known field names
         const fieldNames = ['Showing Agent Phone', 'Showing Agent Email', 'Showing Agent', 'Making An Offer', 'Interest Level', 'Showing Feedback'];
         const fieldMap = {};
-        let remaining = body;
         fieldNames.forEach(field => {
           const regex = new RegExp(field + '\\s*:\\s*', 'i');
-          const idx = remaining.search(regex);
+          const idx = body.search(regex);
           if (idx === -1) return;
-          const afterColon = remaining.slice(remaining.indexOf(':', idx) + 1).trim();
-          // Value ends at the next field name
+          const afterColon = body.slice(body.indexOf(':', idx) + 1).trim();
           let endIdx = afterColon.length;
           fieldNames.forEach(other => {
             const otherIdx = afterColon.search(new RegExp(other + '\\s*:', 'i'));
