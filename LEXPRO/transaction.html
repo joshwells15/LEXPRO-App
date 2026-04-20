@@ -571,21 +571,30 @@
         const dateStr = note.dateAdded
           ? new Date(note.dateAdded).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : '';
-        const agentLine = lines.find(l => l.toLowerCase().startsWith('agent:')) || '';
-        const feedbackLine = lines.find(l => l.toLowerCase().startsWith('feedback:')) || '';
-        const agentName = agentLine.replace(/^agent:/i, '').trim();
-        const feedbackText = feedbackLine.replace(/^feedback:/i, '').trim();
-        const otherLines = lines.filter(l =>
-          !l.toLowerCase().startsWith('agent:') &&
-          !l.toLowerCase().startsWith('feedback:') &&
-          !l.toLowerCase().includes('showing feedback')
-        );
+
+        // Parse key: value format used by GHL workflow
+        const getValue = (key) => {
+          const line = lines.find(l => l.toLowerCase().startsWith(key.toLowerCase() + ':'));
+          return line ? line.substring(line.indexOf(':') + 1).trim() : '';
+        };
+
+        const agentName = getValue('Showing Agent');
+        const agentPhone = getValue('Showing Agent Phone');
+        const makingOffer = getValue('Making An Offer');
+        const interestLevel = getValue('Interest Level');
+        const feedback = getValue('Showing Feedback');
+
+        // Badge color for interest level
+        const interestColor = interestLevel.toLowerCase().includes('very') ? '#1a7a1a' :
+                              interestLevel.toLowerCase().includes('interested') ? '#185fa5' :
+                              interestLevel.toLowerCase().includes('not') ? '#cc2233' : '#666666';
 
         return `<div class="feedback-card">
           <div class="feedback-date">${dateStr}</div>
-          ${agentName ? `<div class="feedback-agent">${agentName}</div>` : ''}
-          ${feedbackText ? `<div class="feedback-text">${feedbackText}</div>` : ''}
-          ${otherLines.map(l => `<div class="feedback-extra">${l}</div>`).join('')}
+          ${agentName ? `<div class="feedback-agent">${agentName}${agentPhone ? ` · ${agentPhone}` : ''}</div>` : ''}
+          ${interestLevel ? `<div style="display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${interestColor}14;color:${interestColor};border:1px solid ${interestColor}33;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em">${interestLevel}</div>` : ''}
+          ${makingOffer ? `<div style="font-size:12px;color:var(--text-hint);margin-bottom:6px">Making an offer: <strong style="color:var(--text)">${makingOffer}</strong></div>` : ''}
+          ${feedback ? `<div class="feedback-text">${feedback}</div>` : ''}
         </div>`;
       }).join('');
     } catch(e) {
