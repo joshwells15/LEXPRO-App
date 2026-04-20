@@ -582,11 +582,13 @@
           if (!match) return;
           const startIdx = match.index + match[0].length;
           let value = body.slice(startIdx);
-          // Trim at next known field name
+          // Only trim at fields that appear AFTER this field's value starts
           fieldNames.forEach(other => {
             if (other === field) return;
             const otherMatch = value.match(new RegExp(other + '[\\s]*:', 'i'));
-            if (otherMatch) value = value.slice(0, otherMatch.index);
+            if (otherMatch && otherMatch.index > 0) {
+              value = value.slice(0, otherMatch.index);
+            }
           });
           fieldMap[field.toLowerCase()] = value.trim();
         });
