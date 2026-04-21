@@ -247,6 +247,13 @@
     renderEventsList(closings);
   }
 
+  function navigateToOpp(idx) {
+    const c = window._currentClosings[idx];
+    if (!c) return;
+    sessionStorage.setItem('lexpro_opp', JSON.stringify(c.oppData));
+    window.location.href = 'transaction.html?id=' + c.oppId + '&side=' + c.side;
+  }
+
   function renderEventsList(closings) {
     const list = document.getElementById('eventsList');
     if (!closings || closings.length === 0) {
@@ -256,7 +263,7 @@
 
     closings.sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
 
-    list.innerHTML = closings.map(c => {
+    list.innerHTML = closings.map((c, i) => {
       const d = new Date(c.eventDate);
       const days = getDaysUntil(c.eventDate);
       const mon = SHORT_MONTHS[d.getMonth()];
@@ -264,7 +271,7 @@
       const label = days === null ? '' : days === 0 ? 'Today' : days < 0 ? `${Math.abs(days)}d ago` : `in ${days}d`;
       const badgeBg = days !== null && days <= 7 ? 'rgba(204,34,51,0.08)' : days !== null && days <= 14 ? 'rgba(184,110,0,0.08)' : 'rgba(17,17,17,0.06)';
       const badgeColor = days !== null && days <= 7 ? '#cc2233' : days !== null && days <= 14 ? '#b86e00' : '#666666';
-      return `<a class="event-card" href="transaction.html?id=${c.oppId}&side=${c.side}" onclick="sessionStorage.setItem('lexpro_opp', JSON.stringify(${JSON.stringify(c.oppData).replace(/'/g, "\\'")}))">
+      return `<div class="event-card" onclick="navigateToOpp(${i})">
         <div class="event-date-box" style="background:${c.eventColor}14;border:1px solid ${c.eventColor}33;">
           <div class="event-month" style="color:${c.eventColor}">${mon}</div>
           <div class="event-day">${day}</div>
@@ -276,8 +283,11 @@
           ${label ? `<div class="event-badge" style="background:${badgeBg};color:${badgeColor}">${label}</div>` : ''}
         </div>
         <svg style="width:16px;height:16px;stroke:#cccccc;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-      </a>`;
+      </div>`;
     }).join('');
+
+    // Store current closings list for onclick navigation
+    window._currentClosings = closings;
   }
 
   function changeMonth(dir) {
