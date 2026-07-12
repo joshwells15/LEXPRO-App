@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>LexPro | Team Chat</title>
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f7f7f7; --surface-2: #f0f0f0; --border: #e8e8e8;
+    --primary: #111111; --text: #111111; --text-muted: #666666; --text-hint: #999999;
+    --font: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 10px; --radius-md: 14px; --radius-lg: 20px;
+    --tanya: #7C3AED; --justin: #0369A1; --josh: #065F46; --lex: #111111;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body { min-height: 100vh; background: var(--bg); font-family: var(--font); color: var(--text); display: flex; flex-direction: column; }
+
+  /* TOPBAR */
+  .topbar {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .back-btn {
+    width: 36px; height: 36px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+    text-decoration: none; flex-shrink: 0;
+  }
+
+  .back-btn svg { width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .topbar-info { flex: 1; }
+  .topbar-title { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .topbar-sub { font-size: 12px; color: var(--text-hint); margin-top: 1px; }
+
+  .tasks-link {
+    font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 7px 12px;
+  }
+
+  /* SCREENS */
+  .screen { display: none; flex: 1; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ── COMPOSE SCREEN ── */
+  .compose-body {
+    flex: 1; display: flex; flex-direction: column; padding: 24px 20px 16px; gap: 20px;
+  }
+
+  .compose-hint {
+    font-size: 13px; color: var(--text-hint); line-height: 1.6;
+    background: var(--surface); border-radius: var(--radius-md); padding: 14px 16px;
+  }
+
+  .compose-hint strong { color: var(--text-muted); font-weight: 600; }
+
+  .input-area {
+    flex: 1; display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .msg-textarea {
+    flex: 1; width: 100%; min-height: 160px; padding: 16px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg); font-family: var(--font); font-size: 16px; color: var(--text);
+    background: var(--surface); resize: none; line-height: 1.55; transition: border-color 0.2s;
+  }
+
+  .msg-textarea:focus { outline: none; border-color: var(--primary); background: var(--bg); }
+  .msg-textarea::placeholder { color: var(--text-hint); }
+
+  .input-actions { display: flex; gap: 10px; align-items: center; }
+
+  .mic-btn {
+    width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--border);
+    background: var(--surface); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; transition: all 0.2s; user-select: none; -webkit-user-select: none;
+  }
+
+  .mic-btn svg { width: 22px; height: 22px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+
+  .mic-btn.listening { background: #FEE2E2; border-color: #EF4444; animation: pulse 1.2s ease-in-out infinite; }
+  .mic-btn.listening svg { stroke: #EF4444; }
+
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); } 50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); } }
+
+  .send-btn {
+    flex: 1; height: 52px; background: var(--primary); color: #ffffff; border: none;
+    border-radius: var(--radius-lg); font-family: var(--font); font-size: 16px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .send-btn:active { transform: scale(0.98); background: #2a2a2a; }
+  .send-btn:disabled { background: #cccccc; cursor: not-allowed; transform: none; }
+
+  .send-btn svg { width: 18px; height: 18px; stroke: #ffffff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .mic-status { font-size: 12px; color: #EF4444; text-align: center; min-height: 18px; font-weight: 500; }
+
+  /* ── CONFIRM SCREEN ── */
+  .confirm-body { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 16px; overflow-y: auto; }
+
+  .confirm-header { font-size: 14px; color: var(--text-hint); font-weight: 500; }
+
+  .original-msg {
+    background: var(--surface); border-radius: var(--radius-md); padding: 14px 16px;
+    font-size: 14px; color: var(--text-muted); line-height: 1.55; font-style: italic;
+    border-left: 3px solid var(--border);
+  }
+
+  .tasks-section-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-hint); margin-top: 4px;
+  }
+
+  .task-card {
+    border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; background: var(--bg);
+  }
+
+  .task-card-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+
+  .assignee-pill {
+    font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+
+  .pill-tanya { background: #EDE9FE; color: var(--tanya); }
+  .pill-justin { background: #E0F2FE; color: var(--justin); }
+  .pill-josh   { background: #D1FAE5; color: var(--josh); }
+  .pill-lex    { background: #F3F4F6; color: var(--lex); }
+
+  .task-due { font-size: 12px; color: var(--text-hint); margin-left: auto; }
+
+  .task-text { font-size: 15px; color: var(--text); line-height: 1.5; }
+
+  .task-edit-btn {
+    margin-top: 10px; font-size: 12px; color: var(--text-hint); background: none; border: none;
+    font-family: var(--font); cursor: pointer; text-decoration: underline; padding: 0;
+  }
+
+  .no-tasks {
+    text-align: center; padding: 32px 0; font-size: 14px; color: var(--text-hint); font-style: italic;
+  }
+
+  .confirm-actions { display: flex; gap: 10px; padding-top: 4px; }
+
+  .btn-back {
+    flex: 1; height: 52px; background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg); font-family: var(--font); font-size: 15px; font-weight: 600;
+    color: var(--text-muted); cursor: pointer; transition: background 0.15s;
+  }
+
+  .btn-back:active { background: var(--surface-2); }
+
+  .btn-confirm {
+    flex: 2; height: 52px; background: var(--primary); color: #ffffff; border: none;
+    border-radius: var(--radius-lg); font-family: var(--font); font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  .btn-confirm:active { transform: scale(0.98); background: #2a2a2a; }
+  .btn-confirm:disabled { background: #cccccc; cursor: not-allowed; transform: none; }
+
+  /* ── SENDING SCREEN ── */
+  .sending-body {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 24px; gap: 20px; text-align: center;
+  }
+
+  .sending-spinner {
+    width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--primary);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .sending-label { font-size: 18px; font-weight: 600; color: var(--text); }
+  .sending-sub { font-size: 14px; color: var(--text-hint); }
+
+  /* ── DONE SCREEN ── */
+  .done-body {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 24px; gap: 16px; text-align: center;
+  }
+
+  .done-icon {
+    width: 64px; height: 64px; background: #D1FAE5; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .done-icon svg { width: 28px; height: 28px; stroke: #065F46; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  .done-title { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .done-sub { font-size: 14px; color: var(--text-hint); line-height: 1.6; max-width: 280px; }
+
+  .done-summary { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+
+  .done-row {
+    display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+    background: var(--surface); border-radius: var(--radius-md);
+    font-size: 14px; color: var(--text);
+  }
+
+  .btn-home {
+    margin-top: 8px; width: 100%; max-width: 320px; height: 52px; background: var(--primary);
+    color: #ffffff; border: none; border-radius: var(--radius-lg); font-family: var(--font);
+    font-size: 16px; font-weight: 600; cursor: pointer;
+  }
+
+  /* INLINE EDIT MODAL */
+  .edit-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 100; align-items: flex-end; justify-content: center;
+  }
+
+  .edit-overlay.show { display: flex; }
+
+  .edit-sheet {
+    background: var(--bg); border-radius: 24px 24px 0 0; padding: 24px 20px 40px;
+    width: 100%; max-width: 560px;
+  }
+
+  .edit-sheet-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+
+  .edit-textarea {
+    width: 100%; min-height: 100px; padding: 14px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-md); font-family: var(--font); font-size: 15px; color: var(--text);
+    background: var(--surface); resize: none; line-height: 1.5;
+  }
+
+  .edit-textarea:focus { outline: none; border-color: var(--primary); background: var(--bg); }
+
+  .edit-actions { display: flex; gap: 10px; margin-top: 12px; }
+
+  .btn-edit-cancel {
+    flex: 1; height: 46px; background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--radius-md); font-family: var(--font); font-size: 14px;
+    font-weight: 600; color: var(--text-muted); cursor: pointer;
+  }
+
+  .btn-edit-save {
+    flex: 2; height: 46px; background: var(--primary); color: #ffffff; border: none;
+    border-radius: var(--radius-md); font-family: var(--font); font-size: 14px;
+    font-weight: 600; cursor: pointer;
+  }
+
+  .toast {
+    display: none; position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+    background: #111; color: white; padding: 12px 24px; border-radius: 12px;
+    font-size: 14px; font-weight: 500; z-index: 200; white-space: nowrap;
+  }
+
+  .toast.show { display: block; }
+  .toast.error { background: #DC2626; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="home.html">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <div class="topbar-info">
+    <div class="topbar-title">Team Chat</div>
+    <div class="topbar-sub">Assign tasks to Tanya, Justin &amp; Josh</div>
+  </div>
+  <a class="tasks-link" href="my-tasks.html">My Tasks</a>
+</div>
+
+<!-- SCREEN 1: COMPOSE -->
+<div class="screen active" id="screen-compose">
+  <div class="compose-body">
+    <div class="compose-hint">
+      <strong>Talk or type naturally.</strong> Say who gets what — "have Tanya pull flags on Main Street, Justin do the flyers, Josh check the workflow." Claude will sort it out.
+    </div>
+    <div class="input-area">
+      <textarea class="msg-textarea" id="msgInput" placeholder="Type your instructions here, or hold the mic to speak..."></textarea>
+      <div class="mic-status" id="micStatus"></div>
+      <div class="input-actions">
+        <button class="mic-btn" id="micBtn" title="Hold to speak">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button class="send-btn" id="sendBtn">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Parse Tasks
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 2: CONFIRM -->
+<div class="screen" id="screen-confirm">
+  <div class="confirm-body">
+    <div class="confirm-header">Here's what Claude parsed from your message:</div>
+    <div class="original-msg" id="originalMsg"></div>
+    <div class="tasks-section-label">Tasks to assign</div>
+    <div id="taskList"></div>
+    <div class="confirm-actions">
+      <button class="btn-back" id="btnBack">Edit</button>
+      <button class="btn-confirm" id="btnConfirm">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send to Team
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: SENDING -->
+<div class="screen" id="screen-sending">
+  <div class="sending-body">
+    <div class="sending-spinner"></div>
+    <div class="sending-label">Sending tasks...</div>
+    <div class="sending-sub">Notifying the team via SMS</div>
+  </div>
+</div>
+
+<!-- SCREEN 4: DONE -->
+<div class="screen" id="screen-done">
+  <div class="done-body">
+    <div class="done-icon">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="done-title">Tasks sent!</div>
+    <div class="done-sub">The team has been notified via SMS and will be reminded at 9am tomorrow if not yet done.</div>
+    <div class="done-summary" id="doneSummary"></div>
+    <button class="btn-home" onclick="resetToCompose()">New Message</button>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="edit-overlay" id="editOverlay">
+  <div class="edit-sheet">
+    <div class="edit-sheet-title">Edit task</div>
+    <textarea class="edit-textarea" id="editTextarea"></textarea>
+    <div class="edit-actions">
+      <button class="btn-edit-cancel" id="editCancel">Cancel</button>
+      <button class="btn-edit-save" id="editSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const ASSIGNEES = {
+    tanya: { name: 'Tanya', phone: '+14178802014', pillClass: 'pill-tanya', docId: '1y-t-gM-5zlZkke0PNoSESmvxtEaMAl6dSxrDRDcEFBY' },
+    justin: { name: 'Justin', phone: '+14178609896', pillClass: 'pill-justin', docId: '17Xpgn5OYbGD0AR69eXFhMOnOiN8virrudB85n2H5Aww' },
+    josh:   { name: 'Josh',   phone: '+14178080046', pillClass: 'pill-josh',   docId: '1OCDEmoqQnUJrfsN5qPxjQqIqa1fwz8q7N25uPbk_tYM' },
+    lex:    { name: 'Lex',    phone: '+13605183555', pillClass: 'pill-lex',    docId: '1_8AnabstJh8DyrH_U3jczvL55a1VRtzye0fPe-LXtPE' },
+  };
+
+  let parsedTasks = [];
+  let editingIndex = null;
+
+  // ── TOAST ──
+  function showToast(msg, isError=false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => { t.className = 'toast'; }, 3500);
+  }
+
+  // ── SCREEN SWITCHER ──
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ── VOICE TO TEXT ──
+  const micBtn = document.getElementById('micBtn');
+  const micStatus = document.getElementById('micStatus');
+  const msgInput = document.getElementById('msgInput');
+  let recognition = null;
+  let isListening = false;
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    let finalTranscript = '';
+
+    recognition.onresult = (event) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalTranscript += t + ' ';
+        else interim = t;
+      }
+      msgInput.value = (finalTranscript + interim).trim();
+    };
+
+    recognition.onerror = (e) => {
+      micStatus.textContent = '';
+      micBtn.classList.remove('listening');
+      isListening = false;
+      if (e.error !== 'no-speech') showToast('Mic error: ' + e.error, true);
+    };
+
+    recognition.onend = () => {
+      micBtn.classList.remove('listening');
+      micStatus.textContent = '';
+      isListening = false;
+    };
+
+    micBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (isListening) return;
+      finalTranscript = msgInput.value ? msgInput.value + ' ' : '';
+      recognition.start();
+      isListening = true;
+      micBtn.classList.add('listening');
+      micStatus.textContent = 'Listening...';
+    }, { passive: false });
+
+    micBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (!isListening) return;
+      recognition.stop();
+    }, { passive: false });
+
+    micBtn.addEventListener('mousedown', () => {
+      if (isListening) return;
+      finalTranscript = msgInput.value ? msgInput.value + ' ' : '';
+      recognition.start();
+      isListening = true;
+      micBtn.classList.add('listening');
+      micStatus.textContent = 'Listening...';
+    });
+
+    micBtn.addEventListener('mouseup', () => {
+      if (!isListening) return;
+      recognition.stop();
+    });
+
+  } else {
+    micBtn.style.opacity = '0.4';
+    micBtn.title = 'Voice not supported in this browser';
+    micBtn.addEventListener('click', () => showToast('Voice input not supported in this browser. Use Chrome or Safari.', true));
+  }
+
+  // ── PARSE TASKS ──
+  document.getElementById('sendBtn').addEventListener('click', async () => {
+    const msg = msgInput.value.trim();
+    if (!msg) { showToast('Type or speak your instructions first.', true); return; }
+
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Parsing...';
+
+    try {
+      const res = await fetch('/.netlify/functions/lex-intercom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.tasks) {
+        showToast(data.error || 'Could not parse tasks. Try again.', true);
+        return;
+      }
+
+      parsedTasks = data.tasks;
+
+      document.getElementById('originalMsg').textContent = msg;
+      renderTaskList();
+      showScreen('screen-confirm');
+
+    } catch (err) {
+      console.error(err);
+      showToast('Something went wrong. Try again.', true);
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Parse Tasks`;
+    }
+  });
+
+  // ── RENDER TASK LIST ──
+  function renderTaskList() {
+    const container = document.getElementById('taskList');
+    container.innerHTML = '';
+
+    if (!parsedTasks.length) {
+      container.innerHTML = '<div class="no-tasks">No tasks were found in your message. Go back and try again.</div>';
+      return;
+    }
+
+    parsedTasks.forEach((task, i) => {
+      const assignee = ASSIGNEES[task.assignee?.toLowerCase()] || ASSIGNEES.tanya;
+      const card = document.createElement('div');
+      card.className = 'task-card';
+      card.innerHTML = `
+        <div class="task-card-header">
+          <div class="assignee-pill ${assignee.pillClass}">${assignee.name}</div>
+          ${task.due ? `<div class="task-due">${task.due}</div>` : ''}
+        </div>
+        <div class="task-text">${escHtml(task.task)}</div>
+        <button class="task-edit-btn" data-index="${i}">Edit this task</button>
+      `;
+      card.querySelector('.task-edit-btn').addEventListener('click', () => openEdit(i));
+      container.appendChild(card);
+
+      if (i < parsedTasks.length - 1) {
+        const sep = document.createElement('div');
+        sep.style.cssText = 'height:10px;';
+        container.appendChild(sep);
+      }
+    });
+  }
+
+  // ── INLINE EDIT ──
+  function openEdit(index) {
+    editingIndex = index;
+    document.getElementById('editTextarea').value = parsedTasks[index].task;
+    document.getElementById('editOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('editTextarea').focus(), 100);
+  }
+
+  document.getElementById('editCancel').addEventListener('click', () => {
+    document.getElementById('editOverlay').classList.remove('show');
+    editingIndex = null;
+  });
+
+  document.getElementById('editSave').addEventListener('click', () => {
+    if (editingIndex === null) return;
+    parsedTasks[editingIndex].task = document.getElementById('editTextarea').value.trim();
+    document.getElementById('editOverlay').classList.remove('show');
+    editingIndex = null;
+    renderTaskList();
+  });
+
+  document.getElementById('editOverlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('editOverlay')) {
+      document.getElementById('editOverlay').classList.remove('show');
+      editingIndex = null;
+    }
+  });
+
+  // ── BACK ──
+  document.getElementById('btnBack').addEventListener('click', () => {
+    showScreen('screen-compose');
+  });
+
+  // ── CONFIRM & SEND ──
+  document.getElementById('btnConfirm').addEventListener('click', async () => {
+    if (!parsedTasks.length) { showToast('No tasks to send.', true); return; }
+
+    const btn = document.getElementById('btnConfirm');
+    btn.disabled = true;
+    showScreen('screen-sending');
+
+    try {
+      const res = await fetch('/.netlify/functions/lex-intercom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send',
+          tasks: parsedTasks,
+          originalMessage: document.getElementById('originalMsg').textContent
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showScreen('screen-confirm');
+        btn.disabled = false;
+        showToast(data.error || 'Send failed. Try again.', true);
+        return;
+      }
+
+      renderDoneSummary();
+      showScreen('screen-done');
+
+    } catch (err) {
+      console.error(err);
+      showScreen('screen-confirm');
+      btn.disabled = false;
+      showToast('Something went wrong. Try again.', true);
+    }
+  });
+
+  // ── DONE SUMMARY ──
+  function renderDoneSummary() {
+    const container = document.getElementById('doneSummary');
+    container.innerHTML = '';
+    parsedTasks.forEach(task => {
+      const assignee = ASSIGNEES[task.assignee?.toLowerCase()] || ASSIGNEES.tanya;
+      const row = document.createElement('div');
+      row.className = 'done-row';
+      row.innerHTML = `<span class="assignee-pill ${assignee.pillClass}" style="flex-shrink:0;">${assignee.name}</span><span style="font-size:13px;color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(task.task)}</span>`;
+      container.appendChild(row);
+    });
+  }
+
+  // ── RESET ──
+  function resetToCompose() {
+    msgInput.value = '';
+    parsedTasks = [];
+    document.getElementById('taskList').innerHTML = '';
+    document.getElementById('doneSummary').innerHTML = '';
+    showScreen('screen-compose');
+  }
+
+  function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>

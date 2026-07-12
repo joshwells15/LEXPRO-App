@@ -11,7 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <title>LexPro | Home</title>
 <style>
-  /* ── Design Tokens ── */
   :root {
     --bg:           #ffffff;
     --surface:      #f7f7f7;
@@ -38,7 +37,6 @@
     flex-direction: column;
   }
 
-  /* ── Stats Bar ── */
   .stats-bar {
     background: var(--primary);
     padding: 14px 20px;
@@ -48,22 +46,10 @@
   }
 
   .stat { flex: 1; text-align: center; }
-  .stat-val {
-    font-size: 18px;
-    font-weight: 700;
-    color: #ffffff;
-    line-height: 1;
-  }
-  .stat-lbl {
-    font-size: 9px;
-    color: rgba(255,255,255,0.45);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-top: 4px;
-  }
+  .stat-val { font-size: 18px; font-weight: 700; color: #ffffff; line-height: 1; }
+  .stat-lbl { font-size: 9px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
   .stat-div { width: 1px; height: 32px; background: rgba(255,255,255,0.1); }
 
-  /* ── Header ── */
   .header {
     padding: 18px 20px 12px;
     display: flex;
@@ -78,148 +64,48 @@
   .header-icons { display: flex; gap: 10px; }
 
   .icon-btn {
-    width: 42px;
-    height: 42px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    position: relative;
-    text-decoration: none;
-    transition: background 0.15s;
+    width: 42px; height: 42px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; text-decoration: none; transition: background 0.15s;
   }
 
   .icon-btn:active { background: var(--surface-2); }
 
-  .icon-btn svg {
-    width: 18px;
-    height: 18px;
-    stroke: var(--text-muted);
-    fill: none;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
+  .icon-btn svg { width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-  .notif-dot {
-    position: absolute;
-    top: 9px;
-    right: 9px;
-    width: 7px;
-    height: 7px;
-    background: var(--primary);
-    border-radius: 50%;
-    border: 1.5px solid var(--bg);
-  }
+  .notif-dot { position: absolute; top: 9px; right: 9px; width: 7px; height: 7px; background: var(--primary); border-radius: 50%; border: 1.5px solid var(--bg); }
 
-  /* ── Main ── */
   .main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0 24px 48px;
-    gap: 14px;
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 0 24px 48px; gap: 14px;
   }
 
-  /* ── Logo Area ── */
-  .logo-area {
-    text-align: center;
-    margin-bottom: 12px;
-  }
+  .logo-area { text-align: center; margin-bottom: 12px; }
+  .logo-mark { display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .logo-lex { font-size: 38px; font-weight: 700; color: var(--primary); letter-spacing: 4px; line-height: 1; }
+  .logo-pro-box { border: 3px solid var(--primary); border-radius: 9px; padding: 3px 10px; margin-left: 7px; }
+  .logo-pro { font-size: 38px; font-weight: 700; color: var(--primary); letter-spacing: 4px; line-height: 1; display: block; }
+  .logo-sub { font-size: 10px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.22em; margin-top: 6px; }
 
-  .logo-mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-  }
-
-  .logo-lex {
-    font-size: 38px;
-    font-weight: 700;
-    color: var(--primary);
-    letter-spacing: 4px;
-    line-height: 1;
-  }
-
-  .logo-pro-box {
-    border: 3px solid var(--primary);
-    border-radius: 9px;
-    padding: 3px 10px;
-    margin-left: 7px;
-  }
-
-  .logo-pro {
-    font-size: 38px;
-    font-weight: 700;
-    color: var(--primary);
-    letter-spacing: 4px;
-    line-height: 1;
-    display: block;
-  }
-
-  .logo-sub {
-    font-size: 10px;
-    color: var(--text-hint);
-    text-transform: uppercase;
-    letter-spacing: 0.22em;
-    margin-top: 6px;
-  }
-
-  /* ── Nav Buttons ── */
   .nav-btn {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: transform 0.1s, background 0.15s;
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px; display: flex; align-items: center;
+    gap: 16px; cursor: pointer; text-decoration: none; transition: transform 0.1s, background 0.15s;
   }
 
   .nav-btn:active { transform: scale(0.98); background: var(--surface-2); }
 
-  .nav-btn.primary {
-    background: var(--primary);
-    border-color: var(--primary);
-  }
-
+  .nav-btn.primary { background: var(--primary); border-color: var(--primary); }
   .nav-btn.primary:active { background: #2a2a2a; }
 
   .btn-icon {
-    width: 46px;
-    height: 46px;
-    background: rgba(255,255,255,0.08);
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    width: 46px; height: 46px; background: rgba(255,255,255,0.08);
+    border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
 
-  .nav-btn:not(.primary) .btn-icon {
-    background: var(--surface-2);
-  }
+  .nav-btn:not(.primary) .btn-icon { background: var(--surface-2); }
 
-  .btn-icon svg {
-    width: 20px;
-    height: 20px;
-    stroke: #ffffff;
-    fill: none;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
+  .btn-icon svg { width: 20px; height: 20px; stroke: #ffffff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .nav-btn:not(.primary) .btn-icon svg { stroke: var(--text-muted); }
 
   .btn-text { flex: 1; }
@@ -232,47 +118,18 @@
   .btn-arrow { font-size: 22px; color: var(--text-hint); line-height: 1; }
   .nav-btn.primary .btn-arrow { color: rgba(255,255,255,0.35); }
 
-  /* ── Footer ── */
-  .footer {
-    text-align: center;
-    padding: 0 0 36px;
-    font-size: 11px;
-    color: var(--text-hint);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .logout-btn {
-    background: none;
-    border: none;
-    color: var(--text-hint);
-    font-size: 11px;
-    font-family: var(--font);
-    cursor: pointer;
-    text-decoration: underline;
-    display: block;
-    margin: 6px auto 0;
-    letter-spacing: 0.05em;
-  }
+  .footer { text-align: center; padding: 0 0 36px; font-size: 11px; color: var(--text-hint); letter-spacing: 0.08em; text-transform: uppercase; }
+  .logout-btn { background: none; border: none; color: var(--text-hint); font-size: 11px; font-family: var(--font); cursor: pointer; text-decoration: underline; display: block; margin: 6px auto 0; letter-spacing: 0.05em; }
 </style>
 </head>
 <body>
 
 <div class="stats-bar">
-  <div class="stat">
-    <div class="stat-val" id="statVolume">—</div>
-    <div class="stat-lbl">YTD Volume</div>
-  </div>
+  <div class="stat"><div class="stat-val" id="statVolume">—</div><div class="stat-lbl">YTD Volume</div></div>
   <div class="stat-div"></div>
-  <div class="stat">
-    <div class="stat-val" id="statDeals">—</div>
-    <div class="stat-lbl">Active Deals</div>
-  </div>
+  <div class="stat"><div class="stat-val" id="statDeals">—</div><div class="stat-lbl">Active Deals</div></div>
   <div class="stat-div"></div>
-  <div class="stat">
-    <div class="stat-val" id="statClosing">—</div>
-    <div class="stat-lbl">Closing Soon</div>
-  </div>
+  <div class="stat"><div class="stat-val" id="statClosing">—</div><div class="stat-lbl">Closing Soon</div></div>
 </div>
 
 <div class="header">
@@ -321,6 +178,18 @@
     </div>
     <div class="btn-arrow">›</div>
   </a>
+
+  <a class="nav-btn" href="team-chat.html">
+    <div class="btn-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </div>
+    <div class="btn-text">
+      <div class="btn-title">Team Chat</div>
+      <div class="btn-sub">Assign tasks to the team</div>
+    </div>
+    <div class="btn-arrow">›</div>
+  </a>
+
 </div>
 
 <div class="footer">
@@ -352,51 +221,32 @@
   async function loadStats() {
     try {
       const [buyerRes, sellerRes, buyerWonRes, sellerWonRes] = await Promise.all([
-        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${BUYER_PIPELINE}&limit=100`, {
-          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
-        }).then(r => r.json()),
-        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${SELLER_PIPELINE}&limit=100`, {
-          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
-        }).then(r => r.json()),
-        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${BUYER_PIPELINE}&status=won&limit=100`, {
-          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
-        }).then(r => r.json()),
-        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${SELLER_PIPELINE}&status=won&limit=100`, {
-          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
-        }).then(r => r.json())
+        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${BUYER_PIPELINE}&limit=100`, { headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' } }).then(r => r.json()),
+        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${SELLER_PIPELINE}&limit=100`, { headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' } }).then(r => r.json()),
+        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${BUYER_PIPELINE}&status=won&limit=100`, { headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' } }).then(r => r.json()),
+        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${SELLER_PIPELINE}&status=won&limit=100`, { headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' } }).then(r => r.json())
       ]);
 
-      const allOpps = [
-        ...(buyerRes.opportunities || []),
-        ...(sellerRes.opportunities || []),
-        ...(buyerWonRes.opportunities || []),
-        ...(sellerWonRes.opportunities || [])
-      ];
-
+      const allOpps = [...(buyerRes.opportunities||[]),...(sellerRes.opportunities||[]),...(buyerWonRes.opportunities||[]),...(sellerWonRes.opportunities||[])];
       const activeOpps = allOpps.filter(o => o.status !== 'lost' && o.status !== 'won' && !CLOSED_STAGE_IDS.includes(o.pipelineStageId));
       document.getElementById('statDeals').textContent = activeOpps.length;
 
-      let closingSoon = 0;
-      let ytdCommission = 0;
+      let closingSoon = 0, ytdCommission = 0;
       const now = Date.now();
       const startOfYear = new Date(new Date().getFullYear(), 0, 1).getTime();
 
-      const contactFetches = allOpps.map(async opp => {
+      await Promise.all(allOpps.map(async opp => {
         const contactId = opp.contactId || opp.contact?.id;
         if (!contactId) return;
         try {
-          const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
-            headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
-          });
+          const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, { headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' } });
           const data = await res.json();
           const cf = data.contact?.customFields || [];
-
           const closingField = cf.find(f => f.id === CLOSING_FIELD_ID);
           if (closingField?.value) {
             const daysUntil = Math.ceil((new Date(closingField.value).getTime() - now) / 86400000);
             if (daysUntil >= 0 && daysUntil <= 14) closingSoon++;
           }
-
           const isClosed = CLOSED_STAGE_IDS.includes(opp.pipelineStageId) || opp.status === 'won';
           if (isClosed) {
             const commField = cf.find(f => f.id === COMMISSION_FIELD_ID);
@@ -407,19 +257,12 @@
             }
           }
         } catch(e) {}
-      });
-
-      await Promise.all(contactFetches);
+      }));
 
       document.getElementById('statClosing').textContent = closingSoon;
       document.getElementById('statVolume').textContent = ytdCommission > 0
-        ? '$' + (ytdCommission >= 1000000
-            ? (ytdCommission / 1000000).toFixed(1) + 'M'
-            : ytdCommission >= 1000
-              ? (ytdCommission / 1000).toFixed(0) + 'K'
-              : ytdCommission.toLocaleString())
+        ? '$' + (ytdCommission >= 1000000 ? (ytdCommission/1000000).toFixed(1)+'M' : ytdCommission >= 1000 ? (ytdCommission/1000).toFixed(0)+'K' : ytdCommission.toLocaleString())
         : '$0';
-
     } catch(e) {
       document.getElementById('statVolume').textContent = '$0';
       document.getElementById('statDeals').textContent = '0';
