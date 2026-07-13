@@ -1,11 +1,14 @@
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const MAKE_INTERCOM_WEBHOOK = process.env.MAKE_INTERCOM_WEBHOOK;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+
+const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
 
 const ASSIGNEES = {
-  tanya:  { name: 'Tanya',  phone: '+14178802014', docId: '1y-t-gM-5zlZkke0PNoSESmvxtEaMAl6dSxrDRDcEFBY' },
-  justin: { name: 'Justin', phone: '+14178609896', docId: '17Xpgn5OYbGD0AR69eXFhMOnOiN8virrudB85n2H5Aww' },
-  josh:   { name: 'Josh',   phone: '+14178080046', docId: '1OCDEmoqQnUJrfsN5qPxjQqIqa1fwz8q7N25uPbk_tYM' },
-  lex:    { name: 'Lex',    phone: '+13605183555', docId: '1_8AnabstJh8DyrH_U3jczvL55a1VRtzye0fPe-LXtPE'  },
+  tanya:  { name: 'Tanya',  phone: '+14178802014', contactId: 'k4M3JrFVdMTwhKtIaQx6', docId: '1y-t-gM-5zlZkke0PNoSESmvxtEaMAl6dSxrDRDcEFBY' },
+  justin: { name: 'Justin', phone: '+14178609896', contactId: 'rkWvwshxSxMeysx8GgmV', docId: '17Xpgn5OYbGD0AR69eXFhMOnOiN8virrudB85n2H5Aww' },
+  josh:   { name: 'Josh',   phone: '+14178080046', contactId: 'txnhMCDRPWLUXXykNuE6', docId: '1OCDEmoqQnUJrfsN5qPxjQqIqa1fwz8q7N25uPbk_tYM' },
+  lex:    { name: 'Lex',    phone: '+13605183555', contactId: 'd4k3gSVicZJrCw3Kekcj', docId: '1_8AnabstJh8DyrH_U3jczvL55a1VRtzye0fPe-LXtPE'  },
 };
 
 const SYSTEM_PROMPT = `You are Claude, a smart real estate business assistant working directly with Lex, the owner of LexPro Real Estate in Springfield, MO. You help Lex brainstorm ideas, think through strategies, and manage his team.
@@ -65,7 +68,6 @@ exports.handler = async (event) => {
   const { action } = body;
 
   // ── ACTION: CHAT ──
-  // Full conversational mode — Claude decides if it's a chat or task assignment
   if (!action || action === 'chat') {
     const { history } = body;
 
@@ -104,7 +106,6 @@ exports.handler = async (event) => {
         parsed = JSON.parse(clean);
       } catch (e) {
         console.error('JSON parse error. Raw output:', raw);
-        // Fallback: treat the whole thing as a plain reply with no tasks
         return {
           statusCode: 200,
           body: JSON.stringify({ reply: raw, tasks: [] }),
@@ -126,7 +127,6 @@ exports.handler = async (event) => {
   }
 
   // ── ACTION: SEND ──
-  // Fire the Make webhook with confirmed tasks
   if (action === 'send') {
     const { tasks } = body;
 
@@ -136,28 +136,62 @@ exports.handler = async (event) => {
 
     const timestamp = new Date().toISOString();
     const dateLabel = new Date().toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+      timeZone: 'America/Chicago',
     });
 
     const enrichedTasks = tasks.map((task, i) => {
       const key = (task.assignee || '').toLowerCase();
       const assignee = ASSIGNEES[key] || ASSIGNEES.tanya;
+
+      const dueLine = task.due ? `\n\nDue: ${task.due}` : '';
+      const smsMessage =
+        `Hey ${assignee.name}! Lex assigned you a task:\n\n${task.task}${dueLine}\n\nLog in to the LexPro app to mark it complete.`;
+
       return {
         assignee: key,
         assigneeName: assignee.name,
-        assigneePhone: assignee.phone,
+        contactId: assignee.contactId,
         docId: assignee.docId,
         task: task.task,
         due: task.due || null,
         timestamp,
         dateLabel,
         taskId: `task_${Date.now()}_${i}_${Math.random().toString(36).substr(2, 5)}`,
+        messageJson: JSON.stringify(smsMessage),
       };
     });
 
     try {
+      // 1. Write tasks to Supabase (feeds My Tasks tab + 9am reminder)
+      const supaRows = enrichedTasks.map(t => ({
+        assignee: t.assignee,
+        task: t.task,
+        due: t.due,
+        status: 'open',
+        task_id: t.taskId,
+        contact_id: t.contactId,
+      }));
+
+      const supaRes = await fetch(`${SUPABASE_URL}/rest/v1/lex_tasks`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify(supaRows),
+      });
+
+      if (!supaRes.ok) {
+        const errText = await supaRes.text();
+        console.error('Supabase insert error:', errText);
+      }
+
+      // 2. Fire Make webhook
       if (!MAKE_INTERCOM_WEBHOOK) {
-        console.warn('MAKE_INTERCOM_WEBHOOK not configured — skipping Make call');
+        console.warn('MAKE_INTERCOM_WEBHOOK not configured');
         return {
           statusCode: 200,
           body: JSON.stringify({ success: true, sent: enrichedTasks.length, warning: 'Make webhook not yet configured' }),
