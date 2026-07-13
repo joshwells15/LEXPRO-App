@@ -189,7 +189,7 @@ exports.handler = async (event) => {
         console.error('Supabase insert error:', errText);
       }
 
-      // 2. Fire Make webhook
+      // 2. Fire Make webhook — ONE CALL PER TASK with flat fields
       if (!MAKE_INTERCOM_WEBHOOK) {
         console.warn('MAKE_INTERCOM_WEBHOOK not configured');
         return {
@@ -198,20 +198,20 @@ exports.handler = async (event) => {
         };
       }
 
-      const makeRes = await fetch(MAKE_INTERCOM_WEBHOOK, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tasks: enrichedTasks,
-          taskCount: enrichedTasks.length,
-          timestamp,
-          dateLabel,
-        }),
-      });
+      const webhookResults = await Promise.all(
+        enrichedTasks.map(t =>
+          fetch(MAKE_INTERCOM_WEBHOOK, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(t),
+          })
+        )
+      );
 
-      if (!makeRes.ok) {
-        console.error('Make webhook returned:', makeRes.status);
-        return { statusCode: 500, body: JSON.stringify({ error: 'Make webhook failed' }) };
+      const failedCount = webhookResults.filter(r => !r.ok).length;
+      if (failedCount > 0) {
+        console.error(`${failedCount} webhook call(s) failed`);
+        return { statusCode: 500, body: JSON.stringify({ error: `${failedCount} task notification(s) failed` }) };
       }
 
       return {
