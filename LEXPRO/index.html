@@ -48,7 +48,6 @@
     overflow: hidden;
   }
 
-  /* Faint watermark behind everything */
   body::before {
     content: '';
     position: fixed;
@@ -73,54 +72,13 @@
     z-index: 1;
   }
 
-  /* ── Logo Mark ── */
-  .brand {
-    text-align: center;
-    margin-bottom: 44px;
-  }
+  .brand { text-align: center; margin-bottom: 44px; }
+  .brand-logo { display: inline-flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 10px; }
+  .brand-lex { font-size: 36px; font-weight: 700; color: var(--primary); letter-spacing: 4px; line-height: 1; }
+  .brand-pro-box { border: 3px solid var(--primary); border-radius: 9px; padding: 3px 10px; margin-left: 7px; line-height: 1; }
+  .brand-pro { font-size: 36px; font-weight: 700; color: var(--primary); letter-spacing: 4px; line-height: 1; display: block; }
+  .brand-sub { font-size: 10px; color: var(--text-hint); letter-spacing: 0.22em; text-transform: uppercase; margin-top: 10px; }
 
-  .brand-logo {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    margin-bottom: 10px;
-  }
-
-  .brand-lex {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--primary);
-    letter-spacing: 4px;
-    line-height: 1;
-  }
-
-  .brand-pro-box {
-    border: 3px solid var(--primary);
-    border-radius: 9px;
-    padding: 3px 10px;
-    margin-left: 7px;
-    line-height: 1;
-  }
-
-  .brand-pro {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--primary);
-    letter-spacing: 4px;
-    line-height: 1;
-    display: block;
-  }
-
-  .brand-sub {
-    font-size: 10px;
-    color: var(--text-hint);
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    margin-top: 10px;
-  }
-
-  /* ── Card ── */
   .card {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -129,9 +87,7 @@
     box-shadow: 0 2px 24px rgba(0,0,0,0.06);
   }
 
-  .field {
-    margin-bottom: 14px;
-  }
+  .field { margin-bottom: 14px; }
 
   .field label {
     display: block;
@@ -163,6 +119,61 @@
     border-color: var(--primary);
     background: var(--bg);
     box-shadow: 0 0 0 3px rgba(17,17,17,0.07);
+  }
+
+  /* Remember me */
+  .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .remember-check {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .remember-check svg {
+    width: 12px;
+    height: 12px;
+    stroke: #ffffff;
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .remember-row.checked .remember-check {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+
+  .remember-row.checked .remember-check svg { opacity: 1; }
+
+  .remember-label {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .remember-hint {
+    font-size: 11px;
+    color: var(--text-hint);
+    margin-left: auto;
   }
 
   .btn-login {
@@ -243,6 +254,15 @@
       <label>Password</label>
       <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
     </div>
+
+    <div class="remember-row" id="rememberRow" onclick="toggleRemember()">
+      <div class="remember-check">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="remember-label">Remember me</div>
+      <div class="remember-hint">30 days</div>
+    </div>
+
     <button class="btn-login" id="loginBtn" onclick="handleLogin()">Sign In</button>
     <div class="error-msg" id="errorMsg">Incorrect username or password.</div>
   </div>
@@ -253,6 +273,36 @@
 <script>
   const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaWlla2RmbW9jdml6enZtd2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjcwOTcsImV4cCI6MjA5MTMwMzA5N30.Njm_nwlOJiHaapqeqj1ZhInkFUHiAqoglB5LuVauCwM';
+
+  const REMEMBER_DAYS = 30;
+  let rememberMe = false;
+
+  function toggleRemember() {
+    rememberMe = !rememberMe;
+    document.getElementById('rememberRow').classList.toggle('checked', rememberMe);
+  }
+
+  // ── Auto-login if a valid remember token exists ──
+  (function checkRemembered() {
+    // Already in an active session? Go home.
+    const session = sessionStorage.getItem('lexpro_user');
+    if (session) { window.location.href = 'home.html'; return; }
+
+    // Valid remember token? Restore session and go home.
+    try {
+      const tokenRaw = localStorage.getItem('lexpro_remember');
+      if (!tokenRaw) return;
+      const token = JSON.parse(tokenRaw);
+      if (token.user && token.expires && Date.now() < token.expires) {
+        sessionStorage.setItem('lexpro_user', JSON.stringify(token.user));
+        window.location.href = 'home.html';
+      } else {
+        localStorage.removeItem('lexpro_remember');
+      }
+    } catch (e) {
+      localStorage.removeItem('lexpro_remember');
+    }
+  })();
 
   async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);
@@ -292,6 +342,17 @@
       if (data && data.length > 0) {
         const user = data[0];
         sessionStorage.setItem('lexpro_user', JSON.stringify(user));
+
+        // Remember me: store a 30-day expiring token
+        if (rememberMe) {
+          localStorage.setItem('lexpro_remember', JSON.stringify({
+            user: user,
+            expires: Date.now() + REMEMBER_DAYS * 24 * 60 * 60 * 1000
+          }));
+        } else {
+          localStorage.removeItem('lexpro_remember');
+        }
+
         btn.innerHTML = 'Welcome back!';
         setTimeout(() => {
           window.location.href = 'home.html';
@@ -317,9 +378,6 @@
   document.getElementById('username').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') document.getElementById('password').focus();
   });
-
-  const saved = sessionStorage.getItem('lexpro_user');
-  if (saved) window.location.href = 'home.html';
 </script>
 <script>
   if ('serviceWorker' in navigator) {
