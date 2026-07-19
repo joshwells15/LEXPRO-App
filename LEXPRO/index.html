@@ -121,6 +121,46 @@
     box-shadow: 0 0 0 3px rgba(17,17,17,0.07);
   }
 
+  /* Password field with eye toggle */
+  .pw-wrap { position: relative; }
+
+  .pw-wrap input { padding-right: 48px; }
+
+  .eye-btn {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+
+  .eye-btn:active { background: var(--surface-2); }
+
+  .eye-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text-hint);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .eye-btn.showing svg { stroke: var(--primary); }
+
+  .eye-open { display: block; }
+  .eye-closed { display: none; }
+  .eye-btn.showing .eye-open { display: none; }
+  .eye-btn.showing .eye-closed { display: block; }
+
   /* Remember me */
   .remember-row {
     display: flex;
@@ -196,6 +236,42 @@
   .btn-login:active { transform: scale(0.98); opacity: 0.85; }
   .btn-login:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
+  /* Face ID button */
+  .btn-faceid {
+    display: none;
+    width: 100%;
+    margin-top: 12px;
+    padding: 15px;
+    background: var(--bg);
+    border: 1.5px solid var(--primary);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font);
+    color: var(--primary);
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: background 0.15s, transform 0.1s;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-faceid.available { display: flex; }
+  .btn-faceid:active { transform: scale(0.98); background: var(--surface); }
+  .btn-faceid:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  .btn-faceid svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   .error-msg {
     display: none;
     margin-top: 14px;
@@ -232,6 +308,78 @@
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Face ID enroll modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-card {
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+  }
+
+  .modal-icon {
+    width: 56px;
+    height: 56px;
+    background: var(--surface);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .modal-icon svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .modal-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .modal-sub { font-size: 13px; color: var(--text-muted); line-height: 1.55; margin-bottom: 22px; }
+
+  .modal-btn-primary {
+    width: 100%;
+    padding: 15px;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
+  .modal-btn-secondary {
+    width: 100%;
+    padding: 13px;
+    background: none;
+    color: var(--text-hint);
+    border: none;
+    font-family: var(--font);
+    font-size: 13px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -252,7 +400,13 @@
     </div>
     <div class="field">
       <label>Password</label>
-      <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+      <div class="pw-wrap">
+        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+        <button type="button" class="eye-btn" id="eyeBtn" aria-label="Show password">
+          <svg class="eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg class="eye-closed" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><path d="M14.12 14.12A3 3 0 119.88 9.88"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="remember-row" id="rememberRow" onclick="toggleRemember()">
@@ -264,10 +418,29 @@
     </div>
 
     <button class="btn-login" id="loginBtn" onclick="handleLogin()">Sign In</button>
+
+    <button class="btn-faceid" id="faceidBtn">
+      <svg viewBox="0 0 24 24"><path d="M7 3H5a2 2 0 00-2 2v2"/><path d="M17 3h2a2 2 0 012 2v2"/><path d="M7 21H5a2 2 0 01-2-2v-2"/><path d="M17 21h2a2 2 0 002-2v-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/><path d="M9 15s1 1.5 3 1.5 3-1.5 3-1.5"/></svg>
+      <span id="faceidBtnText">Sign in with Face ID</span>
+    </button>
+
     <div class="error-msg" id="errorMsg">Incorrect username or password.</div>
   </div>
 
   <div class="footer-note">LexPro Real Estate &bull; Springfield, MO</div>
+</div>
+
+<!-- FACE ID ENROLL MODAL -->
+<div class="modal-overlay" id="enrollModal">
+  <div class="modal-card">
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24"><path d="M7 3H5a2 2 0 00-2 2v2"/><path d="M17 3h2a2 2 0 012 2v2"/><path d="M7 21H5a2 2 0 01-2-2v-2"/><path d="M17 21h2a2 2 0 002-2v-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/><path d="M9 15s1 1.5 3 1.5 3-1.5 3-1.5"/></svg>
+    </div>
+    <div class="modal-title">Enable Face ID?</div>
+    <div class="modal-sub">Sign in instantly next time with Face ID or fingerprint — no typing required. Your password still works as a backup.</div>
+    <button class="modal-btn-primary" id="enrollYes">Enable Face ID</button>
+    <button class="modal-btn-secondary" id="enrollNo">Not now</button>
+  </div>
 </div>
 
 <script>
@@ -276,19 +449,158 @@
 
   const REMEMBER_DAYS = 30;
   let rememberMe = false;
+  let pendingUser = null; // user waiting on Face ID enroll decision
 
   function toggleRemember() {
     rememberMe = !rememberMe;
     document.getElementById('rememberRow').classList.toggle('checked', rememberMe);
   }
 
-  // ── Auto-login if a valid remember token exists ──
+  // ── PASSWORD EYE TOGGLE ──
+  const eyeBtn = document.getElementById('eyeBtn');
+  const pwInput = document.getElementById('password');
+  eyeBtn.addEventListener('click', () => {
+    const showing = pwInput.type === 'text';
+    pwInput.type = showing ? 'password' : 'text';
+    eyeBtn.classList.toggle('showing', !showing);
+    eyeBtn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+  });
+
+  // ── FACE ID (WebAuthn) HELPERS ──
+  const FACEID_KEY = 'lexpro_faceid';
+
+  function b64ToBuf(b64) {
+    const bin = atob(b64.replace(/-/g, '+').replace(/_/g, '/'));
+    const buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    return buf.buffer;
+  }
+
+  function bufToB64(buf) {
+    const bytes = new Uint8Array(buf);
+    let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function getFaceIdData() {
+    try {
+      const raw = localStorage.getItem(FACEID_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  async function biometricsAvailable() {
+    if (!window.PublicKeyCredential) return false;
+    try {
+      return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    } catch (e) { return false; }
+  }
+
+  // ── FACE ID ENROLL (after password login) ──
+  async function enrollFaceId(user) {
+    try {
+      const challenge = crypto.getRandomValues(new Uint8Array(32));
+      const userId = crypto.getRandomValues(new Uint8Array(16));
+
+      const cred = await navigator.credentials.create({
+        publicKey: {
+          challenge: challenge,
+          rp: { name: 'LexPro', id: location.hostname },
+          user: {
+            id: userId,
+            name: user.username,
+            displayName: user.username,
+          },
+          pubKeyCredParams: [
+            { type: 'public-key', alg: -7 },
+            { type: 'public-key', alg: -257 },
+          ],
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            userVerification: 'required',
+            residentKey: 'preferred',
+          },
+          timeout: 60000,
+          attestation: 'none',
+        },
+      });
+
+      if (cred && cred.rawId) {
+        localStorage.setItem(FACEID_KEY, JSON.stringify({
+          credId: bufToB64(cred.rawId),
+          user: user,
+        }));
+        return true;
+      }
+    } catch (e) {
+      console.warn('Face ID enrollment cancelled or failed:', e);
+    }
+    return false;
+  }
+
+  // ── FACE ID SIGN IN ──
+  async function faceIdLogin() {
+    const stored = getFaceIdData();
+    if (!stored || !stored.credId || !stored.user) return;
+
+    const btn = document.getElementById('faceidBtn');
+    const btnText = document.getElementById('faceidBtnText');
+    const err = document.getElementById('errorMsg');
+    btn.disabled = true;
+    btnText.textContent = 'Scanning...';
+    err.classList.remove('visible');
+
+    try {
+      const challenge = crypto.getRandomValues(new Uint8Array(32));
+
+      const assertion = await navigator.credentials.get({
+        publicKey: {
+          challenge: challenge,
+          rpId: location.hostname,
+          allowCredentials: [{ type: 'public-key', id: b64ToBuf(stored.credId) }],
+          userVerification: 'required',
+          timeout: 60000,
+        },
+      });
+
+      if (assertion) {
+        sessionStorage.setItem('lexpro_user', JSON.stringify(stored.user));
+        // Refresh the 30-day remember token on successful Face ID login
+        localStorage.setItem('lexpro_remember', JSON.stringify({
+          user: stored.user,
+          expires: Date.now() + REMEMBER_DAYS * 24 * 60 * 60 * 1000
+        }));
+        btnText.textContent = 'Welcome back!';
+        setTimeout(() => { window.location.href = 'home.html'; }, 500);
+        return;
+      }
+    } catch (e) {
+      console.warn('Face ID sign-in cancelled or failed:', e);
+    }
+
+    btn.disabled = false;
+    btnText.textContent = 'Sign in with Face ID';
+    err.textContent = 'Face ID didn\'t go through. Use your password instead.';
+    err.classList.add('visible');
+  }
+
+  document.getElementById('faceidBtn').addEventListener('click', faceIdLogin);
+
+  // ── SHOW FACE ID BUTTON IF ENROLLED + AVAILABLE ──
+  (async function initFaceIdButton() {
+    const stored = getFaceIdData();
+    if (!stored) return;
+    if (await biometricsAvailable()) {
+      document.getElementById('faceidBtn').classList.add('available');
+    }
+  })();
+
+  // ── AUTO-LOGIN if a valid remember token exists ──
   (function checkRemembered() {
-    // Already in an active session? Go home.
     const session = sessionStorage.getItem('lexpro_user');
     if (session) { window.location.href = 'home.html'; return; }
 
-    // Valid remember token? Restore session and go home.
     try {
       const tokenRaw = localStorage.getItem('lexpro_remember');
       if (!tokenRaw) return;
@@ -309,6 +621,21 @@
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function finishLogin(user) {
+    sessionStorage.setItem('lexpro_user', JSON.stringify(user));
+
+    if (rememberMe) {
+      localStorage.setItem('lexpro_remember', JSON.stringify({
+        user: user,
+        expires: Date.now() + REMEMBER_DAYS * 24 * 60 * 60 * 1000
+      }));
+    } else {
+      localStorage.removeItem('lexpro_remember');
+    }
+
+    window.location.href = 'home.html';
   }
 
   async function handleLogin() {
@@ -341,22 +668,19 @@
 
       if (data && data.length > 0) {
         const user = data[0];
-        sessionStorage.setItem('lexpro_user', JSON.stringify(user));
-
-        // Remember me: store a 30-day expiring token
-        if (rememberMe) {
-          localStorage.setItem('lexpro_remember', JSON.stringify({
-            user: user,
-            expires: Date.now() + REMEMBER_DAYS * 24 * 60 * 60 * 1000
-          }));
-        } else {
-          localStorage.removeItem('lexpro_remember');
-        }
-
         btn.innerHTML = 'Welcome back!';
-        setTimeout(() => {
-          window.location.href = 'home.html';
-        }, 800);
+
+        // Offer Face ID enrollment if supported and not yet set up on this device
+        const existing = getFaceIdData();
+        const canBio = await biometricsAvailable();
+        const alreadyEnrolledForUser = existing && existing.user && existing.user.username === user.username;
+
+        if (canBio && !alreadyEnrolledForUser) {
+          pendingUser = user;
+          document.getElementById('enrollModal').classList.add('show');
+        } else {
+          setTimeout(() => finishLogin(user), 600);
+        }
       } else {
         err.textContent = 'Incorrect username or password.';
         err.classList.add('visible');
@@ -370,6 +694,21 @@
       btn.innerHTML = 'Sign In';
     }
   }
+
+  // ── ENROLL MODAL BUTTONS ──
+  document.getElementById('enrollYes').addEventListener('click', async () => {
+    const btn = document.getElementById('enrollYes');
+    btn.disabled = true;
+    btn.textContent = 'Setting up...';
+    await enrollFaceId(pendingUser);
+    document.getElementById('enrollModal').classList.remove('show');
+    finishLogin(pendingUser);
+  });
+
+  document.getElementById('enrollNo').addEventListener('click', () => {
+    document.getElementById('enrollModal').classList.remove('show');
+    finishLogin(pendingUser);
+  });
 
   document.getElementById('password').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') handleLogin();
