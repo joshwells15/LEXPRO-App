@@ -191,7 +191,7 @@ exports.handler = async (event) => {
 
   // ── ACTION: SEND ──
   if (action === 'send') {
-    const { tasks } = body;
+    const { tasks, user } = body;
 
     if (!tasks || !Array.isArray(tasks) || !tasks.length) {
       return { statusCode: 400, body: JSON.stringify({ error: 'tasks array is required' }) };
@@ -203,13 +203,20 @@ exports.handler = async (event) => {
       timeZone: 'America/Chicago',
     });
 
+    const assignerKey = (typeof user === 'string' && user.trim()) ? user.trim().toLowerCase() : 'lex';
+    const assignedByName = ASSIGNEES[assignerKey]?.name
+      || (assignerKey.charAt(0).toUpperCase() + assignerKey.slice(1));
+
     const enrichedTasks = tasks.map((task, i) => {
       const key = (task.assignee || '').toLowerCase();
       const assignee = ASSIGNEES[key] || ASSIGNEES.tanya;
 
       const dueLine = task.due ? `\n\nDue: ${task.due}` : '';
+      const assignedLine = (key === assignerKey)
+        ? `You assigned yourself a task:`
+        : `${assignedByName} assigned you a task:`;
       const smsMessage =
-        `Hey ${assignee.name}! Lex assigned you a task:\n\n${task.task}${dueLine}\n\nLog in to the LexPro app to mark it complete.`;
+        `Hey ${assignee.name}! ${assignedLine}\n\n${task.task}${dueLine}\n\nLog in to the LexPro app to mark it complete.`;
 
       return {
         assignee: key,
@@ -218,6 +225,7 @@ exports.handler = async (event) => {
         docId: assignee.docId,
         task: task.task,
         due: task.due || null,
+        assignedByName,
         timestamp,
         dateLabel,
         taskId: `task_${Date.now()}_${i}_${Math.random().toString(36).substr(2, 5)}`,
@@ -234,6 +242,7 @@ exports.handler = async (event) => {
         status: 'open',
         task_id: t.taskId,
         contact_id: t.contactId,
+        assigned_by: assignerKey,
       }));
 
       const supaRes = await fetch(`${SUPABASE_URL}/rest/v1/lex_tasks`, {
