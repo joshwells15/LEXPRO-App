@@ -252,12 +252,12 @@
     <div class="empty-icon">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     </div>
-    <div class="empty-title">Hey Lex 👋</div>
+    <div class="empty-title" id="greetTitle">Hey there 👋</div>
     <div class="empty-sub">Ask Claude anything, or describe what needs to get done. When you're ready to assign, just say who gets what.</div>
     <div class="starter-pills">
-      <button class="starter-pill" onclick="useStarter(this)">We have a high-end open house coming up. What are some ways to make it stand out?</button>
-      <button class="starter-pill" onclick="useStarter(this)">What's a good follow-up strategy for buyers who went quiet after showings?</button>
-      <button class="starter-pill" onclick="useStarter(this)">Have Tanya pull the flags on Main Street and Justin make flyers for the open house.</button>
+      <button class="starter-pill" onclick="useStarter(this)">What are some creative ways to make this weekend's open house stand out?</button>
+      <button class="starter-pill" onclick="useStarter(this)">Give me a follow-up plan for buyers who went quiet after their showings.</button>
+      <button class="starter-pill" onclick="useStarter(this)">I need the signs picked up from the Main Street listing and new flyers made for the open house.</button>
     </div>
   </div>
 </div>
@@ -280,7 +280,7 @@
   const ASSIGNEES = {
     tanya:  { name: 'Tanya',  phone: '+14178802014', pillClass: 'pill-tanya', docId: '1y-t-gM-5zlZkke0PNoSESmvxtEaMAl6dSxrDRDcEFBY' },
     justin: { name: 'Justin', phone: '+14178609896', pillClass: 'pill-justin', docId: '17Xpgn5OYbGD0AR69eXFhMOnOiN8virrudB85n2H5Aww' },
-    josh:   { name: 'Josh',   phone: '+14178080046', pillClass: 'pill-josh',   docId: '1OCDEmoqQnUJrfsN5qPxjQqIqa1fwz8q7N25uPbk_tYM' },
+    josh:   { name: 'Josh',   phone: '+14178080046', pillClass: 'pill-josh',   docId: '1OCDEmoqQnUJrfsN5qPxjQqlqa1fwz8q7N25uPbk_tYM' },
     lex:    { name: 'Lex',    phone: '+13605183555', pillClass: 'pill-lex',    docId: '1_8AnabstJh8DyrH_U3jczvL55a1VRtzye0fPe-LXtPE'  },
   };
 
@@ -293,6 +293,37 @@
   const sendBtn    = document.getElementById('sendBtn');
   const micBtn     = document.getElementById('micBtn');
   const toast      = document.getElementById('toast');
+
+  // ── LOGGED-IN USER ──
+  function getLoggedInUser() {
+    const keys = ['lexpro_user','lexproUser','username','user','currentUser','loggedInUser'];
+    for (const k of keys) {
+      const v = localStorage.getItem(k) || sessionStorage.getItem(k);
+      if (!v) continue;
+      try {
+        const o = JSON.parse(v);
+        const n = o.username || o.name || o.user;
+        if (typeof n === 'string' && n.trim()) return n.trim();
+      } catch (e) {
+        if (typeof v === 'string' && v.trim() && v.length < 30) return v.trim();
+      }
+    }
+    return 'Lex';
+  }
+
+  const rawUser = getLoggedInUser();
+  const displayName = rawUser.charAt(0).toUpperCase() + rawUser.slice(1).toLowerCase();
+  document.getElementById('greetTitle').textContent = 'Hey ' + displayName + ' \uD83D\uDC4B';
+
+  // ── LOCATION (for local recommendations wherever the user is) ──
+  let userCoords = null;
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      p => { userCoords = { latitude: p.coords.latitude, longitude: p.coords.longitude }; },
+      () => { /* denied or unavailable — server falls back to Springfield MO */ },
+      { maximumAge: 600000, timeout: 8000 }
+    );
+  }
 
   // ── TOAST ──
   function showToast(msg, type='') {
@@ -368,7 +399,8 @@
 
   // ── RENDER HELPERS ──
   function hideEmpty() {
-    if (emptyState.parentNode) emptyState.remove();
+    const es = document.getElementById('emptyState');
+    if (es && es.parentNode) es.remove();
   }
 
   function addMessage(role, content) {
@@ -378,7 +410,7 @@
 
     const label = document.createElement('div');
     label.className = 'msg-label' + (role === 'lex' ? ' right' : '');
-    label.textContent = role === 'lex' ? 'Lex' : 'Claude';
+    label.textContent = role === 'lex' ? displayName : 'Claude';
 
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble ' + role;
@@ -550,7 +582,12 @@
       const res = await fetch('/.netlify/functions/lex-intercom', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'chat', history: conversationHistory })
+        body: JSON.stringify({
+          action: 'chat',
+          history: conversationHistory,
+          user: rawUser,
+          location: userCoords
+        })
       });
 
       const data = await res.json();
@@ -588,9 +625,11 @@
     if (!confirm('Clear this conversation?')) return;
     conversationHistory = [];
     chatArea.innerHTML = '';
-    chatArea.appendChild(emptyState.cloneNode(true));
-    // Re-attach starter pill listeners
-    chatArea.querySelectorAll('.starter-pill').forEach(btn => {
+    const fresh = emptyState.cloneNode(true);
+    chatArea.appendChild(fresh);
+    const gt = fresh.querySelector('#greetTitle') || fresh.querySelector('.empty-title');
+    if (gt) gt.textContent = 'Hey ' + displayName + ' \uD83D\uDC4B';
+    fresh.querySelectorAll('.starter-pill').forEach(btn => {
       btn.addEventListener('click', () => useStarter(btn));
     });
   });
