@@ -190,6 +190,17 @@
     <div class="btn-arrow">›</div>
   </a>
 
+  <a class="nav-btn" href="my-tasks.html">
+    <div class="btn-icon">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><rect x="3" y="5" width="14" height="16" rx="2"/></svg>
+    </div>
+    <div class="btn-text">
+      <div class="btn-title">My Tasks</div>
+      <div class="btn-sub">Your open assignments</div>
+    </div>
+    <div class="btn-arrow">›</div>
+  </a>
+
 </div>
 
 <div class="footer">
@@ -274,6 +285,7 @@
 
   function logout() {
     sessionStorage.removeItem('lexpro_user');
+    localStorage.removeItem('lexpro_remember');
     window.location.href = 'index.html';
   }
 </script>
