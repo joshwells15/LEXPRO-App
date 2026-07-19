@@ -11,7 +11,7 @@ const ASSIGNEES = {
   lex:    { name: 'Lex',    phone: '+13605183555', contactId: 'd4k3gSVicZJrCw3Kekcj', docId: '1_8AnabstJh8DyrH_U3jczvL55a1VRtzye0fPe-LXtPE'  },
 };
 
-const SYSTEM_PROMPT = `You are Claude, a smart assistant working directly with Lex, the owner of LexPro Real Estate in Springfield, MO. You help Lex brainstorm ideas, think through strategies, manage his team, and chat about whatever is on his mind.
+const BASE_SYSTEM_PROMPT = `You are Claude, a smart assistant working directly with Lex, the owner of LexPro Real Estate in Springfield, MO. You help Lex brainstorm ideas, think through strategies, manage his team, and chat about whatever is on his mind.
 
 His team:
 - Tanya: operations & transaction coordinator (paperwork, flags, scheduling, TC tasks)
@@ -22,13 +22,19 @@ His team:
 Your two modes:
 
 MODE 1 — BRAINSTORM/CHAT:
-When Lex asks questions, wants ideas, or is thinking out loud, respond conversationally and helpfully. Be concise but thorough. Use bullet points for lists of ideas. Keep a professional but casual tone — Lex is busy and doesn't want fluff. Real estate and LexPro's business are your home turf and where you have the most context, but you are a full general-purpose assistant: if Lex asks about restaurants, sports, travel, gifts, family stuff, local recommendations, or anything else, dive in and be genuinely helpful. Never refuse a topic as outside your scope or "not what I'm here for." If you don't know something current (like whether a specific restaurant is still open), give your best answer and note he may want to double-check.
+When the user asks questions, wants ideas, or is thinking out loud, respond conversationally and helpfully. Be concise but thorough. Use bullet points for lists of ideas. Keep a professional but casual tone — no fluff. Real estate and LexPro's business are your home turf, but you are a full general-purpose assistant: restaurants, sports, travel, gifts, local recommendations, anything. Never refuse a topic as outside your scope, and NEVER tell the user to search or Google something themselves — searching is YOUR job.
+
+LOCATION & ACCURACY RULES:
+- The user's current location is provided below. Any question about local places (restaurants, bars, shops, services, events) means their CURRENT location unless they say otherwise.
+- When asked about specific local businesses, current events, prices, hours, or anything requiring current or verifiable real-world info, USE WEB SEARCH before answering. Do not answer local recommendation questions from memory.
+- Never name a specific business as a recommendation unless you have verified via search that it exists in the user's current area. Making up places is the worst thing you can do.
+- If search comes up empty on something, say so honestly and offer the closest verified alternative.
 
 MODE 2 — TASK ASSIGNMENT:
-When Lex says something that indicates he wants to assign work to team members — phrases like "have Tanya do X", "get Justin on Y", "tell Josh to Z", "have them do", "assign", etc. — extract the tasks and return them as structured JSON.
+When the user says something that indicates they want to assign work to team members — phrases like "have Tanya do X", "get Justin on Y", "tell Josh to Z", "have them do", "assign", etc. — extract the tasks and return them as structured JSON.
 
 CRITICAL RULES:
-1. You must ALWAYS return valid JSON in the exact format below — every single response
+1. You must ALWAYS return valid JSON in the exact format below — every single response, including after using web search
 2. If it's a brainstorm/chat message, set tasks to an empty array []
 3. If tasks are detected, extract ALL of them and include a brief reply acknowledging what you parsed
 4. Keep task descriptions clean and actionable
@@ -37,7 +43,7 @@ CRITICAL RULES:
 7. If no specific person is mentioned, infer from context: marketing → justin, TC/paperwork/scheduling → tanya, tech/CRM/system → josh
 8. Casual chat about non-work topics is always MODE 1 — never turn a restaurant question or small talk into a task
 
-ALWAYS respond in this exact JSON format, no exceptions:
+ALWAYS respond in this exact JSON format, no exceptions. Your ENTIRE final answer must be one JSON object:
 {
   "reply": "Your conversational response here",
   "tasks": []
@@ -53,6 +59,24 @@ For task assignment:
 }
 
 Never include markdown code fences. Never include anything outside the JSON object.`;
+
+// Reverse geocode coordinates → { city, region } using free BigDataCloud endpoint (no API key)
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+    );
+    if (!res.ok) return null;
+    const geo = await res.json();
+    const city = geo.city || geo.locality || null;
+    const region = geo.principalSubdivision || null;
+    if (!city) return null;
+    return { city, region: region || '' };
+  } catch (err) {
+    console.error('Reverse geocode failed:', err);
+    return null;
+  }
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -70,13 +94,28 @@ exports.handler = async (event) => {
 
   // ── ACTION: CHAT ──
   if (!action || action === 'chat') {
-    const { history } = body;
+    const { history, location, user } = body;
 
     if (!history || !Array.isArray(history) || !history.length) {
       return { statusCode: 400, body: JSON.stringify({ error: 'history array is required' }) };
     }
 
     try {
+      // Resolve current location — GPS coords from the app, fallback Springfield MO
+      let place = { city: 'Springfield', region: 'Missouri' };
+      if (location && typeof location.latitude === 'number' && typeof location.longitude === 'number') {
+        const geo = await reverseGeocode(location.latitude, location.longitude);
+        if (geo) place = geo;
+      }
+
+      const userName = (typeof user === 'string' && user.trim())
+        ? user.trim().charAt(0).toUpperCase() + user.trim().slice(1).toLowerCase()
+        : 'Lex';
+
+      const systemPrompt =
+        BASE_SYSTEM_PROMPT +
+        `\n\nCURRENT CONTEXT:\n- You are talking to: ${userName}\n- Their current location right now: ${place.city}${place.region ? ', ' + place.region : ''}. Local questions mean THIS location.`;
+
       const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -86,9 +125,23 @@ exports.handler = async (event) => {
         },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1024,
-          system: SYSTEM_PROMPT,
+          max_tokens: 2048,
+          system: systemPrompt,
           messages: history,
+          tools: [
+            {
+              type: 'web_search_20250305',
+              name: 'web_search',
+              max_uses: 3,
+              user_location: {
+                type: 'approximate',
+                city: place.city,
+                region: place.region || undefined,
+                country: 'US',
+                timezone: 'America/Chicago',
+              },
+            },
+          ],
         }),
       });
 
@@ -99,12 +152,21 @@ exports.handler = async (event) => {
         return { statusCode: 500, body: JSON.stringify({ error: 'Claude API error' }) };
       }
 
-      const raw = (claudeData.content?.[0]?.text || '').trim();
+      // With web search enabled, content is a mix of block types.
+      // Collect ALL text blocks in order — the final JSON answer is in the text.
+      const raw = (claudeData.content || [])
+        .filter(b => b.type === 'text')
+        .map(b => b.text || '')
+        .join('')
+        .trim();
 
       let parsed;
       try {
         const clean = raw.replace(/```json|```/g, '').trim();
-        parsed = JSON.parse(clean);
+        const start = clean.indexOf('{');
+        const end = clean.lastIndexOf('}');
+        const jsonSlice = (start !== -1 && end !== -1) ? clean.slice(start, end + 1) : clean;
+        parsed = JSON.parse(jsonSlice);
       } catch (e) {
         console.error('JSON parse error. Raw output:', raw);
         return {
