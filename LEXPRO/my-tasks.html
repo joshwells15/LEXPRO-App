@@ -368,7 +368,7 @@
       card.innerHTML = `
         <div class="task-card-body">
           <div class="task-meta">
-            <div class="task-from">From Lex</div>
+            <div class="task-from">From ${esc(fromName(task))}</div>
             ${task.due ? `<div class="task-due">${esc(task.due)}</div>` : ''}
           </div>
           <div class="task-text">${esc(task.task)}</div>
@@ -462,6 +462,12 @@
   document.getElementById('refreshBtn').addEventListener('click', loadTasks);
 
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function fromName(task) {
+    const k = (task.assigned_by || 'lex').toLowerCase();
+    if (k === assigneeKey) return 'Yourself';
+    return k.charAt(0).toUpperCase() + k.slice(1);
+  }
 
   loadTasks();
 </script>

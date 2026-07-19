@@ -539,7 +539,7 @@
       const res = await fetch('/.netlify/functions/lex-intercom', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'send', tasks })
+        body: JSON.stringify({ action: 'send', tasks, user: rawUser })
       });
 
       const data = await res.json();
