@@ -251,7 +251,7 @@
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-sheet">
     <div class="modal-title">Mark as complete?</div>
-    <div class="modal-sub">Lex will be notified via SMS that this task is done.</div>
+    <div class="modal-sub" id="modalSub">Lex will be notified via SMS that this task is done.</div>
     <div class="modal-task-preview" id="modalTaskPreview"></div>
     <div class="modal-actions">
       <button class="modal-cancel" id="modalCancel">Cancel</button>
@@ -287,6 +287,7 @@
   let allTasks = [];
   let activeTab = 'open';
   let pendingCompleteId = null;
+  let pendingCompleteTask = null;
 
   // ── TOAST ──
   function showToast(msg, type='') {
@@ -400,6 +401,11 @@
   // ── COMPLETE MODAL ──
   function openCompleteModal(task) {
     pendingCompleteId = task.id;
+    pendingCompleteTask = task;
+    const assigner = fromName(task);
+    document.getElementById('modalSub').textContent = assigner === 'Yourself'
+      ? 'This was your own task — nobody else will be notified.'
+      : assigner + ' will be notified via SMS that this task is done.';
     document.getElementById('modalTaskPreview').textContent = task.task;
     document.getElementById('modalOverlay').classList.add('show');
   }
@@ -447,7 +453,8 @@
       btn.disabled = false;
       btn.textContent = 'Mark Complete';
 
-      showToast('Done! Lex has been notified.', 'success');
+      const doneAssigner = pendingCompleteTask ? fromName(pendingCompleteTask) : 'Lex';
+      showToast(doneAssigner === 'Yourself' ? 'Done!' : 'Done! ' + doneAssigner + ' has been notified.', 'success');
       renderTasks();
 
     } catch (err) {
