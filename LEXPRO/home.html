@@ -40,10 +40,12 @@
   .stats-bar {
     background: var(--primary);
     padding: 14px 20px;
-    display: flex;
+    display: none;
     justify-content: space-between;
     align-items: center;
   }
+
+  .stats-bar.visible { display: flex; }
 
   .stat { flex: 1; text-align: center; }
   .stat-val { font-size: 18px; font-weight: 700; color: #ffffff; line-height: 1; }
@@ -89,9 +91,11 @@
 
   .nav-btn {
     width: 100%; background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-lg); padding: 20px; display: flex; align-items: center;
+    border-radius: var(--radius-lg); padding: 20px; display: none; align-items: center;
     gap: 16px; cursor: pointer; text-decoration: none; transition: transform 0.1s, background 0.15s;
   }
+
+  .nav-btn.visible { display: flex; }
 
   .nav-btn:active { transform: scale(0.98); background: var(--surface-2); }
 
@@ -124,7 +128,7 @@
 </head>
 <body>
 
-<div class="stats-bar">
+<div class="stats-bar" id="statsBar">
   <div class="stat"><div class="stat-val" id="statVolume">—</div><div class="stat-lbl">YTD Volume</div></div>
   <div class="stat-div"></div>
   <div class="stat"><div class="stat-val" id="statDeals">—</div><div class="stat-lbl">Active Deals</div></div>
@@ -157,7 +161,18 @@
     <div class="logo-sub">Real Estate Command</div>
   </div>
 
-  <a class="nav-btn" href="transactions.html">
+  <a class="nav-btn primary" id="btnCrm" href="https://lexpro-showings.netlify.app" target="_blank" rel="noopener">
+    <div class="btn-icon">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </div>
+    <div class="btn-text">
+      <div class="btn-title">CRM</div>
+      <div class="btn-sub">Listings, showings &amp; contacts</div>
+    </div>
+    <div class="btn-arrow">›</div>
+  </a>
+
+  <a class="nav-btn" id="btnTransactions" href="transactions.html">
     <div class="btn-icon">
       <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
     </div>
@@ -168,7 +183,7 @@
     <div class="btn-arrow">›</div>
   </a>
 
-  <a class="nav-btn primary" href="outreach.html">
+  <a class="nav-btn primary" id="btnOutreach" href="outreach.html">
     <div class="btn-icon">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     </div>
@@ -179,7 +194,7 @@
     <div class="btn-arrow">›</div>
   </a>
 
-  <a class="nav-btn" href="team-chat.html">
+  <a class="nav-btn" id="btnTeamChat" href="team-chat.html">
     <div class="btn-icon">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     </div>
@@ -190,7 +205,7 @@
     <div class="btn-arrow">›</div>
   </a>
 
-  <a class="nav-btn" href="my-tasks.html">
+  <a class="nav-btn" id="btnMyTasks" href="my-tasks.html">
     <div class="btn-icon">
       <svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><rect x="3" y="5" width="14" height="16" rx="2"/></svg>
     </div>
@@ -205,6 +220,7 @@
 
 <div class="footer">
   LexPro Real Estate &bull; Springfield, MO
+  <button class="logout-btn" onclick="window.location.href='change-password.html'">Change password</button>
   <button class="logout-btn" onclick="logout()">Sign out</button>
 </div>
 
@@ -220,6 +236,27 @@
   if (hour < 12) greet = 'Good morning,';
   else if (hour < 17) greet = 'Good afternoon,';
   document.getElementById('greeting').textContent = greet;
+
+  // ── ROLE-BASED VIEWS ──
+  // admin (Lex, Josh): stats + Transactions + Outreach + Team Chat + My Tasks
+  // tc (Tanya): CRM + Transactions + Team Chat + My Tasks
+  // marketing (Justin): Team Chat + My Tasks
+  const role = (user.role || '').toLowerCase();
+
+  const VIEWS = {
+    admin:     { stats: true,  crm: false, transactions: true,  outreach: true,  teamChat: true, myTasks: true },
+    tc:        { stats: false, crm: true,  transactions: true,  outreach: false, teamChat: true, myTasks: true },
+    marketing: { stats: false, crm: false, transactions: false, outreach: false, teamChat: true, myTasks: true },
+  };
+
+  const view = VIEWS[role] || VIEWS.marketing; // unknown roles get the safest minimal view
+
+  if (view.stats) document.getElementById('statsBar').classList.add('visible');
+  if (view.crm) document.getElementById('btnCrm').classList.add('visible');
+  if (view.transactions) document.getElementById('btnTransactions').classList.add('visible');
+  if (view.outreach) document.getElementById('btnOutreach').classList.add('visible');
+  if (view.teamChat) document.getElementById('btnTeamChat').classList.add('visible');
+  if (view.myTasks) document.getElementById('btnMyTasks').classList.add('visible');
 
   const GHL_API_KEY = 'pit-4e98487c-3f65-409c-a264-16352f97c01a';
   const GHL_LOCATION_ID = 'R5PobkV1CRO23kz95yYB';
@@ -281,7 +318,8 @@
     }
   }
 
-  loadStats();
+  // Only admins load the stats — saves GHL API calls for everyone else
+  if (view.stats) loadStats();
 
   function logout() {
     sessionStorage.removeItem('lexpro_user');
