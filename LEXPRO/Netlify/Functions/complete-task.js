@@ -3,10 +3,10 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const MAKE_COMPLETE_WEBHOOK = process.env.MAKE_COMPLETE_WEBHOOK;
 
 const TEAM = {
-  tanya:  { name: 'Tanya',  phone: '+14178802014' },
-  justin: { name: 'Justin', phone: '+14178609896' },
-  josh:   { name: 'Josh',   phone: '+14178080046' },
-  lex:    { name: 'Lex',    phone: '+13605183555' },
+  tanya:  { name: 'Tanya',  contactId: 'k4M3JrFVdMTwhKtIaQx6' },
+  justin: { name: 'Justin', contactId: 'rkWvwshxSxMeysx8GgmV' },
+  josh:   { name: 'Josh',   contactId: 'txnhMCDRPWLUXXykNuE6' },
+  lex:    { name: 'Lex',    contactId: 'd4k3gSVicZJrCw3Kekcj' },
 };
 
 exports.handler = async (event) => {
@@ -74,6 +74,7 @@ exports.handler = async (event) => {
     const selfAssigned = assignerKey === doneByKey;
 
     if (!selfAssigned && MAKE_COMPLETE_WEBHOOK) {
+      const message = `✅ ${doneByName} completed a task you assigned: "${task.task}"`;
       await fetch(MAKE_COMPLETE_WEBHOOK, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,9 +84,9 @@ exports.handler = async (event) => {
           assigneeName: doneByName,
           taskText: task.task,
           completedAt,
-          notifyPhone: assigner.phone,
+          notifyContactId: assigner.contactId,
           notifyName: assigner.name,
-          message: `✅ ${doneByName} completed a task you assigned: "${task.task}"`,
+          messageJson: JSON.stringify(message),
         }),
       });
     } else if (!MAKE_COMPLETE_WEBHOOK) {
