@@ -2,13 +2,11 @@ const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const MAKE_COMPLETE_WEBHOOK = process.env.MAKE_COMPLETE_WEBHOOK;
 
-const LEX_PHONE = '+13605183555';
-
-const ASSIGNEE_NAMES = {
-  tanya:  'Tanya',
-  justin: 'Justin',
-  josh:   'Josh',
-  lex:    'Lex',
+const TEAM = {
+  tanya:  { name: 'Tanya',  phone: '+14178802014' },
+  justin: { name: 'Justin', phone: '+14178609896' },
+  josh:   { name: 'Josh',   phone: '+14178080046' },
+  lex:    { name: 'Lex',    phone: '+13605183555' },
 };
 
 exports.handler = async (event) => {
@@ -32,7 +30,7 @@ exports.handler = async (event) => {
   const completedAt = new Date().toISOString();
 
   try {
-    // 1. Fetch the task so we have the task text
+    // 1. Fetch the task (includes assigned_by)
     const fetchRes = await fetch(`${SUPABASE_URL}/rest/v1/lex_tasks?id=eq.${taskId}&select=*`, {
       headers: {
         'apikey': SUPABASE_SERVICE_KEY,
@@ -66,29 +64,42 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ error: 'Could not update task in database' }) };
     }
 
-    // 3. Fire Make webhook to notify Lex via SMS
-    if (MAKE_COMPLETE_WEBHOOK) {
-      const name = assigneeName || ASSIGNEE_NAMES[assigneeKey] || assigneeKey || 'Your team';
+    // 3. Notify whoever assigned the task (falls back to Lex for older tasks)
+    const doneByKey = (task.assignee || assigneeKey || '').toLowerCase();
+    const doneByName = assigneeName || TEAM[doneByKey]?.name || doneByKey || 'Your team';
+
+    const assignerKey = (task.assigned_by || 'lex').toLowerCase();
+    const assigner = TEAM[assignerKey] || TEAM.lex;
+
+    const selfAssigned = assignerKey === doneByKey;
+
+    if (!selfAssigned && MAKE_COMPLETE_WEBHOOK) {
       await fetch(MAKE_COMPLETE_WEBHOOK, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           taskId,
-          assigneeKey,
-          assigneeName: name,
+          assigneeKey: doneByKey,
+          assigneeName: doneByName,
           taskText: task.task,
           completedAt,
-          lexPhone: LEX_PHONE,
-          message: `✅ ${name} completed a task: "${task.task}"`,
+          notifyPhone: assigner.phone,
+          notifyName: assigner.name,
+          message: `✅ ${doneByName} completed a task you assigned: "${task.task}"`,
         }),
       });
-    } else {
-      console.warn('MAKE_COMPLETE_WEBHOOK not set — skipping Lex notification');
+    } else if (!MAKE_COMPLETE_WEBHOOK) {
+      console.warn('MAKE_COMPLETE_WEBHOOK not set — skipping notification');
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, taskId, completedAt }),
+      body: JSON.stringify({
+        success: true,
+        taskId,
+        completedAt,
+        notified: selfAssigned ? null : assigner.name,
+      }),
     };
 
   } catch (err) {
