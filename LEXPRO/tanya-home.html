@@ -33,10 +33,17 @@
     border-bottom: 1px solid var(--border); background: var(--bg);
     flex-shrink: 0; z-index: 10;
   }
-  .topbar-avatar {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: #EDE9FE; display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 700; color: var(--tanya); flex-shrink: 0;
+  .topbar-logo {
+    display: flex; align-items: center; flex-shrink: 0; gap: 2px;
+  }
+  .logo-lex {
+    font-size: 16px; font-weight: 700; color: var(--primary); letter-spacing: 2px; line-height: 1;
+  }
+  .logo-pro-box {
+    border: 2px solid var(--primary); border-radius: 5px; padding: 1px 5px; margin-left: 3px;
+  }
+  .logo-pro {
+    font-size: 16px; font-weight: 700; color: var(--primary); letter-spacing: 2px; line-height: 1; display: block;
   }
   .topbar-info { flex: 1; }
   .topbar-title { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
@@ -60,10 +67,17 @@
     flex: 1; display: flex; flex-direction: column; align-items: center;
     justify-content: center; text-align: center; padding: 24px 24px 8px; gap: 14px;
   }
-  .empty-avatar {
-    width: 64px; height: 64px; border-radius: 50%;
-    background: #EDE9FE; display: flex; align-items: center; justify-content: center;
-    font-size: 28px; font-weight: 700; color: var(--tanya);
+  .empty-logo {
+    display: flex; align-items: center; margin-bottom: 4px;
+  }
+  .el-lex {
+    font-size: 32px; font-weight: 700; color: var(--primary); letter-spacing: 4px; line-height: 1;
+  }
+  .el-pro-box {
+    border: 3px solid var(--primary); border-radius: 7px; padding: 2px 8px; margin-left: 5px;
+  }
+  .el-pro {
+    font-size: 32px; font-weight: 700; color: var(--primary); letter-spacing: 4px; line-height: 1; display: block;
   }
   .empty-title { font-size: 20px; font-weight: 700; color: var(--text); }
   .empty-sub { font-size: 13px; color: var(--text-hint); line-height: 1.6; max-width: 280px; }
@@ -81,6 +95,8 @@
     display: flex; flex-direction: column; gap: 4px;
   }
   .qa-btn:active { background: var(--surface-2); border-color: var(--primary); }
+  .qa-wide { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 10px; }
+  .qa-wide .qa-icon { font-size: 20px; }
   .qa-icon { font-size: 18px; }
   .qa-label { font-size: 12px; font-weight: 600; color: var(--text); }
   .qa-sub { font-size: 11px; color: var(--text-hint); }
@@ -231,7 +247,9 @@
 
 <!-- Topbar -->
 <div class="topbar">
-  <div class="topbar-avatar">T</div>
+  <div class="topbar-logo">
+    <span class="logo-lex">LEX</span><div class="logo-pro-box"><span class="logo-pro">PRO</span></div>
+  </div>
   <div class="topbar-info">
     <div class="topbar-title">Hey Tanya 👋</div>
     <div class="topbar-sub" id="topbarSub">What do you need done?</div>
@@ -242,14 +260,16 @@
 <!-- Chat Area -->
 <div class="chat-area" id="chatArea">
   <div class="empty-state" id="emptyState">
-    <div class="empty-avatar">T</div>
+    <div class="empty-logo">
+      <span class="el-lex">LEX</span><div class="el-pro-box"><span class="el-pro">PRO</span></div>
+    </div>
     <div class="empty-title">What needs doing?</div>
     <div class="empty-sub">Type or speak. I'll draft it, you approve it, and I'll send it — text, email, blast, whatever.</div>
     <div class="quick-actions">
-      <button class="qa-btn" onclick="useQuick(this)" data-msg="Inspection notice just came back. Draft an email to the seller with my suggestion list.">
-        <span class="qa-icon">🔍</span>
-        <span class="qa-label">Inspection Follow-Up</span>
-        <span class="qa-sub">Draft seller email</span>
+      <button class="qa-btn" onclick="useQuick(this)" data-msg="Draft an email to update our clients.">
+        <span class="qa-icon">✉️</span>
+        <span class="qa-label">Client Follow-Up</span>
+        <span class="qa-sub">Draft client email</span>
       </button>
       <button class="qa-btn" onclick="useQuick(this)" data-msg="I need to send a mass text to everyone with the lexpro tag.">
         <span class="qa-icon">📣</span>
@@ -265,6 +285,11 @@
         <span class="qa-icon">🤝</span>
         <span class="qa-label">Repair Agreement</span>
         <span class="qa-sub">Send contractor info</span>
+      </button>
+      <button class="qa-btn qa-wide" onclick="useQuick(this)" data-msg="Schedule a text message to go out to a contact.">
+        <span class="qa-icon">⏰</span>
+        <span class="qa-label">Scheduled SMS</span>
+        <span class="qa-sub">Set a text for later</span>
       </button>
     </div>
   </div>
@@ -639,7 +664,9 @@
     const es = document.createElement('div');
     es.className = 'empty-state'; es.id = 'emptyState';
     es.innerHTML = `
-      <div class="empty-avatar">T</div>
+      <div class="empty-logo">
+      <span class="el-lex">LEX</span><div class="el-pro-box"><span class="el-pro">PRO</span></div>
+    </div>
       <div class="empty-title">What needs doing?</div>
       <div class="empty-sub">Type or speak. I'll draft it, you approve it, and I'll send it — text, email, blast, whatever.</div>
       <div class="quick-actions">
