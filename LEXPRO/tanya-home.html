@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>LexPro | Tanya</title>
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f7f7f7; --surface-2: #f0f0f0; --border: #e8e8e8;
+    --primary: #111111; --text: #111111; --text-muted: #666666; --text-hint: #999999;
+    --font: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 10px; --radius-md: 14px; --radius-lg: 20px;
+    --tanya: #7C3AED; --nav-h: 64px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    height: 100vh; height: 100dvh;
+    background: var(--bg); font-family: var(--font); color: var(--text);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border); background: var(--bg);
+    flex-shrink: 0; z-index: 10;
+  }
+  .topbar-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #EDE9FE; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: var(--tanya); flex-shrink: 0;
+  }
+  .topbar-info { flex: 1; }
+  .topbar-title { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .topbar-sub { font-size: 11px; color: var(--text-hint); margin-top: 1px; }
+  .clear-btn {
+    font-size: 12px; color: var(--text-hint); background: none;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-family: var(--font); cursor: pointer; padding: 6px 10px;
+  }
+
+  /* ── CHAT AREA ── */
+  .chat-area {
+    flex: 1; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 12px;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center; padding: 24px 24px 8px; gap: 14px;
+  }
+  .empty-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: #EDE9FE; display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 700; color: var(--tanya);
+  }
+  .empty-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .empty-sub { font-size: 13px; color: var(--text-hint); line-height: 1.6; max-width: 280px; }
+
+  /* ── QUICK ACTIONS ── */
+  .quick-actions {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    width: 100%; max-width: 340px;
+  }
+  .qa-btn {
+    padding: 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-md); font-family: var(--font); font-size: 12px;
+    font-weight: 500; color: var(--text-muted); cursor: pointer; text-align: left;
+    line-height: 1.4; transition: background 0.15s, border-color 0.15s;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .qa-btn:active { background: var(--surface-2); border-color: var(--primary); }
+  .qa-icon { font-size: 18px; }
+  .qa-label { font-size: 12px; font-weight: 600; color: var(--text); }
+  .qa-sub { font-size: 11px; color: var(--text-hint); }
+
+  /* ── MESSAGES ── */
+  .msg-row { display: flex; flex-direction: column; gap: 2px; }
+  .msg-bubble {
+    max-width: 88%; padding: 12px 14px; border-radius: 18px;
+    font-size: 15px; line-height: 1.55; word-break: break-word;
+  }
+  .msg-bubble.tanya {
+    background: var(--primary); color: #fff;
+    align-self: flex-end; border-bottom-right-radius: 6px;
+  }
+  .msg-bubble.claude {
+    background: var(--surface); color: var(--text);
+    align-self: flex-start; border-bottom-left-radius: 6px;
+  }
+  .msg-bubble.claude strong { font-weight: 600; }
+  .msg-bubble.claude p + p { margin-top: 8px; }
+  .msg-label { font-size: 11px; color: var(--text-hint); padding: 0 4px; }
+  .msg-label.right { text-align: right; }
+
+  /* ── TYPING ── */
+  .typing-bubble {
+    background: var(--surface); padding: 12px 16px; border-radius: 18px;
+    border-bottom-left-radius: 6px; display: flex; gap: 4px; align-items: center;
+    align-self: flex-start;
+  }
+  .typing-dot {
+    width: 7px; height: 7px; background: var(--text-hint); border-radius: 50%;
+    animation: typingBounce 1.2s ease-in-out infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes typingBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+
+  /* ── CONFIRM CARD ── */
+  .confirm-card {
+    align-self: flex-start; width: 100%; max-width: 360px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-lg);
+    background: var(--bg); overflow: hidden;
+  }
+  .confirm-header {
+    padding: 12px 14px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .confirm-type-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 7px;
+    border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .badge-sms { background: #D1FAE5; color: #065F46; }
+  .badge-email { background: #DBEAFE; color: #1E40AF; }
+  .badge-blast { background: #FEF3C7; color: #92400E; }
+  .confirm-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .confirm-row { display: flex; flex-direction: column; gap: 3px; }
+  .confirm-label { font-size: 11px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.05em; }
+  .confirm-value { font-size: 14px; color: var(--text); line-height: 1.45; }
+  .confirm-value.editable {
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+    background: var(--surface); resize: none; width: 100%;
+    font-family: var(--font); font-size: 14px; color: var(--text); outline: none;
+    min-height: 72px;
+  }
+  .confirm-value.editable:focus { border-color: var(--primary); }
+  .confirm-sep { height: 1px; background: var(--border); }
+  .confirm-actions { display: flex; border-top: 1px solid var(--border); }
+  .confirm-btn {
+    flex: 1; padding: 13px; font-family: var(--font); font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; background: none; transition: background 0.15s;
+  }
+  .confirm-btn:active { background: var(--surface); }
+  .confirm-btn.cancel { color: var(--text-hint); border-right: 1px solid var(--border); }
+  .confirm-btn.send { color: var(--primary); }
+  .confirm-btn:disabled { color: var(--text-hint); cursor: not-allowed; }
+
+  /* ── INPUT BAR ── */
+  .input-bar {
+    padding: 10px 12px 10px; border-top: 1px solid var(--border);
+    background: var(--bg); display: flex; align-items: flex-end; gap: 8px; flex-shrink: 0;
+  }
+  .input-wrap {
+    flex: 1; background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 22px; display: flex; align-items: flex-end; padding: 2px 4px 2px 14px;
+    transition: border-color 0.2s;
+  }
+  .input-wrap:focus-within { border-color: var(--primary); background: var(--bg); }
+  .chat-input {
+    flex: 1; background: none; border: none; outline: none; font-family: var(--font);
+    font-size: 15px; color: var(--text); resize: none; max-height: 120px;
+    padding: 9px 0; line-height: 1.4;
+  }
+  .chat-input::placeholder { color: var(--text-hint); }
+  .mic-btn {
+    width: 34px; height: 34px; border-radius: 50%; border: none; background: none;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    flex-shrink: 0; margin-bottom: 3px; transition: background 0.2s;
+    user-select: none; -webkit-user-select: none;
+  }
+  .mic-btn svg { width: 18px; height: 18px; stroke: var(--text-hint); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+  .mic-btn.listening { background: #FEE2E2; animation: pulse 1.2s ease-in-out infinite; }
+  .mic-btn.listening svg { stroke: #EF4444; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.25); } 50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); } }
+  .send-btn {
+    width: 40px; height: 40px; background: var(--primary); border: none; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    flex-shrink: 0; transition: background 0.15s, transform 0.1s;
+  }
+  .send-btn:active { transform: scale(0.92); }
+  .send-btn:disabled { background: var(--surface-2); cursor: not-allowed; transform: none; }
+  .send-btn svg { width: 17px; height: 17px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .send-btn:disabled svg { stroke: var(--text-hint); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    height: var(--nav-h); border-top: 1px solid var(--border);
+    background: var(--bg); display: flex; align-items: center;
+    justify-content: space-around; flex-shrink: 0; padding: 0 8px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm);
+    transition: background 0.15s; cursor: pointer; border: none; background: none;
+    font-family: var(--font);
+  }
+  .nav-item:active { background: var(--surface); }
+  .nav-item svg { width: 20px; height: 20px; stroke: var(--text-hint); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-item span { font-size: 10px; color: var(--text-hint); font-weight: 500; }
+  .nav-item.active svg { stroke: var(--primary); }
+  .nav-item.active span { color: var(--primary); font-weight: 600; }
+
+  /* ── TOAST ── */
+  .toast {
+    display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: #111; color: #fff; padding: 11px 20px; border-radius: 12px;
+    font-size: 14px; font-weight: 500; z-index: 200; white-space: nowrap;
+  }
+  .toast.show { display: block; }
+  .toast.success { background: #065F46; }
+  .toast.error { background: #DC2626; }
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-avatar">T</div>
+  <div class="topbar-info">
+    <div class="topbar-title">Hey Tanya 👋</div>
+    <div class="topbar-sub" id="topbarSub">What do you need done?</div>
+  </div>
+  <button class="clear-btn" id="clearBtn">Clear</button>
+</div>
+
+<!-- Chat Area -->
+<div class="chat-area" id="chatArea">
+  <div class="empty-state" id="emptyState">
+    <div class="empty-avatar">T</div>
+    <div class="empty-title">What needs doing?</div>
+    <div class="empty-sub">Type or speak. I'll draft it, you approve it, and I'll send it — text, email, blast, whatever.</div>
+    <div class="quick-actions">
+      <button class="qa-btn" onclick="useQuick(this)" data-msg="Inspection notice just came back. Draft an email to the seller with my suggestion list.">
+        <span class="qa-icon">🔍</span>
+        <span class="qa-label">Inspection Follow-Up</span>
+        <span class="qa-sub">Draft seller email</span>
+      </button>
+      <button class="qa-btn" onclick="useQuick(this)" data-msg="I need to send a mass text to everyone with the lexpro tag.">
+        <span class="qa-icon">📣</span>
+        <span class="qa-label">Mass Blast</span>
+        <span class="qa-sub">Text all clients</span>
+      </button>
+      <button class="qa-btn" onclick="useQuick(this)" data-msg="Text a contractor for me.">
+        <span class="qa-icon">🔧</span>
+        <span class="qa-label">Text Contractor</span>
+        <span class="qa-sub">Plumber, HVAC, roofer…</span>
+      </button>
+      <button class="qa-btn" onclick="useQuick(this)" data-msg="Repair agreement is done. Draft an email to the seller with the plumber, HVAC, and roofer info.">
+        <span class="qa-icon">🤝</span>
+        <span class="qa-label">Repair Agreement</span>
+        <span class="qa-sub">Send contractor info</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Input Bar -->
+<div class="input-bar">
+  <div class="input-wrap">
+    <textarea class="chat-input" id="chatInput" placeholder="Type or hold mic to speak…" rows="1"></textarea>
+    <button class="mic-btn" id="micBtn">
+      <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+  </div>
+  <button class="send-btn" id="sendBtn" disabled>
+    <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+  </button>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="void(0)">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span>Command</span>
+  </button>
+  <a class="nav-item" href="https://lexpro-showings.netlify.app" target="_blank">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Showings</span>
+  </a>
+  <a class="nav-item" href="team-chat.html">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    <span>Team Chat</span>
+  </a>
+  <a class="nav-item" href="my-tasks.html">
+    <svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><rect x="3" y="5" width="14" height="16" rx="2"/></svg>
+    <span>My Tasks</span>
+  </a>
+  <a class="nav-item" href="contractors.html">
+    <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    <span>Contractors</span>
+  </a>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── AUTH CHECK ──
+  const user = JSON.parse(sessionStorage.getItem('lexpro_user') || localStorage.getItem('lexpro_user') || '{}');
+  if (!user.username) window.location.href = 'index.html';
+
+  const SUPABASE_URL  = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
+  const SUPABASE_ANON = 'sb_publishable_TCNeI1Mg36-kXLJKA33h1g_emUHiC-Z';
+  const GHL_LOCATION  = 'R5PobkV1CRO23kz95yYB';
+
+  let conversationHistory = [];
+  let isThinking = false;
+
+  const chatArea   = document.getElementById('chatArea');
+  const chatInput  = document.getElementById('chatInput');
+  const sendBtn    = document.getElementById('sendBtn');
+  const micBtn     = document.getElementById('micBtn');
+  const toast      = document.getElementById('toast');
+
+  // ── TOAST ──
+  function showToast(msg, type='') {
+    toast.textContent = msg;
+    toast.className = 'toast show' + (type ? ' '+type : '');
+    setTimeout(() => { toast.className = 'toast'; }, 3200);
+  }
+
+  // ── AUTO-RESIZE ──
+  chatInput.addEventListener('input', () => {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+    sendBtn.disabled = !chatInput.value.trim() || isThinking;
+  });
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!sendBtn.disabled) send(); }
+  });
+  sendBtn.addEventListener('click', send);
+
+  // ── QUICK ACTIONS ──
+  function useQuick(btn) {
+    chatInput.value = btn.dataset.msg;
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+    sendBtn.disabled = false;
+    chatInput.focus();
+  }
+
+  // ── VOICE ──
+  let recognition = null, isListening = false;
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.continuous = true; recognition.interimResults = true; recognition.lang = 'en-US';
+    let finalTranscript = '';
+    recognition.onresult = e => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalTranscript += t + ' ';
+        else interim = t;
+      }
+      chatInput.value = (finalTranscript + interim).trim();
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+      sendBtn.disabled = !chatInput.value.trim();
+    };
+    recognition.onerror = () => { micBtn.classList.remove('listening'); isListening = false; };
+    recognition.onend   = () => { micBtn.classList.remove('listening'); isListening = false; };
+    const startListen = () => { if (isListening || isThinking) return; finalTranscript = chatInput.value ? chatInput.value + ' ' : ''; recognition.start(); isListening = true; micBtn.classList.add('listening'); };
+    const stopListen  = () => { if (!isListening) return; recognition.stop(); };
+    micBtn.addEventListener('touchstart', e => { e.preventDefault(); startListen(); }, { passive: false });
+    micBtn.addEventListener('touchend',   e => { e.preventDefault(); stopListen();  }, { passive: false });
+    micBtn.addEventListener('mousedown',  startListen);
+    micBtn.addEventListener('mouseup',    stopListen);
+  } else { micBtn.style.opacity = '0.3'; }
+
+  // ── RENDER HELPERS ──
+  function hideEmpty() {
+    const es = document.getElementById('emptyState');
+    if (es) es.remove();
+  }
+
+  function addMessage(role, content) {
+    hideEmpty();
+    const row = document.createElement('div');
+    row.className = 'msg-row';
+    const label = document.createElement('div');
+    label.className = 'msg-label' + (role === 'tanya' ? ' right' : '');
+    label.textContent = role === 'tanya' ? 'Tanya' : 'Claude';
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble ' + role;
+    if (role === 'claude') bubble.innerHTML = formatMarkdown(content);
+    else bubble.textContent = content;
+    row.appendChild(label);
+    row.appendChild(bubble);
+    chatArea.appendChild(row);
+    scrollBottom();
+  }
+
+  function formatMarkdown(text) {
+    return text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^#{1,3} (.+)$/gm, '<strong>$1</strong>')
+      .replace(/^[-*]\s+(.+)$/gm, (_, i) => `<div style="display:flex;gap:6px;margin-top:4px;"><span style="flex-shrink:0;color:var(--text-hint);">•</span><span>${i}</span></div>`)
+      .replace(/^(\d+)\.\s+(.+)$/gm, (_, n, i) => `<div style="display:flex;gap:6px;margin-top:4px;"><span style="flex-shrink:0;color:var(--text-hint);">${n}.</span><span>${i}</span></div>`)
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function showTyping() {
+    hideEmpty();
+    const row = document.createElement('div');
+    row.className = 'msg-row'; row.id = 'typingRow';
+    const label = document.createElement('div');
+    label.className = 'msg-label'; label.textContent = 'Claude';
+    const bubble = document.createElement('div');
+    bubble.className = 'typing-bubble';
+    bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+    row.appendChild(label); row.appendChild(bubble);
+    chatArea.appendChild(row); scrollBottom();
+  }
+
+  function hideTyping() { const el = document.getElementById('typingRow'); if (el) el.remove(); }
+  function scrollBottom() { setTimeout(() => { chatArea.scrollTop = chatArea.scrollHeight; }, 50); }
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ── CONFIRM CARD ──
+  function showConfirmCard(action) {
+    hideEmpty();
+    const wrapper = document.createElement('div');
+    wrapper.className = 'msg-row';
+    const label = document.createElement('div');
+    label.className = 'msg-label'; label.textContent = 'Claude';
+
+    const card = document.createElement('div');
+    card.className = 'confirm-card';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'confirm-header';
+    const typeBadge = document.createElement('span');
+    typeBadge.className = 'confirm-type-badge ' + (action.type === 'blast' ? 'badge-blast' : action.type === 'email' ? 'badge-email' : 'badge-sms');
+    typeBadge.textContent = action.type === 'blast' ? '📣 Blast' : action.type === 'email' ? '✉️ Email' : '💬 SMS';
+    header.appendChild(typeBadge);
+    const headerText = document.createElement('span');
+    headerText.textContent = 'Review before sending';
+    header.appendChild(headerText);
+    card.appendChild(header);
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'confirm-body';
+
+    // To field
+    if (action.to) {
+      const toRow = document.createElement('div');
+      toRow.className = 'confirm-row';
+      toRow.innerHTML = `<div class="confirm-label">To</div><div class="confirm-value">${esc(action.to)}</div>`;
+      body.appendChild(toRow);
+      const sep = document.createElement('div'); sep.className = 'confirm-sep'; body.appendChild(sep);
+    }
+
+    // Subject (email only)
+    if (action.subject) {
+      const subRow = document.createElement('div');
+      subRow.className = 'confirm-row';
+      subRow.innerHTML = `<div class="confirm-label">Subject</div><div class="confirm-value">${esc(action.subject)}</div>`;
+      body.appendChild(subRow);
+      const sep = document.createElement('div'); sep.className = 'confirm-sep'; body.appendChild(sep);
+    }
+
+    // Message (editable)
+    const msgRow = document.createElement('div');
+    msgRow.className = 'confirm-row';
+    const msgLabel = document.createElement('div');
+    msgLabel.className = 'confirm-label'; msgLabel.textContent = 'Message';
+    const msgArea = document.createElement('textarea');
+    msgArea.className = 'confirm-value editable';
+    msgArea.value = action.message || '';
+    msgRow.appendChild(msgLabel); msgRow.appendChild(msgArea);
+    body.appendChild(msgRow);
+
+    card.appendChild(body);
+
+    // Actions
+    const actions = document.createElement('div');
+    actions.className = 'confirm-actions';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'confirm-btn cancel'; cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', () => {
+      wrapper.remove();
+      addMessage('claude', "Got it — cancelled. Edit the message or tell me what to change.");
+    });
+
+    const sendBtnCard = document.createElement('button');
+    sendBtnCard.className = 'confirm-btn send'; sendBtnCard.textContent = 'Send ›';
+    sendBtnCard.addEventListener('click', async () => {
+      sendBtnCard.disabled = true; sendBtnCard.textContent = 'Sending…';
+      action.message = msgArea.value; // use edited message
+      const result = await executeAction(action);
+      wrapper.remove();
+      if (result.ok) {
+        addMessage('claude', result.message);
+        showToast('Sent! ✓', 'success');
+      } else {
+        addMessage('claude', 'Something went wrong sending that. Try again or let me know what happened.');
+        showToast('Send failed', 'error');
+      }
+    });
+
+    actions.appendChild(cancelBtn); actions.appendChild(sendBtnCard);
+    card.appendChild(actions);
+
+    wrapper.appendChild(label); wrapper.appendChild(card);
+    chatArea.appendChild(wrapper); scrollBottom();
+  }
+
+  // ── EXECUTE ACTION (Netlify functions) ──
+  async function executeAction(action) {
+    try {
+      if (action.type === 'sms') {
+        const res = await fetch('/.netlify/functions/tanya-send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contactId: action.contactId, phone: action.phone, message: action.message, to: action.to })
+        });
+        const data = await res.json();
+        return { ok: res.ok, message: res.ok ? `SMS sent to ${action.to} ✓ Anything else?` : 'Send failed.' };
+
+      } else if (action.type === 'email') {
+        const res = await fetch('/.netlify/functions/tanya-send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contactId: action.contactId, email: action.email, subject: action.subject, message: action.message, to: action.to })
+        });
+        return { ok: res.ok, message: res.ok ? `Email sent to ${action.to} ✓ Anything else?` : 'Send failed.' };
+
+      } else if (action.type === 'blast') {
+        const res = await fetch('/.netlify/functions/tanya-blast-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tag: 'lexpro', message: action.message })
+        });
+        const data = await res.json();
+        return { ok: res.ok, message: res.ok ? `Blast sent to ${data.count || 'all'} contacts ✓` : 'Blast failed.' };
+
+      } else if (action.type === 'contractor_sms') {
+        const res = await fetch('/.netlify/functions/tanya-send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: action.phone, message: action.message, to: action.to })
+        });
+        return { ok: res.ok, message: res.ok ? `SMS sent to ${action.to} ✓` : 'Send failed.' };
+      }
+
+      return { ok: false, message: 'Unknown action type.' };
+    } catch(e) {
+      return { ok: false, message: 'Connection error.' };
+    }
+  }
+
+  // ── MAIN SEND ──
+  async function send() {
+    const msg = chatInput.value.trim();
+    if (!msg || isThinking) return;
+
+    addMessage('tanya', msg);
+    conversationHistory.push({ role: 'user', content: msg });
+
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+    sendBtn.disabled = true;
+    isThinking = true;
+    showTyping();
+
+    try {
+      // Pull contractor list for context
+      let contractors = [];
+      try {
+        const cRes = await fetch(`${SUPABASE_URL}/rest/v1/contractors?active=eq.true&select=name,trade,phone,email`, {
+          headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
+        });
+        contractors = await cRes.json();
+      } catch(e) {}
+
+      const res = await fetch('/.netlify/functions/tanya-command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          history: conversationHistory,
+          contractors,
+          ghlLocation: GHL_LOCATION
+        })
+      });
+
+      const data = await res.json();
+      hideTyping();
+      isThinking = false;
+
+      if (!res.ok) {
+        addMessage('claude', 'Something went wrong. Try again.');
+        return;
+      }
+
+      conversationHistory.push({ role: 'assistant', content: data.reply || 'Got it.' });
+
+      if (data.action) {
+        if (data.reply) addMessage('claude', data.reply);
+        showConfirmCard(data.action);
+      } else {
+        addMessage('claude', data.reply || 'Got it.');
+      }
+
+    } catch(err) {
+      hideTyping(); isThinking = false;
+      addMessage('claude', 'Connection error. Check your signal and try again.');
+    }
+
+    sendBtn.disabled = !chatInput.value.trim();
+  }
+
+  // ── CLEAR ──
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if (!conversationHistory.length) return;
+    if (!confirm('Clear this conversation?')) return;
+    conversationHistory = [];
+    chatArea.innerHTML = '';
+    // rebuild empty state
+    const es = document.createElement('div');
+    es.className = 'empty-state'; es.id = 'emptyState';
+    es.innerHTML = `
+      <div class="empty-avatar">T</div>
+      <div class="empty-title">What needs doing?</div>
+      <div class="empty-sub">Type or speak. I'll draft it, you approve it, and I'll send it — text, email, blast, whatever.</div>
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="useQuick(this)" data-msg="Inspection notice just came back. Draft an email to the seller with my suggestion list."><span class="qa-icon">🔍</span><span class="qa-label">Inspection Follow-Up</span><span class="qa-sub">Draft seller email</span></button>
+        <button class="qa-btn" onclick="useQuick(this)" data-msg="I need to send a mass text to everyone with the lexpro tag."><span class="qa-icon">📣</span><span class="qa-label">Mass Blast</span><span class="qa-sub">Text all clients</span></button>
+        <button class="qa-btn" onclick="useQuick(this)" data-msg="Text a contractor for me."><span class="qa-icon">🔧</span><span class="qa-label">Text Contractor</span><span class="qa-sub">Plumber, HVAC, roofer…</span></button>
+        <button class="qa-btn" onclick="useQuick(this)" data-msg="Repair agreement is done. Draft an email to the seller with the plumber, HVAC, and roofer info."><span class="qa-icon">🤝</span><span class="qa-label">Repair Agreement</span><span class="qa-sub">Send contractor info</span></button>
+      </div>`;
+    chatArea.appendChild(es);
+  });
+</script>
+</body>
+</html>
