@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contractors — LexPro</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e8e8e8;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #1a1d27;
+      border-bottom: 1px solid #2a2d3a;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .back-btn {
+      background: none;
+      border: none;
+      color: #7c8db0;
+      cursor: pointer;
+      font-size: 20px;
+      padding: 4px;
+      line-height: 1;
+    }
+    .back-btn:hover { color: #e8e8e8; }
+    .header h1 { font-size: 18px; font-weight: 600; color: #fff; }
+    .header-count {
+      font-size: 13px;
+      color: #7c8db0;
+      background: #2a2d3a;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      padding: 16px 24px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-wrap {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+    .search-wrap input {
+      width: 100%;
+      background: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 10px;
+      padding: 10px 16px 10px 40px;
+      color: #e8e8e8;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-wrap input:focus { border-color: #4f6ef7; }
+    .search-wrap input::placeholder { color: #4a4f6a; }
+    .search-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #4a4f6a;
+      font-size: 15px;
+      pointer-events: none;
+    }
+    .trade-filter {
+      background: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #e8e8e8;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+    }
+    .trade-filter:focus { border-color: #4f6ef7; }
+    .btn-add {
+      background: #4f6ef7;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .btn-add:hover { background: #3d5ce0; }
+    .btn-upload {
+      background: #1a1d27;
+      color: #7c8db0;
+      border: 1px solid #2a2d3a;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .btn-upload:hover { border-color: #4f6ef7; color: #4f6ef7; }
+
+    /* ── Grid ── */
+    .grid {
+      padding: 0 24px 100px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 14px;
+      padding: 18px;
+      transition: border-color 0.2s;
+      position: relative;
+    }
+    .card:hover { border-color: #3a3f5a; }
+    .card.inactive { opacity: 0.5; }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .card-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #2a2d3a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .card-menu-btn {
+      background: none;
+      border: none;
+      color: #4a4f6a;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+    .card-menu-btn:hover { background: #2a2d3a; color: #e8e8e8; }
+
+    .card-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .card-company {
+      font-size: 12px;
+      color: #7c8db0;
+      margin-bottom: 10px;
+    }
+    .trade-badge {
+      display: inline-block;
+      background: #1e2540;
+      color: #4f6ef7;
+      border: 1px solid #2a3560;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .card-contacts { display: flex; flex-direction: column; gap: 6px; }
+    .card-contact-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #a0a8c0;
+    }
+    .card-contact-row a {
+      color: #a0a8c0;
+      text-decoration: none;
+    }
+    .card-contact-row a:hover { color: #4f6ef7; }
+    .contact-icon { font-size: 13px; width: 16px; text-align: center; color: #4a4f6a; }
+    .card-notes {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #4a4f6a;
+      font-style: italic;
+      border-top: 1px solid #2a2d3a;
+      padding-top: 10px;
+    }
+    .card-actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+    }
+    .btn-text-sm {
+      flex: 1;
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      color: #a0a8c0;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .btn-text-sm:hover { border-color: #4f6ef7; color: #4f6ef7; }
+    .btn-text-sm.sms:hover { border-color: #22c55e; color: #22c55e; }
+
+    /* ── Empty ── */
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: #4a4f6a;
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty h3 { font-size: 16px; color: #7c8db0; margin-bottom: 8px; }
+    .empty p { font-size: 13px; }
+
+    /* ── Loading ── */
+    .loading {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px;
+      color: #4a4f6a;
+      font-size: 14px;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h2 {
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .form-row { margin-bottom: 14px; }
+    .form-row label {
+      display: block;
+      font-size: 12px;
+      color: #7c8db0;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .form-row input,
+    .form-row select,
+    .form-row textarea {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #e8e8e8;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .form-row input:focus,
+    .form-row select:focus,
+    .form-row textarea:focus { border-color: #4f6ef7; }
+    .form-row textarea { resize: vertical; min-height: 72px; }
+    .form-row select option { background: #1a1d27; }
+    .form-row input::placeholder,
+    .form-row textarea::placeholder { color: #4a4f6a; }
+    .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-cancel {
+      flex: 1;
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      color: #7c8db0;
+      border-radius: 10px;
+      padding: 11px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-cancel:hover { border-color: #3a3f5a; color: #e8e8e8; }
+    .btn-save {
+      flex: 2;
+      background: #4f6ef7;
+      border: none;
+      color: #fff;
+      border-radius: 10px;
+      padding: 11px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-save:hover { background: #3d5ce0; }
+    .btn-save:disabled { background: #2a3560; color: #4a4f6a; cursor: not-allowed; }
+
+    /* ── Upload modal ── */
+    .upload-zone {
+      border: 2px dashed #2a2d3a;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+    .upload-zone:hover { border-color: #4f6ef7; }
+    .upload-zone.drag-over { border-color: #4f6ef7; background: #1e2540; }
+    .upload-zone p { color: #7c8db0; font-size: 14px; margin-top: 10px; }
+    .upload-zone span { font-size: 32px; }
+    #csvFileInput { display: none; }
+    .upload-preview {
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 12px;
+      color: #7c8db0;
+      max-height: 160px;
+      overflow-y: auto;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .upload-preview table { width: 100%; border-collapse: collapse; }
+    .upload-preview th {
+      color: #4f6ef7;
+      text-align: left;
+      padding: 4px 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .upload-preview td { padding: 4px 8px; color: #a0a8c0; }
+    .upload-preview tr:nth-child(even) td { background: #1a1d27; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #22c55e;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 999;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.error { background: #ef4444; }
+
+    /* ── Context menu ── */
+    .ctx-menu {
+      display: none;
+      position: fixed;
+      background: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 10px;
+      padding: 6px;
+      z-index: 300;
+      min-width: 160px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .ctx-menu.open { display: block; }
+    .ctx-item {
+      padding: 9px 14px;
+      font-size: 13px;
+      color: #a0a8c0;
+      cursor: pointer;
+      border-radius: 7px;
+      transition: background 0.15s;
+    }
+    .ctx-item:hover { background: #2a2d3a; color: #fff; }
+    .ctx-item.danger { color: #ef4444; }
+    .ctx-item.danger:hover { background: #2a1a1a; }
+
+    @media (max-width: 600px) {
+      .toolbar { padding: 12px 16px; }
+      .grid { padding: 0 16px 100px; grid-template-columns: 1fr; }
+      .header { padding: 14px 16px; }
+      .form-2col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <h1>Contractors</h1>
+    <span class="header-count" id="countBadge">0</span>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search by name, trade, company…" oninput="filterContractors()" />
+  </div>
+  <select class="trade-filter" id="tradeFilter" onchange="filterContractors()">
+    <option value="">All Trades</option>
+  </select>
+  <button class="btn-upload" onclick="openUploadModal()">⬆ Import CSV</button>
+  <button class="btn-add" onclick="openAddModal()">+ Add Contractor</button>
+</div>
+
+<!-- Grid -->
+<div class="grid" id="grid">
+  <div class="loading">Loading contractors…</div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h2 id="modalTitle">Add Contractor</h2>
+    <input type="hidden" id="editId" />
+    <div class="form-2col">
+      <div class="form-row">
+        <label>Name *</label>
+        <input type="text" id="fName" placeholder="Mike Johnson" />
+      </div>
+      <div class="form-row">
+        <label>Trade *</label>
+        <input type="text" id="fTrade" placeholder="Plumber" list="tradeList" />
+        <datalist id="tradeList">
+          <option value="Plumber">
+          <option value="HVAC">
+          <option value="Roofer">
+          <option value="Electrician">
+          <option value="General Contractor">
+          <option value="Painter">
+          <option value="Landscaper">
+          <option value="Inspector">
+          <option value="Handyman">
+          <option value="Flooring">
+          <option value="Pest Control">
+          <option value="Stager">
+        </datalist>
+      </div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row">
+        <label>Phone</label>
+        <input type="tel" id="fPhone" placeholder="417-555-0101" />
+      </div>
+      <div class="form-row">
+        <label>Email</label>
+        <input type="email" id="fEmail" placeholder="mike@example.com" />
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Company</label>
+      <input type="text" id="fCompany" placeholder="Johnson Plumbing LLC" />
+    </div>
+    <div class="form-row">
+      <label>Notes</label>
+      <textarea id="fNotes" placeholder="Available hours, specialties, anything Tanya should know…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+      <button class="btn-save" id="saveBtn" onclick="saveContractor()">Save Contractor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload CSV Modal -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal">
+    <h2>Import Contractors from CSV</h2>
+    <div class="upload-zone" id="uploadZone"
+         onclick="document.getElementById('csvFileInput').click()"
+         ondragover="event.preventDefault(); this.classList.add('drag-over')"
+         ondragleave="this.classList.remove('drag-over')"
+         ondrop="handleDrop(event)">
+      <span>📄</span>
+      <p>Click to choose a CSV file or drag it here</p>
+      <p style="font-size:11px; margin-top:6px; color:#4a4f6a;">Columns: name, trade, phone, email, company, notes</p>
+    </div>
+    <input type="file" id="csvFileInput" accept=".csv" onchange="handleCSVFile(event)" />
+    <div class="upload-preview" id="uploadPreview"></div>
+    <div id="uploadStatus" style="font-size:13px; color:#7c8db0; margin-bottom:12px;"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeUploadModal()">Cancel</button>
+      <button class="btn-save" id="uploadBtn" onclick="uploadCSV()" disabled>Import Contractors</button>
+    </div>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" onclick="ctxEdit()">✏️ Edit</div>
+  <div class="ctx-item sms-ctx" onclick="ctxSMS()">💬 Send SMS</div>
+  <div class="ctx-item" onclick="ctxToggleActive()">👁 Toggle Active</div>
+  <div class="ctx-item danger" onclick="ctxDelete()">🗑 Delete</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
+  const SUPABASE_ANON = 'sb_publishable_TCNeI1Mg36-kXLJKA33h1g_emUHiC-Z';
+
+  let allContractors = [];
+  let csvRows = [];
+  let ctxTarget = null;
+
+  // ── Fetch ────────────────────────────────────────────────
+  async function loadContractors() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/contractors?order=trade.asc,name.asc`, {
+        headers: {
+          'apikey': SUPABASE_ANON,
+          'Authorization': `Bearer ${SUPABASE_ANON}`
+        }
+      });
+      allContractors = await res.json();
+      buildTradeFilter();
+      renderGrid(allContractors);
+    } catch (e) {
+      document.getElementById('grid').innerHTML = '<div class="loading">Failed to load contractors.</div>';
+    }
+  }
+
+  // ── Trade filter options ─────────────────────────────────
+  function buildTradeFilter() {
+    const trades = [...new Set(allContractors.map(c => c.trade))].sort();
+    const sel = document.getElementById('tradeFilter');
+    sel.innerHTML = '<option value="">All Trades</option>';
+    trades.forEach(t => {
+      const o = document.createElement('option');
+      o.value = t; o.textContent = t;
+      sel.appendChild(o);
+    });
+  }
+
+  // ── Filter ───────────────────────────────────────────────
+  function filterContractors() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const trade = document.getElementById('tradeFilter').value;
+    const filtered = allContractors.filter(c => {
+      const matchTrade = !trade || c.trade === trade;
+      const matchQ = !q ||
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.trade || '').toLowerCase().includes(q) ||
+        (c.company || '').toLowerCase().includes(q);
+      return matchTrade && matchQ;
+    });
+    renderGrid(filtered);
+  }
+
+  // ── Render ───────────────────────────────────────────────
+  const TRADE_EMOJI = {
+    'Plumber':'🔧','HVAC':'❄️','Roofer':'🏠','Electrician':'⚡',
+    'General Contractor':'🏗️','Painter':'🎨','Landscaper':'🌿',
+    'Inspector':'🔍','Handyman':'🪛','Flooring':'🪵',
+    'Pest Control':'🐛','Stager':'🛋️'
+  };
+
+  function renderGrid(list) {
+    const grid = document.getElementById('grid');
+    document.getElementById('countBadge').textContent = list.length;
+    if (!list.length) {
+      grid.innerHTML = `<div class="empty">
+        <div class="empty-icon">🔨</div>
+        <h3>No contractors found</h3>
+        <p>Add one manually or import a CSV</p>
+      </div>`;
+      return;
+    }
+    grid.innerHTML = list.map(c => `
+      <div class="card${c.active === false ? ' inactive' : ''}" data-id="${c.id}">
+        <div class="card-top">
+          <div class="card-avatar">${TRADE_EMOJI[c.trade] || '👷'}</div>
+          <button class="card-menu-btn" onclick="openCtxMenu(event, '${c.id}')">⋯</button>
+        </div>
+        <div class="card-name">${esc(c.name)}</div>
+        ${c.company ? `<div class="card-company">${esc(c.company)}</div>` : '<div class="card-company" style="height:16px"></div>'}
+        <div class="trade-badge">${esc(c.trade)}</div>
+        <div class="card-contacts">
+          ${c.phone ? `<div class="card-contact-row"><span class="contact-icon">📱</span><a href="tel:${c.phone}">${esc(c.phone)}</a></div>` : ''}
+          ${c.email ? `<div class="card-contact-row"><span class="contact-icon">✉️</span><a href="mailto:${c.email}">${esc(c.email)}</a></div>` : ''}
+        </div>
+        ${c.notes ? `<div class="card-notes">${esc(c.notes)}</div>` : ''}
+        <div class="card-actions">
+          ${c.phone ? `<button class="btn-text-sm sms" onclick="quickSMS('${c.id}')">💬 SMS</button>` : ''}
+          <button class="btn-text-sm" onclick="openEditModal('${c.id}')">✏️ Edit</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function esc(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Add / Edit Modal ─────────────────────────────────────
+  function openAddModal() {
+    document.getElementById('modalTitle').textContent = 'Add Contractor';
+    document.getElementById('editId').value = '';
+    ['fName','fTrade','fPhone','fEmail','fCompany','fNotes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('addModal').classList.add('open');
+    document.getElementById('fName').focus();
+  }
+
+  function openEditModal(id) {
+    const c = allContractors.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('modalTitle').textContent = 'Edit Contractor';
+    document.getElementById('editId').value = c.id;
+    document.getElementById('fName').value = c.name || '';
+    document.getElementById('fTrade').value = c.trade || '';
+    document.getElementById('fPhone').value = c.phone || '';
+    document.getElementById('fEmail').value = c.email || '';
+    document.getElementById('fCompany').value = c.company || '';
+    document.getElementById('fNotes').value = c.notes || '';
+    document.getElementById('addModal').classList.add('open');
+    closeCtxMenu();
+  }
+
+  function closeAddModal() {
+    document.getElementById('addModal').classList.remove('open');
+  }
+
+  async function saveContractor() {
+    const name = document.getElementById('fName').value.trim();
+    const trade = document.getElementById('fTrade').value.trim();
+    if (!name || !trade) { showToast('Name and trade are required', true); return; }
+
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+
+    const payload = {
+      name,
+      trade,
+      phone: document.getElementById('fPhone').value.trim() || null,
+      email: document.getElementById('fEmail').value.trim() || null,
+      company: document.getElementById('fCompany').value.trim() || null,
+      notes: document.getElementById('fNotes').value.trim() || null,
+      active: true
+    };
+
+    const editId = document.getElementById('editId').value;
+    try {
+      if (editId) {
+        await fetch(`${SUPABASE_URL}/rest/v1/contractors?id=eq.${editId}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_ANON,
+            'Authorization': `Bearer ${SUPABASE_ANON}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(payload)
+        });
+        showToast('Contractor updated ✓');
+      } else {
+        await fetch(`${SUPABASE_URL}/rest/v1/contractors`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON,
+            'Authorization': `Bearer ${SUPABASE_ANON}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(payload)
+        });
+        showToast('Contractor added ✓');
+      }
+      closeAddModal();
+      await loadContractors();
+    } catch(e) {
+      showToast('Save failed — try again', true);
+    }
+    btn.disabled = false; btn.textContent = 'Save Contractor';
+  }
+
+  // ── CSV Upload ───────────────────────────────────────────
+  function openUploadModal() {
+    csvRows = [];
+    document.getElementById('uploadPreview').style.display = 'none';
+    document.getElementById('uploadStatus').textContent = '';
+    document.getElementById('uploadBtn').disabled = true;
+    document.getElementById('csvFileInput').value = '';
+    document.getElementById('uploadModal').classList.add('open');
+  }
+  function closeUploadModal() {
+    document.getElementById('uploadModal').classList.remove('open');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) parseCSV(file);
+  }
+  function handleCSVFile(e) {
+    const file = e.target.files[0];
+    if (file) parseCSV(file);
+  }
+
+  function parseCSV(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const lines = e.target.result.trim().split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g,''));
+      csvRows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const vals = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g,''));
+        const row = {};
+        headers.forEach((h, idx) => row[h] = vals[idx] || null);
+        if (row.name && row.trade) csvRows.push(row);
+      }
+      showCSVPreview(headers, csvRows);
+    };
+    reader.readAsText(file);
+  }
+
+  function showCSVPreview(headers, rows) {
+    const preview = document.getElementById('uploadPreview');
+    const status = document.getElementById('uploadStatus');
+    if (!rows.length) {
+      status.textContent = '⚠ No valid rows found (need name + trade columns)';
+      document.getElementById('uploadBtn').disabled = true;
+      return;
+    }
+    status.textContent = `${rows.length} contractor${rows.length !== 1 ? 's' : ''} ready to import`;
+    preview.style.display = 'block';
+    const cols = ['name','trade','phone','email','company','notes'];
+    preview.innerHTML = `<table>
+      <tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr>
+      ${rows.slice(0,5).map(r => `<tr>${cols.map(c => `<td>${esc(r[c] || '')}</td>`).join('')}</tr>`).join('')}
+      ${rows.length > 5 ? `<tr><td colspan="${cols.length}" style="color:#4a4f6a;text-align:center">…and ${rows.length - 5} more</td></tr>` : ''}
+    </table>`;
+    document.getElementById('uploadBtn').disabled = false;
+  }
+
+  async function uploadCSV() {
+    if (!csvRows.length) return;
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true; btn.textContent = 'Importing…';
+    try {
+      const payload = csvRows.map(r => ({
+        name: r.name,
+        trade: r.trade,
+        phone: r.phone || null,
+        email: r.email || null,
+        company: r.company || null,
+        notes: r.notes || null,
+        active: true
+      }));
+      await fetch(`${SUPABASE_URL}/rest/v1/contractors`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON,
+          'Authorization': `Bearer ${SUPABASE_ANON}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      });
+      showToast(`${csvRows.length} contractors imported ✓`);
+      closeUploadModal();
+      await loadContractors();
+    } catch(e) {
+      showToast('Import failed — try again', true);
+      btn.disabled = false; btn.textContent = 'Import Contractors';
+    }
+  }
+
+  // ── Quick SMS (placeholder — will wire to Netlify fn) ────
+  function quickSMS(id) {
+    const c = allContractors.find(x => x.id === id);
+    if (!c || !c.phone) return;
+    const msg = prompt(`SMS to ${c.name} (${c.phone}):`);
+    if (msg) showToast(`SMS to ${c.name} queued — SMS function coming in Phase 3`);
+  }
+
+  // ── Context Menu ─────────────────────────────────────────
+  function openCtxMenu(e, id) {
+    e.stopPropagation();
+    ctxTarget = id;
+    const menu = document.getElementById('ctxMenu');
+    menu.style.top = e.clientY + 'px';
+    menu.style.left = Math.min(e.clientX, window.innerWidth - 170) + 'px';
+    menu.classList.add('open');
+  }
+  function closeCtxMenu() { document.getElementById('ctxMenu').classList.remove('open'); }
+  document.addEventListener('click', closeCtxMenu);
+
+  function ctxEdit() { openEditModal(ctxTarget); }
+  function ctxSMS() {
+    const c = allContractors.find(x => x.id === ctxTarget);
+    if (c) quickSMS(c.id);
+    closeCtxMenu();
+  }
+  async function ctxToggleActive() {
+    const c = allContractors.find(x => x.id === ctxTarget);
+    if (!c) return;
+    await fetch(`${SUPABASE_URL}/rest/v1/contractors?id=eq.${c.id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': `Bearer ${SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ active: !c.active })
+    });
+    showToast(`${c.name} marked ${c.active ? 'inactive' : 'active'}`);
+    closeCtxMenu();
+    await loadContractors();
+  }
+  async function ctxDelete() {
+    const c = allContractors.find(x => x.id === ctxTarget);
+    if (!c) return;
+    if (!confirm(`Delete ${c.name}? This cannot be undone.`)) return;
+    await fetch(`${SUPABASE_URL}/rest/v1/contractors?id=eq.${c.id}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': `Bearer ${SUPABASE_ANON}`
+      }
+    });
+    showToast(`${c.name} deleted`);
+    closeCtxMenu();
+    await loadContractors();
+  }
+
+  // ── Toast ────────────────────────────────────────────────
+  function showToast(msg, error = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (error ? ' error' : '');
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => t.classList.remove('show'), 3200);
+  }
+
+  // ── Init ─────────────────────────────────────────────────
+  loadContractors();
+</script>
+</body>
+</html>
