@@ -239,6 +239,10 @@
   const user = JSON.parse(sessionStorage.getItem('lexpro_user') || '{}');
   if (!user.username) window.location.href = 'index.html';
 
+  // ── ROLE REDIRECTS — send roles to their dedicated home screens ──
+  const roleCheck = (user.role || '').toLowerCase();
+  if (roleCheck === 'tc') { window.location.href = 'tanya-home.html'; }
+
   const name = user.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : 'Lex';
   document.getElementById('displayName').textContent = name;
 
