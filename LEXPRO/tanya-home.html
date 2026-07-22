@@ -473,8 +473,15 @@
     const header = document.createElement('div');
     header.className = 'confirm-header';
     const typeBadge = document.createElement('span');
-    typeBadge.className = 'confirm-type-badge ' + (action.type === 'blast' ? 'badge-blast' : action.type === 'email' ? 'badge-email' : 'badge-sms');
-    typeBadge.textContent = action.type === 'blast' ? '📣 Blast' : action.type === 'email' ? '✉️ Email' : '💬 SMS';
+    const badgeMap = {
+      blast: { cls: 'badge-blast', label: '📣 Blast' },
+      email: { cls: 'badge-email', label: '✉️ Email' },
+      update_contact: { cls: 'badge-email', label: '✏️ Update Contact' },
+      contractor_sms: { cls: 'badge-sms', label: '🔧 Contractor SMS' }
+    };
+    const badgeInfo = badgeMap[action.type] || { cls: 'badge-sms', label: '💬 SMS' };
+    typeBadge.className = 'confirm-type-badge ' + badgeInfo.cls;
+    typeBadge.textContent = badgeInfo.label;
     header.appendChild(typeBadge);
     const headerText = document.createElement('span');
     headerText.textContent = 'Review before sending';
@@ -503,14 +510,22 @@
       const sep = document.createElement('div'); sep.className = 'confirm-sep'; body.appendChild(sep);
     }
 
-    // Message (editable)
+    // Message (editable) — skip for update_contact
     const msgRow = document.createElement('div');
     msgRow.className = 'confirm-row';
     const msgLabel = document.createElement('div');
-    msgLabel.className = 'confirm-label'; msgLabel.textContent = 'Message';
+    msgLabel.className = 'confirm-label';
+    msgLabel.textContent = action.type === 'update_contact' ? 'Changes' : 'Message';
     const msgArea = document.createElement('textarea');
     msgArea.className = 'confirm-value editable';
-    msgArea.value = action.message || '';
+    if (action.type === 'update_contact') {
+      msgArea.value = JSON.stringify(action.updates || {}, null, 2);
+      msgArea.style.fontFamily = 'monospace';
+      msgArea.style.fontSize = '12px';
+      msgArea.readOnly = true;
+    } else {
+      msgArea.value = action.message || '';
+    }
     msgRow.appendChild(msgLabel); msgRow.appendChild(msgArea);
     body.appendChild(msgRow);
 
@@ -588,6 +603,15 @@
         return { ok: res.ok, message: res.ok ? `SMS sent to ${action.to} ✓` : 'Send failed.' };
       }
 
+      } else if (action.type === 'update_contact') {
+        const res = await fetch('/.netlify/functions/tanya-update-contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contactId: action.contactId, updates: action.updates })
+        });
+        return { ok: res.ok, message: res.ok ? `Contact updated ✓ Anything else?` : 'Update failed.' };
+
+      }
       return { ok: false, message: 'Unknown action type.' };
     } catch(e) {
       return { ok: false, message: 'Connection error.' };
@@ -682,7 +706,7 @@
       if (data.action) {
         if (data.reply) addMessage('claude', data.reply);
         // If action has a named recipient but no contactId, look it up first
-        if (data.action.to && !data.action.contactId && data.action.type !== 'blast') {
+        if (data.action.to && !data.action.contactId && data.action.type !== 'blast' && data.action.type !== 'contractor_sms') {
           showTypingSmall('Looking up contact…');
           // Pass both name and phone in case name lookup fails
           const phoneHint = data.action.phone || null;
