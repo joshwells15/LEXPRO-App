@@ -335,12 +335,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── PRE-LOAD VOICES ──
-  if (window.speechSynthesis) {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
-  }
-
   // ── AUTH CHECK ──
   const user = JSON.parse(sessionStorage.getItem('lexpro_user') || localStorage.getItem('lexpro_user') || '{}');
   if (!user.username) window.location.href = 'index.html';
