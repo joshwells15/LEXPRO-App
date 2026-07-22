@@ -137,7 +137,7 @@
 
   /* ── CONFIRM CARD ── */
   .confirm-card {
-    align-self: flex-start; width: 100%; max-width: 360px;
+    align-self: flex-start; width: 100%; max-width: 440px;
     border: 1.5px solid var(--border); border-radius: var(--radius-lg);
     background: var(--bg); overflow: hidden;
   }
@@ -147,6 +147,7 @@
     font-size: 12px; font-weight: 600; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 0.08em;
     display: flex; align-items: center; gap: 8px;
+    overflow: visible; min-width: 0;
   }
   .confirm-type-badge {
     font-size: 10px; font-weight: 700; padding: 2px 7px;
@@ -335,6 +336,12 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // ── PRE-LOAD VOICES ──
+  if (window.speechSynthesis) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+  }
+
   // ── AUTH CHECK ──
   const user = JSON.parse(sessionStorage.getItem('lexpro_user') || localStorage.getItem('lexpro_user') || '{}');
   if (!user.username) window.location.href = 'index.html';
