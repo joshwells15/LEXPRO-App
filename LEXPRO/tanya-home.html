@@ -594,6 +594,46 @@
     }
   }
 
+  // ── CONTACT LOOKUP ──
+  async function lookupContact(name) {
+    try {
+      const res = await fetch('/.netlify/functions/tanya-get-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json();
+      if (data.found && data.contacts.length) {
+        return data.contacts[0]; // return best match
+      }
+      return null;
+    } catch(e) {
+      console.error('Contact lookup failed:', e);
+      return null;
+    }
+  }
+
+  // ── SMALL STATUS MESSAGE (not a full bubble) ──
+  function showTypingSmall(msg) {
+    hideEmpty();
+    const row = document.createElement('div');
+    row.className = 'msg-row'; row.id = 'typingSmallRow';
+    const label = document.createElement('div');
+    label.className = 'msg-label'; label.textContent = 'Claude';
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble claude';
+    bubble.style.opacity = '0.6';
+    bubble.style.fontStyle = 'italic';
+    bubble.style.fontSize = '13px';
+    bubble.textContent = msg;
+    row.appendChild(label); row.appendChild(bubble);
+    chatArea.appendChild(row); scrollBottom();
+  }
+  function hideTypingSmall() {
+    const el = document.getElementById('typingSmallRow');
+    if (el) el.remove();
+  }
+
   // ── MAIN SEND ──
   async function send() {
     const msg = chatInput.value.trim();
@@ -641,6 +681,23 @@
 
       if (data.action) {
         if (data.reply) addMessage('claude', data.reply);
+        // If action has a named recipient but no contactId, look it up first
+        if (data.action.to && !data.action.contactId && data.action.type !== 'blast') {
+          showTypingSmall('Looking up contact…');
+          const contact = await lookupContact(data.action.to);
+          hideTypingSmall();
+          if (contact) {
+            data.action.contactId = contact.id;
+            data.action.phone = data.action.phone || contact.phone;
+            data.action.email = data.action.email || contact.email;
+            data.action.to = contact.name; // use exact GHL name
+          } else {
+            addMessage('claude', `I couldn't find "${data.action.to}" in GHL. Can you double check the name or give me their phone number?`);
+            isThinking = false;
+            sendBtn.disabled = !chatInput.value.trim();
+            return;
+          }
+        }
         showConfirmCard(data.action);
       } else {
         addMessage('claude', data.reply || 'Got it.');
