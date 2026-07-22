@@ -148,13 +148,6 @@
     text-transform: uppercase; letter-spacing: 0.08em;
     display: flex; align-items: center; gap: 8px;
   }
-  .speak-btn {
-    margin-left: auto; background: none; border: none;
-    font-size: 16px; cursor: pointer; padding: 2px 4px;
-    border-radius: 6px; line-height: 1; transition: background 0.15s;
-    flex-shrink: 0;
-  }
-  .speak-btn:hover { background: var(--surface-2); }
   .confirm-type-badge {
     font-size: 10px; font-weight: 700; padding: 2px 7px;
     border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em;
@@ -494,25 +487,6 @@
     const headerText = document.createElement('span');
     headerText.textContent = 'Review before sending';
     header.appendChild(headerText);
-
-    // Speak button
-    const speakBtn = document.createElement('button');
-    speakBtn.className = 'speak-btn';
-    speakBtn.title = 'Read message aloud';
-    speakBtn.innerHTML = '🔊';
-    speakBtn.addEventListener('click', () => {
-      const textToRead = action.message || JSON.stringify(action.updates || {});
-      if (!textToRead) return;
-      window.speechSynthesis.cancel();
-      const utt = new SpeechSynthesisUtterance(textToRead);
-      utt.rate = 0.95;
-      utt.pitch = 1;
-      speakBtn.innerHTML = '🔇';
-      utt.onend = () => { speakBtn.innerHTML = '🔊'; };
-      utt.onerror = () => { speakBtn.innerHTML = '🔊'; };
-      window.speechSynthesis.speak(utt);
-    });
-    header.appendChild(speakBtn);
     card.appendChild(header);
 
     // Body
