@@ -84,20 +84,21 @@
 
   /* ── QUICK ACTIONS ── */
   .quick-actions {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    display: flex; flex-direction: column; gap: 8px;
     width: 100%; max-width: 340px;
   }
   .qa-btn {
-    padding: 12px; background: var(--surface); border: 1px solid var(--border);
+    padding: 14px 16px; background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius-md); font-family: var(--font); font-size: 12px;
     font-weight: 500; color: var(--text-muted); cursor: pointer; text-align: left;
     line-height: 1.4; transition: background 0.15s, border-color 0.15s;
-    display: flex; flex-direction: column; gap: 4px;
+    display: flex; flex-direction: row; align-items: center; gap: 12px;
   }
   .qa-btn:active { background: var(--surface-2); border-color: var(--primary); }
-  .qa-wide { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 10px; }
+  .qa-text { display: flex; flex-direction: column; gap: 2px; }
+  .qa-wide { flex-direction: row; align-items: center; gap: 10px; }
   .qa-wide .qa-icon { font-size: 20px; }
-  .qa-icon { font-size: 18px; }
+  .qa-icon { font-size: 20px; flex-shrink: 0; }
   .qa-label { font-size: 12px; font-weight: 600; color: var(--text); }
   .qa-sub { font-size: 11px; color: var(--text-hint); }
 
@@ -268,33 +269,27 @@
     <div class="quick-actions">
       <button class="qa-btn" onclick="useQuick(this)" data-msg="Draft an email to update our clients.">
         <span class="qa-icon">✉️</span>
-        <span class="qa-label">Client Follow-Up</span>
-        <span class="qa-sub">Draft client email</span>
+        <div class="qa-text"><span class="qa-label">Client Follow-Up</span><span class="qa-sub">Draft client email</span></div>
       </button>
       <button class="qa-btn" onclick="useQuick(this)" data-msg="Send a mass text to all lexpro clients.">
         <span class="qa-icon">📣</span>
-        <span class="qa-label">SMS Blast</span>
-        <span class="qa-sub">Text all clients</span>
+        <div class="qa-text"><span class="qa-label">SMS Blast</span><span class="qa-sub">Text all clients</span></div>
       </button>
       <button class="qa-btn" onclick="useQuick(this)" data-msg="Send an email blast to all lexpro clients.">
         <span class="qa-icon">📧</span>
-        <span class="qa-label">Email Blast</span>
-        <span class="qa-sub">Email all clients</span>
+        <div class="qa-text"><span class="qa-label">Email Blast</span><span class="qa-sub">Email all clients</span></div>
       </button>
       <button class="qa-btn" onclick="useQuick(this)" data-msg="Text a contractor for me.">
         <span class="qa-icon">🔧</span>
-        <span class="qa-label">Text Contractor</span>
-        <span class="qa-sub">Plumber, HVAC, roofer…</span>
+        <div class="qa-text"><span class="qa-label">Text Contractor</span><span class="qa-sub">Plumber, HVAC, roofer…</span></div>
       </button>
       <button class="qa-btn" onclick="useQuick(this)" data-msg="Repair agreement is done. Draft an email to the seller with the plumber, HVAC, and roofer info.">
         <span class="qa-icon">🤝</span>
-        <span class="qa-label">Repair Agreement</span>
-        <span class="qa-sub">Send contractor info</span>
+        <div class="qa-text"><span class="qa-label">Repair Agreement</span><span class="qa-sub">Send contractor info</span></div>
       </button>
-      <a class="qa-btn qa-wide" href="https://lexpro-showings.netlify.app?tab=messages" target="_blank" style="text-decoration:none;">
+      <a class="qa-btn" href="https://lexpro-showings.netlify.app?tab=messages" target="_blank" style="text-decoration:none;">
         <span class="qa-icon">⏰</span>
-        <span class="qa-label">Scheduled SMS</span>
-        <span class="qa-sub">Set a text for later</span>
+        <div class="qa-text"><span class="qa-label">Scheduled SMS</span><span class="qa-sub">Set a text for later</span></div>
       </a>
     </div>
   </div>
