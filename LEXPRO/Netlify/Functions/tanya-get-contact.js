@@ -1,6 +1,7 @@
 // ============================================================
 // tanya-get-contact.js
 // Searches GHL contacts by name or phone
+// Uses the correct v2 search endpoint
 // ============================================================
 
 exports.handler = async (event) => {
@@ -19,10 +20,36 @@ exports.handler = async (event) => {
 
     let contacts = [];
 
-    // Try name search first
+    // ── Try POST search endpoint first ──────────────────────
     if (name) {
       const res = await fetch(
-        `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION}&search=${encodeURIComponent(name)}&limit=5`,
+        `https://services.leadconnectorhq.com/contacts/search`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${GHL_API_KEY}`,
+            'Version': '2021-07-28',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            locationId: GHL_LOCATION,
+            searchAfter: [],
+            filters: [],
+            sort: [],
+            pageLimit: 5,
+            query: name
+          })
+        }
+      );
+      const data = await res.json();
+      contacts = data.contacts || [];
+      console.log('POST search result:', JSON.stringify(data).slice(0, 300));
+    }
+
+    // ── Fallback: GET with query param ──────────────────────
+    if (!contacts.length && name) {
+      const res = await fetch(
+        `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION}&query=${encodeURIComponent(name)}&limit=5`,
         {
           headers: {
             'Authorization': `Bearer ${GHL_API_KEY}`,
@@ -32,14 +59,15 @@ exports.handler = async (event) => {
       );
       const data = await res.json();
       contacts = data.contacts || [];
+      console.log('GET query fallback:', JSON.stringify(data).slice(0, 300));
     }
 
-    // If name search returned nothing, try phone
+    // ── Fallback: search by phone ────────────────────────────
     if (!contacts.length && phone) {
       const normalized = phone.replace(/\D/g, '');
       const e164 = normalized.startsWith('1') ? `+${normalized}` : `+1${normalized}`;
       const res = await fetch(
-        `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION}&search=${encodeURIComponent(e164)}&limit=5`,
+        `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION}&query=${encodeURIComponent(e164)}&limit=5`,
         {
           headers: {
             'Authorization': `Bearer ${GHL_API_KEY}`,
@@ -49,6 +77,7 @@ exports.handler = async (event) => {
       );
       const data = await res.json();
       contacts = data.contacts || [];
+      console.log('Phone fallback:', JSON.stringify(data).slice(0, 300));
     }
 
     if (!contacts.length) {
@@ -72,6 +101,6 @@ exports.handler = async (event) => {
 
   } catch (err) {
     console.error('tanya-get-contact error:', err);
-    return { statusCode: 500, body: JSON.stringify({ error: 'Server error' }) };
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
