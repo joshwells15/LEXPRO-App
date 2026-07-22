@@ -595,12 +595,12 @@
   }
 
   // ── CONTACT LOOKUP ──
-  async function lookupContact(name) {
+  async function lookupContact(name, phone) {
     try {
       const res = await fetch('/.netlify/functions/tanya-get-contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ name, phone })
       });
       const data = await res.json();
       if (data.found && data.contacts.length) {
@@ -684,23 +684,32 @@
         // If action has a named recipient but no contactId, look it up first
         if (data.action.to && !data.action.contactId && data.action.type !== 'blast') {
           showTypingSmall('Looking up contact…');
-          const contact = await lookupContact(data.action.to);
+          // Pass both name and phone in case name lookup fails
+          const phoneHint = data.action.phone || null;
+          const contact = await lookupContact(data.action.to, phoneHint);
           hideTypingSmall();
           if (contact) {
             data.action.contactId = contact.id;
             data.action.phone = data.action.phone || contact.phone;
             data.action.email = data.action.email || contact.email;
-            data.action.to = contact.name; // use exact GHL name
-          } else {
-            addMessage('claude', `I couldn't find "${data.action.to}" in GHL. Can you double check the name or give me their phone number?`);
+            data.action.to = contact.name;
             isThinking = false;
             sendBtn.disabled = !chatInput.value.trim();
-            return;
+            showConfirmCard(data.action);
+          } else {
+            isThinking = false;
+            sendBtn.disabled = !chatInput.value.trim();
+            addMessage('claude', `I couldn't find "${data.action.to}" in GHL. Can you double check the name or give me their phone number?`);
           }
+        } else {
+          isThinking = false;
+          sendBtn.disabled = !chatInput.value.trim();
+          showConfirmCard(data.action);
         }
-        showConfirmCard(data.action);
       } else {
         addMessage('claude', data.reply || 'Got it.');
+        isThinking = false;
+        sendBtn.disabled = !chatInput.value.trim();
       }
 
     } catch(err) {
