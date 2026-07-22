@@ -543,6 +543,30 @@
     const actions = document.createElement('div');
     actions.className = 'confirm-actions';
 
+    // Speak button — full width above actions
+    const speakRow = document.createElement('div');
+    speakRow.style.cssText = 'padding: 8px 14px; border-top: 1px solid var(--border);';
+    const speakBtn = document.createElement('button');
+    speakBtn.style.cssText = 'width:100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 9px; font-size: 14px; cursor: pointer; font-family: var(--font); color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px;';
+    speakBtn.innerHTML = '🔊 Read message aloud';
+    speakBtn.addEventListener('click', () => {
+      const textToRead = action.message || JSON.stringify(action.updates || {});
+      if (!textToRead) return;
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        speakBtn.innerHTML = '🔊 Read message aloud';
+        return;
+      }
+      const utt = new SpeechSynthesisUtterance(textToRead);
+      utt.rate = 0.92;
+      speakBtn.innerHTML = '🔇 Stop reading';
+      utt.onend = () => { speakBtn.innerHTML = '🔊 Read message aloud'; };
+      utt.onerror = () => { speakBtn.innerHTML = '🔊 Read message aloud'; };
+      window.speechSynthesis.speak(utt);
+    });
+    speakRow.appendChild(speakBtn);
+    card.appendChild(speakRow);
+
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'confirm-btn cancel'; cancelBtn.textContent = 'Cancel';
     cancelBtn.addEventListener('click', () => {
