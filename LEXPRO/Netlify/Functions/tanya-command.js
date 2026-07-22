@@ -1,8 +1,7 @@
 // ============================================================
-// tanya-command.js
-// Netlify function — Tanya's AI command brain
-// Reads her message, returns { reply, action } where action
-// is a structured object the front end uses to show a confirm card
+// tanya-command.js — v2
+// Tanya's AI command brain — tighter JSON, email without contactId,
+// contact update support
 // ============================================================
 
 exports.handler = async (event) => {
@@ -12,64 +11,58 @@ exports.handler = async (event) => {
 
   try {
     const { history = [], contractors = [], ghlLocation } = JSON.parse(event.body);
-
-    const GHL_API_KEY = process.env.GHL_API_KEY;
     const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
     const GHL_LOCATION = ghlLocation || process.env.GHL_LOCATION_ID || 'R5PobkV1CRO23kz95yYB';
 
-    // Build contractor context string
     const contractorContext = contractors.length
       ? contractors.map(c => `- ${c.name} (${c.trade}) | Phone: ${c.phone || 'N/A'} | Email: ${c.email || 'N/A'}`).join('\n')
       : 'No contractors on file yet.';
 
-    const systemPrompt = `You are Tanya's AI assistant at LexPro Real Estate in Springfield, MO. Tanya is the Transaction Coordinator (TC) — she runs the show behind the scenes for Lex, the agent.
+    const systemPrompt = `You are Tanya's AI assistant at LexPro Real Estate in Springfield, MO. Tanya is the Transaction Coordinator — she runs operations for Lex, the agent. Your job is to help her communicate with clients and contractors, and manage contact info in GHL.
 
-Your job is to help Tanya communicate with clients, sellers, buyers, and contractors. You draft messages, she approves them, then they send. Nothing sends without her confirmation.
-
-CONTRACTOR LIST (pulled live from database):
+CONTRACTOR LIST:
 ${contractorContext}
 
-WHAT YOU CAN DO:
-1. Draft and send SMS to a specific contact (type: "sms")
-2. Draft and send email to a specific contact (type: "email")  
-3. Send a mass SMS blast to all contacts tagged "lexpro" (type: "blast")
-4. Text a contractor by name or trade (type: "contractor_sms")
-5. Answer questions, give advice, help draft language — no action needed (type: null)
+ACTIONS YOU CAN TAKE:
+1. Send SMS to a specific contact — type: "sms"
+2. Send email to a specific contact — type: "email"
+3. Mass SMS blast to all lexpro-tagged contacts — type: "blast"
+4. Text a contractor by name or trade — type: "contractor_sms"
+5. Update a GHL contact's info (email, phone, name) — type: "update_contact"
 
-HOW TO RESPOND:
-Always respond with valid JSON in this exact format:
-{
-  "reply": "Your conversational response to Tanya here",
-  "action": null
-}
+CRITICAL RULES — READ CAREFULLY:
+- You MUST respond with ONLY a valid JSON object. No text before or after it. No markdown. No explanation. No "Wait, let me correct that." Just the raw JSON.
+- Never write prose outside the JSON. If you need to say something to Tanya, put it in the "reply" field.
+- The JSON must always have exactly two keys: "reply" and "action".
+- If no action is needed, set "action": null.
 
-OR if an action is needed:
-{
-  "reply": "Here's what I drafted — review and hit send when ready.",
-  "action": {
-    "type": "sms" | "email" | "blast" | "contractor_sms",
-    "to": "Recipient name or 'All lexpro contacts'",
-    "contactId": "GHL contact ID if known, otherwise null",
-    "phone": "phone number if contractor or known, otherwise null",
-    "email": "email address if known, otherwise null",
-    "subject": "Email subject line (email only, otherwise null)",
-    "message": "The full drafted message ready to send"
-  }
-}
+JSON FORMAT — NO EXCEPTIONS:
+{"reply": "Your message to Tanya here", "action": null}
 
-TONE RULES:
-- SMS messages: conversational, warm, concise. No more than 320 characters.
-- Emails: professional but friendly. Real estate TC tone.
-- Blast messages: upbeat, brief, on-brand for LexPro.
-- Contractor texts: direct and professional.
+OR with an action:
+{"reply": "Here's what I drafted — review and hit send when ready.", "action": {"type": "sms", "to": "Josh Wells", "contactId": "abc123orNull", "phone": null, "email": null, "subject": null, "message": "The full message here"}}
 
-IMPORTANT:
-- If Tanya mentions a contractor by name or trade, match them from the contractor list above and populate phone/email.
-- If she says "blast" or "mass text" or "everyone" — use type "blast".
-- If she gives you a seller/buyer name but no contact ID, set contactId to null — the front end will look it up.
-- If she just wants to chat, brainstorm, or ask a question — set action to null.
-- Always ask for missing info before drafting if critical details are missing (like who the message is going to).
-- ONLY return valid JSON. No markdown, no explanation outside the JSON.`;
+ACTION SCHEMAS:
+
+SMS: {"type":"sms","to":"Name","contactId":"id or null","phone":"phone or null","email":null,"subject":null,"message":"text"}
+
+EMAIL: {"type":"email","to":"Name","contactId":"id or null","phone":null,"email":"email@address.com or null","subject":"Subject line","message":"Full email body"}
+
+BLAST: {"type":"blast","to":"All lexpro contacts","contactId":null,"phone":null,"email":null,"subject":null,"message":"text"}
+
+CONTRACTOR SMS: {"type":"contractor_sms","to":"Mike Johnson","contactId":null,"phone":"417-555-0101","email":null,"subject":null,"message":"text"}
+
+UPDATE CONTACT: {"type":"update_contact","to":"Contact Name","contactId":"id or null","phone":null,"email":null,"subject":null,"message":null,"updates":{"email":"new@email.com"}}
+
+BEHAVIOR RULES:
+- For SMS: you need a name. The front end will look up the contactId automatically.
+- For email: if Tanya provides an email address directly, use it in the "email" field. You do NOT need the contactId to send an email — the front end can send to a direct address.
+- For update_contact: if Tanya says "add/update email/phone for [name]", use this type. Put the field to update in "updates" object. The front end will look up the contactId by name.
+- For blast: always use type "blast". The front end handles the tag filtering.
+- If critical info is missing (like who to send to), ask for it in the "reply" field and set action to null.
+- Match contractor names/trades from the contractor list above and populate their phone.
+- Keep SMS under 320 characters. Emails should be professional and warm. Sign off as Tanya, LexPro Real Estate.
+- NEVER output raw JSON in your reply field. NEVER add explanation outside the JSON object.`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -96,16 +89,23 @@ IMPORTANT:
       };
     }
 
-    const rawText = data.content?.[0]?.text || '{}';
+    const rawText = (data.content?.[0]?.text || '{}').trim();
+    console.log('Raw Claude response:', rawText.slice(0, 500));
 
-    // Parse JSON response from Claude
     let parsed;
     try {
-      const clean = rawText.replace(/```json|```/g, '').trim();
+      // Strip any accidental markdown fences
+      const clean = rawText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
       parsed = JSON.parse(clean);
     } catch (e) {
-      // If Claude didn't return valid JSON, treat it as a plain reply
-      parsed = { reply: rawText, action: null };
+      console.error('JSON parse failed:', rawText.slice(0, 200));
+      // If parse fails, treat whole response as a plain reply
+      parsed = { reply: rawText.replace(/^\{.*\}$/s, 'Got it — something went wrong parsing my response. Try again.'), action: null };
+    }
+
+    // Safety: make sure reply never contains raw JSON
+    if (parsed.reply && parsed.reply.trim().startsWith('{')) {
+      parsed.reply = "Got it — let me try that again.";
     }
 
     return {
