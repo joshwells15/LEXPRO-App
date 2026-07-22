@@ -474,7 +474,8 @@
     header.className = 'confirm-header';
     const typeBadge = document.createElement('span');
     const badgeMap = {
-      blast: { cls: 'badge-blast', label: '📣 Blast' },
+      blast: { cls: 'badge-blast', label: '📣 SMS Blast' },
+      blast_email: { cls: 'badge-email', label: '📣 Email Blast' },
       email: { cls: 'badge-email', label: '✉️ Email' },
       update_contact: { cls: 'badge-email', label: '✏️ Update Contact' },
       contractor_sms: { cls: 'badge-sms', label: '🔧 Contractor SMS' }
@@ -602,6 +603,15 @@
         });
         return { ok: res.ok, message: res.ok ? `SMS sent to ${action.to} ✓` : 'Send failed.' };
 
+      } else if (action.type === 'blast_email') {
+        const res = await fetch('/.netlify/functions/tanya-blast-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tag: 'lexpro', subject: action.subject, message: action.message })
+        });
+        const data = await res.json();
+        return { ok: res.ok, message: res.ok ? `Email blast sent to ${data.count || 'all'} contacts ✓` : 'Blast failed.' };
+
       } else if (action.type === 'update_contact') {
         const res = await fetch('/.netlify/functions/tanya-update-contact', {
           method: 'POST',
@@ -705,7 +715,7 @@
       if (data.action) {
         if (data.reply) addMessage('claude', data.reply);
         // If action has a named recipient but no contactId, look it up first
-        if (data.action.to && !data.action.contactId && data.action.type !== 'blast' && data.action.type !== 'contractor_sms') {
+        if (data.action.to && !data.action.contactId && data.action.type !== 'blast' && data.action.type !== 'blast_email' && data.action.type !== 'contractor_sms') {
           showTypingSmall('Looking up contact…');
           // Pass both name and phone in case name lookup fails
           const phoneHint = data.action.phone || null;
