@@ -601,7 +601,6 @@
           body: JSON.stringify({ phone: action.phone, message: action.message, to: action.to })
         });
         return { ok: res.ok, message: res.ok ? `SMS sent to ${action.to} ✓` : 'Send failed.' };
-      }
 
       } else if (action.type === 'update_contact') {
         const res = await fetch('/.netlify/functions/tanya-update-contact', {
