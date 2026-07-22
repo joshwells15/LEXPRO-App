@@ -271,10 +271,15 @@
         <span class="qa-label">Client Follow-Up</span>
         <span class="qa-sub">Draft client email</span>
       </button>
-      <button class="qa-btn" onclick="useQuick(this)" data-msg="I need to send a mass text to everyone with the lexpro tag.">
+      <button class="qa-btn" onclick="useQuick(this)" data-msg="Send a mass text to all lexpro clients.">
         <span class="qa-icon">📣</span>
-        <span class="qa-label">Mass Blast</span>
+        <span class="qa-label">SMS Blast</span>
         <span class="qa-sub">Text all clients</span>
+      </button>
+      <button class="qa-btn" onclick="useQuick(this)" data-msg="Send an email blast to all lexpro clients.">
+        <span class="qa-icon">📧</span>
+        <span class="qa-label">Email Blast</span>
+        <span class="qa-sub">Email all clients</span>
       </button>
       <button class="qa-btn" onclick="useQuick(this)" data-msg="Text a contractor for me.">
         <span class="qa-icon">🔧</span>
@@ -770,7 +775,8 @@
       <div class="empty-sub">Type or speak. I'll draft it, you approve it, and I'll send it — text, email, blast, whatever.</div>
       <div class="quick-actions">
         <button class="qa-btn" onclick="useQuick(this)" data-msg="Inspection notice just came back. Draft an email to the seller with my suggestion list."><span class="qa-icon">🔍</span><span class="qa-label">Inspection Follow-Up</span><span class="qa-sub">Draft seller email</span></button>
-        <button class="qa-btn" onclick="useQuick(this)" data-msg="I need to send a mass text to everyone with the lexpro tag."><span class="qa-icon">📣</span><span class="qa-label">Mass Blast</span><span class="qa-sub">Text all clients</span></button>
+        <button class="qa-btn" onclick="useQuick(this)" data-msg="Send a mass text to all lexpro clients."><span class="qa-icon">📣</span><span class="qa-label">SMS Blast</span><span class="qa-sub">Text all clients</span></button>
+        <button class="qa-btn" onclick="useQuick(this)" data-msg="Send an email blast to all lexpro clients."><span class="qa-icon">📧</span><span class="qa-label">Email Blast</span><span class="qa-sub">Email all clients</span></button>
         <button class="qa-btn" onclick="useQuick(this)" data-msg="Text a contractor for me."><span class="qa-icon">🔧</span><span class="qa-label">Text Contractor</span><span class="qa-sub">Plumber, HVAC, roofer…</span></button>
         <button class="qa-btn" onclick="useQuick(this)" data-msg="Repair agreement is done. Draft an email to the seller with the plumber, HVAC, and roofer info."><span class="qa-icon">🤝</span><span class="qa-label">Repair Agreement</span><span class="qa-sub">Send contractor info</span></button>
       </div>`;
