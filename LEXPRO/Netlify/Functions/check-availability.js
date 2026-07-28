@@ -14,6 +14,13 @@
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const GHL_KEY = process.env.GHL_API_KEY;
+const GHL_LOCATION = process.env.GHL_LOCATION_ID;
+
+const SELLER_FROM = '+14173742998';   // seller-facing number
+const INTERNAL_FROM = '+14176474633'; // internal, Tanya/Lex
+const TANYA_CONTACT_ID = 'k4M3JrFVdMTwhKtIaQx6';
+const AWAITING_TAG = 'awaiting-showing-approval';
 
 const TZ = 'America/Chicago';
 const HOLD_MINUTES = 120;   // matches the Tanya escalation window
@@ -41,6 +48,96 @@ async function sb(path, { method = 'GET', body, prefer } = {}) {
     throw new Error(`Supabase ${method} ${path} -> ${res.status}: ${text}`);
   }
   return text ? JSON.parse(text) : null;
+}
+
+/* ------------------------------------------------------------------ */
+/* GoHighLevel helpers                                                 */
+/* ------------------------------------------------------------------ */
+
+async function ghl(path, { method = 'GET', body, version = '2021-07-28' } = {}) {
+  const res = await fetch(`https://services.leadconnectorhq.com${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${GHL_KEY}`,
+      Version: version,
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`GHL ${method} ${path} -> ${res.status}: ${text}`);
+  return text ? JSON.parse(text) : null;
+}
+
+function e164(phone) {
+  if (!phone) return null;
+  const d = String(phone).replace(/\D/g, '');
+  if (d.length === 10) return `+1${d}`;
+  if (d.length === 11 && d.startsWith('1')) return `+${d}`;
+  return String(phone).startsWith('+') ? String(phone) : `+${d}`;
+}
+
+// Find (or create) a GHL contact id from a phone number.
+async function findContactIdByPhone(phone) {
+  const p = e164(phone);
+  if (!p) return null;
+  try {
+    const r = await ghl(
+      `/contacts/search/duplicate?locationId=${GHL_LOCATION}&number=${encodeURIComponent(p)}`
+    );
+    return r?.contact?.id || null;
+  } catch (e) {
+    console.error('contact lookup failed:', e.message);
+    return null;
+  }
+}
+
+async function sendSms(contactId, message, fromNumber) {
+  return ghl('/conversations/messages', {
+    method: 'POST',
+    version: '2021-04-15',
+    body: { type: 'SMS', contactId, message, fromNumber }
+  });
+}
+
+async function addTag(contactId, tag) {
+  return ghl(`/contacts/${contactId}/tags`, {
+    method: 'POST',
+    body: { tags: [tag] }
+  });
+}
+
+// Text the seller and flag them so their reply routes to seller-reply.js.
+// Never allowed to break the agent-facing response — logs and moves on.
+async function notifySeller(listing, request, normalized, agentName) {
+  try {
+    let contactId = listing.seller_contact_id;
+    if (!contactId) contactId = await findContactIdByPhone(listing.seller_phone);
+    if (!contactId) {
+      console.error(`No seller contact for listing ${listing.id}`);
+      return false;
+    }
+
+    const who = agentName ? `${agentName}` : 'A showing agent';
+    const msg =
+      `Hi${listing.seller_name ? ' ' + listing.seller_name.split(' ')[0] : ''}! ` +
+      `${who} would like to show ${listing.address_full} ${normalized}. ` +
+      `Does that work? Reply YES to confirm, or let us know what times would be better. Thanks, LexPro`;
+
+    await sendSms(contactId, msg, SELLER_FROM);
+    await addTag(contactId, AWAITING_TAG);
+
+    await sb(`showing_requests?id=eq.${request.id}`, {
+      method: 'PATCH',
+      body: { seller_notified_at: new Date().toISOString() },
+      prefer: 'return=minimal'
+    });
+    return true;
+  } catch (e) {
+    console.error('notifySeller failed:', e.message);
+    return false;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -381,6 +478,99 @@ async function expireStaleHolds() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Status check: the agent is chasing us for an answer                 */
+/* ------------------------------------------------------------------ */
+
+async function handleStatusCheck(requestId, agentPhone) {
+  let rows = [];
+
+  if (requestId) {
+    rows = await sb(`showing_requests?id=eq.${encodeURIComponent(requestId)}&select=*`);
+  }
+  if (!rows.length && agentPhone) {
+    rows = await sb(
+      `showing_requests?showing_agent_phone=eq.${encodeURIComponent(agentPhone)}` +
+      `&order=created_at.desc&limit=1&select=*`
+    );
+  }
+  if (!rows.length) {
+    return reply({
+      status: 'pending',
+      reason_message: "I don't have an open request on file for you right now. What property and time are you looking at?"
+    });
+  }
+
+  const req = rows[0];
+  const listing = (await sb(`listings?id=eq.${req.listing_id}&select=*`))[0];
+  const slot = formatSlot(new Date(req.requested_start));
+  const address = listing ? listing.address_full : 'that property';
+
+  if (req.status === 'confirmed') {
+    return reply({
+      status: 'open',
+      matched_listing_address: address,
+      requested_time_normalized: slot,
+      request_id: req.id,
+      reason_message: `Good news - the seller approved ${address} for ${slot}. You're confirmed.`
+    });
+  }
+
+  if (req.status === 'seller_rejected') {
+    const alts = Array.isArray(req.seller_alternate_times) ? req.seller_alternate_times : [];
+    return reply({
+      status: 'unavailable',
+      matched_listing_address: address,
+      requested_time_normalized: slot,
+      request_id: req.id,
+      reason_message: alts.length
+        ? `The seller couldn't do ${slot}, but offered other times.`
+        : `The seller couldn't do ${slot}. What other times would work for you?`,
+      top_3_alternates: alts.slice(0, 3)
+    });
+  }
+
+  if (req.status === 'expired' || req.status === 'cancelled') {
+    return reply({
+      status: 'unavailable',
+      matched_listing_address: address,
+      requested_time_normalized: slot,
+      reason_message: `That request for ${slot} is no longer active. Want me to check another time?`
+    });
+  }
+
+  // Still pending. The agent chasing us is the signal that the seller is slow -
+  // escalate to Tanya once, then keep the agent informed.
+  if (!req.escalated_at) {
+    try {
+      await sb(`showing_requests?id=eq.${req.id}`, {
+        method: 'PATCH',
+        body: { escalated_at: new Date().toISOString() },
+        prefer: 'return=minimal'
+      });
+      await sendSms(
+        TANYA_CONTACT_ID,
+        `Showing agent is chasing us. ${address}, requested ${slot} by ` +
+        `${req.showing_agent_name || 'an agent'} (${req.showing_agent_phone || 'no phone'}). ` +
+        `Seller hasn't replied. Can you nudge them?`,
+        INTERNAL_FROM
+      );
+    } catch (e) {
+      console.error('status_check escalation failed:', e.message);
+    }
+  }
+
+  return reply({
+    status: 'pending',
+    matched_listing_address: address,
+    requested_time_normalized: slot,
+    request_id: req.id,
+    hold_id: null,
+    reason_message: `Still waiting on the seller for ${address} at ${slot}. ` +
+      `I've flagged it with our coordinator to follow up, and I'll text you the moment I hear back.`
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /* Response shape                                                      */
 /* ------------------------------------------------------------------ */
 
@@ -441,6 +631,12 @@ exports.handler = async (event) => {
 
   try {
     await expireStaleHolds();
+
+    /* -------- 0. status check: "any word yet?" -------- */
+
+    if (request_type === 'status_check') {
+      return await handleStatusCheck(priorRequestId, clean(showing_agent_phone));
+    }
 
     /* -------- 1. match the listing -------- */
 
@@ -617,11 +813,17 @@ exports.handler = async (event) => {
       });
     }
 
+    const sellerReached = await notifySeller(
+      listing, request, normalized, clean(showing_agent_name)
+    );
+
     return reply({
       status: 'open',
       matched_listing_address: listing.address_full,
       requested_time_normalized: normalized,
-      reason_message: `${listing.address_full} is available ${normalized}. Sending it to the seller for approval now.`,
+      reason_message: sellerReached
+        ? `${listing.address_full} is open ${normalized}. I've sent it to the seller for approval and will let you know as soon as I hear back.`
+        : `${listing.address_full} is open ${normalized}. I'm getting it confirmed and will follow up shortly.`,
       hold_id: hold.id,
       request_id: request.id,
       top_3_alternates: []
