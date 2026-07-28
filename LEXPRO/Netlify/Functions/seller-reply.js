@@ -123,6 +123,29 @@ async function removeTag(contactId, tag) {
   }
 }
 
+// The free GHL webhook action may not include the message body, so fetch the
+// most recent inbound SMS ourselves when it's missing.
+async function fetchLatestInboundMessage(contactId) {
+  if (!contactId) return null;
+  try {
+    const search = await ghl(
+      `/conversations/search?locationId=${GHL_LOCATION}&contactId=${contactId}&limit=1`
+    );
+    const convoId = search?.conversations?.[0]?.id;
+    if (!convoId) return null;
+
+    const msgs = await ghl(`/conversations/${convoId}/messages?limit=20`);
+    const list = msgs?.messages?.messages || msgs?.messages || [];
+
+    // direction "inbound" = from the seller
+    const inbound = list.find(m => m.direction === 'inbound' && (m.body || m.message));
+    return inbound ? (inbound.body || inbound.message) : null;
+  } catch (e) {
+    console.error('fetchLatestInboundMessage failed:', e.message);
+    return null;
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Time formatting                                                     */
 /* ------------------------------------------------------------------ */
@@ -290,11 +313,14 @@ exports.handler = async (event) => {
     body = Object.fromEntries(new URLSearchParams(event.body || ''));
   }
 
-  const sellerContactId = body.contact_id || body.contactId || null;
+  const sellerContactId = body.contact_id || body.contactId || body.id || null;
   const sellerPhone = body.phone || body.contact_phone || null;
-  const message = body.message || body.body || body.sms || '';
+  let message = body.message || body.body || body.sms || body.message_body || '';
 
-  if (!message) return ok('No message body - nothing to classify');
+  // Free GHL webhook may omit the message body - go get it.
+  if (!message) message = await fetchLatestInboundMessage(sellerContactId);
+
+  if (!message) return ok('No message found for this contact - nothing to classify');
 
   try {
     /* -------- 1. find the seller's listing -------- */
