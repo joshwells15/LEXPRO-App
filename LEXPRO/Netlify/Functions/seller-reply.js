@@ -32,7 +32,8 @@ const INTAKE_WEBHOOK = process.env.SHOWING_INTAKE_WEBHOOK || null;
 
 const AGENT_FROM = '+14173742998';    // Donna's number - keeps the thread together
 const INTERNAL_FROM = '+14176474633'; // internal, Tanya/Lex
-const TANYA_CONTACT_ID = 'k4M3JrFVdMTwhKtIaQx6';
+// TESTING: escalations -> Josh. Swap back to Tanya (k4M3JrFVdMTwhKtIaQx6) before go-live.
+const TANYA_CONTACT_ID = 'txnhMCDRPWLUXXykNuE6';
 const AWAITING_TAG = 'awaiting-showing-approval';
 const TZ = 'America/Chicago';
 
