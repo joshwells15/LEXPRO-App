@@ -315,7 +315,25 @@ exports.handler = async (event) => {
 
   const sellerContactId = body.contact_id || body.contactId || body.id || null;
   const sellerPhone = body.phone || body.contact_phone || null;
-  let message = body.message || body.body || body.sms || body.message_body || '';
+
+  // GHL may send the message as a plain string, an object, or a JSON string
+  // that looks like {"type":2,"body":"yes that works"} - unwrap all three.
+  function unwrapMessage(v) {
+    if (!v) return '';
+    if (typeof v === 'object') return v.body || v.message || v.text || '';
+    const s = String(v).trim();
+    if (s.startsWith('{')) {
+      try {
+        const o = JSON.parse(s);
+        return o.body || o.message || o.text || '';
+      } catch { /* fall through */ }
+    }
+    return s;
+  }
+
+  let message = unwrapMessage(
+    body.message || body.body || body.sms || body.message_body
+  );
 
   // Free GHL webhook may omit the message body - go get it.
   if (!message) message = await fetchLatestInboundMessage(sellerContactId);

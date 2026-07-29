@@ -119,11 +119,31 @@ async function notifySeller(listing, request, normalized, agentName) {
       return false;
     }
 
-    const who = agentName ? `${agentName}` : 'A showing agent';
+    // If this seller has more than one active listing, name the property so
+    // "a showing tomorrow at 2" can't be ambiguous. Otherwise leave it out.
+    let propertyBit = '';
+    try {
+      const phone = encodeURIComponent(listing.seller_phone || '');
+      const cid = encodeURIComponent(listing.seller_contact_id || '');
+      const or = `or=(seller_phone.eq.${phone},seller_contact_id.eq.${cid})`;
+      const siblings = await sb(`listings?${or}&status=eq.active&select=id`);
+      if (siblings.length > 1) {
+        const street = listing.address_full.split(',')[0].trim();
+        propertyBit = ` at ${street}`;
+      }
+    } catch (e) {
+      console.error('sibling listing check failed (non-fatal):', e.message);
+    }
+
+    const first = listing.seller_first_name || (listing.seller_name || '').split(' ')[0];
+    const when = normalized
+      .replace(/^(Today|Tomorrow)/, m => m.toLowerCase())
+      .replace(' CT', '');
+
     const msg =
-      `Hi${listing.seller_name ? ' ' + listing.seller_name.split(' ')[0] : ''}! ` +
-      `${who} would like to show ${listing.address_full} ${normalized}. ` +
-      `Does that work? Reply YES to confirm, or let us know what times would be better. Thanks, LexPro`;
+      `Hi${first ? ' ' + first : ''}, it's Donna with LexPro. Got a request for a showing` +
+      `${propertyBit} ${when}. Does that time work for you? Reply yes to confirm, or ` +
+      `let us know a better time that would work.`;
 
     await sendSms(contactId, msg, SELLER_FROM);
     await addTag(contactId, AWAITING_TAG);
