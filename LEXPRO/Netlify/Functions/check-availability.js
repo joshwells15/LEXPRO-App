@@ -161,6 +161,48 @@ async function notifySeller(listing, request, normalized, agentName) {
   }
 }
 
+const INTAKE_WEBHOOK = process.env.SHOWING_INTAKE_WEBHOOK || null;
+
+// Push a confirmed showing into the existing Showing Intake pipeline
+// (sheet row, GHL fields, chase SMS). Field names must match scenario 5312812.
+async function pushConfirmedToIntake(request, listing) {
+  if (!INTAKE_WEBHOOK) {
+    console.log('SHOWING_INTAKE_WEBHOOK not set - skipping intake push');
+    return false;
+  }
+  if (request.pushed_to_intake) return false;
+
+  const p = tzParts(new Date(request.requested_start));
+  const payload = {
+    seller_first_name: listing.seller_first_name || '',
+    seller_last_name:  listing.seller_last_name  || '',
+    seller_address:    listing.address_full,
+    seller_phone:      listing.seller_phone      || '',
+    seller_email:      listing.seller_email      || '',
+    seller_contact_id: listing.seller_contact_id || '',
+    agent_name:        request.showing_agent_name  || '',
+    agent_phone:       request.showing_agent_phone || '',
+    agent_email:       request.showing_agent_email || '',
+    showing_date: `${p.y}-${String(p.mo).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`,
+    showing_time: `${String(p.h).padStart(2, '0')}:${String(p.mi).padStart(2, '0')}`,
+    intake_source: 'Donna'
+  };
+
+  const res = await fetch(INTAKE_WEBHOOK, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error(`intake webhook ${res.status}`);
+
+  await sb(`showing_requests?id=eq.${request.id}`, {
+    method: 'PATCH',
+    body: { pushed_to_intake: true },
+    prefer: 'return=minimal'
+  });
+  return true;
+}
+
 /* ------------------------------------------------------------------ */
 /* Timezone math (no dependencies)                                     */
 /* ------------------------------------------------------------------ */
@@ -787,7 +829,13 @@ exports.handler = async (event) => {
 
     /* -------- 6. open: create the request + hold -------- */
 
+    // Counter replies like "Saturday morning works" can carry an unparseable
+    // time. If we got a date but no usable time on a counter, ask rather than guess.
+    // (parseTime returning null was already caught above; this is belt+suspenders
+    // for time strings like "morning"/"afternoon" that parse to nothing useful.)
+
     const holdExpires = new Date(now + HOLD_MINUTES * 60000).toISOString();
+    const instantConfirm = listing.requires_approval === false;
 
     const [request] = await sb('showing_requests', {
       method: 'POST',
@@ -797,8 +845,9 @@ exports.handler = async (event) => {
         showing_agent_phone: clean(showing_agent_phone),
         requested_start: startUtc.toISOString(),
         requested_end: endUtc.toISOString(),
-        status: 'pending_seller_approval',
-        hold_expires_at: holdExpires,
+        status: instantConfirm ? 'confirmed' : 'pending_seller_approval',
+        hold_expires_at: instantConfirm ? null : holdExpires,
+        confirmed_at: instantConfirm ? new Date(now).toISOString() : null,
         source_bot: 'Donna'
       }]
     });
@@ -812,8 +861,10 @@ exports.handler = async (event) => {
           request_id: request.id,
           hold_start: startUtc.toISOString(),
           hold_end: endUtc.toISOString(),
-          expires_at: holdExpires,
-          status: 'active'
+          expires_at: instantConfirm
+            ? endUtc.toISOString()          // confirmed slot blocks until the showing ends
+            : holdExpires,
+          status: instantConfirm ? 'converted' : 'active'
         }]
       });
     } catch (err) {
@@ -834,9 +885,60 @@ exports.handler = async (event) => {
       });
     }
 
+    /* -------- 6a. instant confirm: vacant / no-approval listings -------- */
+
+    if (instantConfirm) {
+      // Push straight into the Showing Intake pipeline (sheet row, chase, feedback)
+      try {
+        await pushConfirmedToIntake(request, listing);
+      } catch (e) {
+        console.error('instant-confirm intake push failed:', e.message);
+      }
+
+      const notes = listing.showing_notes
+        ? ` Note from the seller side: ${listing.showing_notes}.`
+        : '';
+
+      return reply({
+        status: 'open',
+        matched_listing_address: listing.address_full,
+        requested_time_normalized: normalized,
+        reason_message:
+          `You're all set - ${listing.address_full} is confirmed for ${normalized}. ` +
+          `The property is vacant, so no seller approval needed.${notes} ` +
+          `We'll reach out afterward for feedback.`,
+        hold_id: hold.id,
+        request_id: request.id,
+        top_3_alternates: []
+      });
+    }
+
+    /* -------- 6b. approval path: reach the seller or escalate -------- */
+
     const sellerReached = await notifySeller(
       listing, request, normalized, clean(showing_agent_name)
     );
+
+    if (!sellerReached) {
+      // No phone, no contact, or send failed: Tanya handles it by hand.
+      try {
+        await sb(`showing_requests?id=eq.${request.id}`, {
+          method: 'PATCH',
+          body: { escalated_at: new Date().toISOString() },
+          prefer: 'return=minimal'
+        });
+        await sendSms(
+          TANYA_CONTACT_ID,
+          `Can't reach seller by text for ${listing.address_full}. Showing requested ` +
+          `${normalized} by ${clean(showing_agent_name) || 'an agent'} ` +
+          `(${clean(showing_agent_phone) || 'no phone'}). Please contact the seller ` +
+          `directly - the slot is held for 2 hours.`,
+          INTERNAL_FROM
+        );
+      } catch (e) {
+        console.error('no-phone escalation failed:', e.message);
+      }
+    }
 
     return reply({
       status: 'open',
@@ -844,7 +946,7 @@ exports.handler = async (event) => {
       requested_time_normalized: normalized,
       reason_message: sellerReached
         ? `${listing.address_full} is open ${normalized}. I've sent it to the seller for approval and will let you know as soon as I hear back.`
-        : `${listing.address_full} is open ${normalized}. I'm getting it confirmed and will follow up shortly.`,
+        : `${listing.address_full} is open ${normalized}. I'm getting it confirmed with the seller and will follow up shortly.`,
       hold_id: hold.id,
       request_id: request.id,
       top_3_alternates: []
