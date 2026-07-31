@@ -29,8 +29,7 @@ const INTAKE_WEBHOOK = process.env.SHOWING_INTAKE_WEBHOOK || null;
 
 const AGENT_FROM = '+14173742998';
 const INTERNAL_FROM = '+14176474633';
-// TESTING: internal alerts -> Test Seller contact. Swap to Tanya (k4M3JrFVdMTwhKtIaQx6) before go-live.
-const TANYA_CONTACT_ID = '80YL8ihM02I1wlcswzyr';
+const TANYA_CONTACT_ID = 'k4M3JrFVdMTwhKtIaQx6'; // Tanya - live
 const AWAITING_TAG = 'awaiting-showing-approval';
 const TZ = 'America/Chicago';
 const HOLD_MINUTES = 120;
@@ -277,7 +276,7 @@ async function findContactIdByPhone(phone) {
   }
 }
 
-async function askSeller(listing, normalized) {
+async function askSeller(listing, normalized, priorContext) {
   let contactId = listing.seller_contact_id;
   if (!contactId) contactId = await findContactIdByPhone(listing.seller_phone);
   if (!contactId) {
@@ -287,10 +286,43 @@ async function askSeller(listing, normalized) {
 
   const first = listing.seller_first_name || (listing.seller_name || '').split(' ')[0];
   const when = normalized.replace(/^(Today|Tomorrow)/, m => m.toLowerCase()).replace(' CT', '');
-  const msg =
-    `Hi${first ? ' ' + first : ''}, it's Donna with LexPro. Got a request for a showing ` +
-    `${when}. Does that time work for you? Reply yes to confirm, or let us know a ` +
-    `better time that would work.`;
+
+  // Compose a context-aware message; fall back to the template if Claude fails.
+  let msg = null;
+  if (priorContext) {
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': ANTHROPIC_KEY,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 150,
+          messages: [{ role: 'user', content:
+`You are Donna, LexPro's friendly showing coordinator, texting a home seller${first ? ' named ' + first : ''}.
+
+Context: ${priorContext}
+The showing agent has now settled on: ${when}.
+
+Write ONE short SMS (under 300 chars) asking the seller to confirm this time. Reference the earlier exchange naturally - do not reintroduce yourself or repeat the full pitch. End by asking them to reply yes to confirm or suggest another time. Output ONLY the message text.` }]
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const t = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+        if (t && t.length < 400) msg = t;
+      }
+    } catch (e) { console.error('askSeller compose failed, using template:', e.message); }
+  }
+
+  if (!msg) {
+    msg = `Hi${first ? ' ' + first : ''}, it's Donna with LexPro. Got a request for a showing ` +
+      `${when}. Does that time work for you? Reply yes to confirm, or let us know a ` +
+      `better time that would work.`;
+  }
 
   const sent = await sendSms(contactId, msg, AGENT_FROM);
   if (sent) await addTag(contactId, AWAITING_TAG);
@@ -552,7 +584,10 @@ exports.handler = async (event) => {
       }
 
       // Ask the seller to confirm the new time
-      const sellerReached = await askSeller(listing, normalized);
+      const priorCtx = request.seller_response
+        ? `The seller earlier said: "${request.seller_response}"`
+        : null;
+      const sellerReached = await askSeller(listing, normalized, priorCtx);
 
       await sendSms(agentContactId,
         sellerReached

@@ -19,8 +19,7 @@ const GHL_LOCATION = process.env.GHL_LOCATION_ID;
 
 const SELLER_FROM = '+14173742998';   // seller-facing number
 const INTERNAL_FROM = '+14176474633'; // internal, Tanya/Lex
-// TESTING: escalations -> Josh. Swap back to Tanya (k4M3JrFVdMTwhKtIaQx6) before go-live.
-const TANYA_CONTACT_ID = 'txnhMCDRPWLUXXykNuE6';
+const TANYA_CONTACT_ID = 'k4M3JrFVdMTwhKtIaQx6'; // Tanya - live
 const AWAITING_TAG = 'awaiting-showing-approval';
 
 const TZ = 'America/Chicago';
@@ -92,6 +91,21 @@ async function findContactIdByPhone(phone) {
     console.error('contact lookup failed:', e.message);
     return null;
   }
+}
+
+
+async function addTagToContact(contactId, tag) {
+  try {
+    await ghl(`/contacts/${contactId}/tags`, { method: 'POST', body: { tags: [tag] } });
+    return true;
+  } catch (e) { console.error('addTag failed:', e.message); return false; }
+}
+
+async function muteDonnaForAgent(agentPhone) {
+  try {
+    const id = await findContactIdByPhone(agentPhone);
+    if (id) await addTagToContact(id, 'ai off');
+  } catch (e) { console.error('muteDonna failed (non-fatal):', e.message); }
 }
 
 async function sendSms(contactId, message, fromNumber) {
@@ -899,6 +913,7 @@ exports.handler = async (event) => {
         ? ` Note from the seller side: ${listing.showing_notes}.`
         : '';
 
+      await muteDonnaForAgent(clean(showing_agent_phone));
       return reply({
         status: 'open',
         matched_listing_address: listing.address_full,
@@ -940,6 +955,7 @@ exports.handler = async (event) => {
       }
     }
 
+    await muteDonnaForAgent(clean(showing_agent_phone));
     return reply({
       status: 'open',
       matched_listing_address: listing.address_full,

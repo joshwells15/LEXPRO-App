@@ -32,8 +32,7 @@ const INTAKE_WEBHOOK = process.env.SHOWING_INTAKE_WEBHOOK || null;
 
 const AGENT_FROM = '+14173742998';    // Donna's number - keeps the thread together
 const INTERNAL_FROM = '+14176474633'; // internal, Tanya/Lex
-// TESTING: escalations -> Josh. Swap back to Tanya (k4M3JrFVdMTwhKtIaQx6) before go-live.
-const TANYA_CONTACT_ID = 'txnhMCDRPWLUXXykNuE6';
+const TANYA_CONTACT_ID = 'k4M3JrFVdMTwhKtIaQx6'; // Tanya - live
 const AWAITING_TAG = 'awaiting-showing-approval';
 const TZ = 'America/Chicago';
 
@@ -441,8 +440,8 @@ exports.handler = async (event) => {
       });
 
       const agentMsg = alts.length
-        ? `The seller can't do ${slot} at ${listing.address_full}, but offered: ` +
-          `${alts.join(', ')}. Do any of those work?`
+        ? `The seller can't do ${slot} at ${listing.address_full}, but offered ` +
+          `${alts.length === 1 ? alts[0] + '. Does that work?' : alts.join(', ') + '. Do any of those work?'}`
         : `The seller can't do ${slot} at ${listing.address_full}. ` +
           `What other times would work for you?`;
 
