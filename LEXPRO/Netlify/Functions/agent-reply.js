@@ -222,7 +222,7 @@ The agent's reply: "${message}"
 
 Respond with ONLY a JSON object, no markdown:
 {
-  "intent": "accept_time" | "propose_time" | "status_check" | "walking_away" | "acknowledge" | "unclear",
+  "intent": "accept_time" | "propose_time" | "status_check" | "property_question" | "walking_away" | "acknowledge" | "unclear",
   "date": "YYYY-MM-DD or null",
   "time": "HH:MM in 24h or null",
   "note": "one short sentence"
@@ -233,6 +233,7 @@ Rules:
 - propose_time: the offered time doesn't work but they name a different one. Extract it.
 - If they name a day without a specific clock time (like "Saturday morning"), set time to null.
 - status_check: only asking for an update ("any word?", "did you hear back?").
+- property_question: asking about the property itself (beds, baths, sqft, acreage, year, garage, basement, HOA, etc.), not about scheduling.
 - walking_away: done entirely ("thanks anyway", "we'll pass", "never mind").
 - acknowledge: polite close after a confirmation ("great, thanks", "sounds good").
 - unclear: anything else.
@@ -467,6 +468,57 @@ exports.handler = async (event) => {
         `That request for ${slot} at ${listing.address_full} is no longer active. ` +
         `Want me to check another time?`, AGENT_FROM);
       return ok('Status: inactive');
+    }
+
+
+    /* -------- property question -------- */
+
+    if (verdict.intent === 'property_question') {
+      const facts = listing.property_facts || null;
+      let answer = null;
+      if (facts) {
+        try {
+          const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'x-api-key': ANTHROPIC_KEY,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-6',
+              max_tokens: 200,
+              messages: [{ role: 'user', content:
+`You are Donna, a friendly showing coordinator. A showing agent asked about ${listing.address_full}:
+"${message}"
+
+Known facts (JSON): ${JSON.stringify(facts)}
+${listing.showing_notes ? 'Showing notes: ' + listing.showing_notes : ''}
+
+If the facts answer the question, reply with ONE short conversational SMS answering it. If the facts do NOT contain what they asked, reply with exactly: UNKNOWN
+Output only the SMS text or UNKNOWN.` }]
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const t = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+            if (t && t !== 'UNKNOWN' && !t.startsWith('UNKNOWN')) answer = t;
+          }
+        } catch (e) { console.error('property answer failed:', e.message); }
+      }
+
+      if (answer) {
+        await sendSms(agentContactId, answer, AGENT_FROM);
+        return ok('Property question answered');
+      }
+
+      await sendSms(agentContactId,
+        `Good question - let me check with the team on that and get right back to you.`, AGENT_FROM);
+      await sendSms(TANYA_CONTACT_ID,
+        `Showing agent ${request.showing_agent_name || ''} (${agentPhone}) asked about ` +
+        `${listing.address_full}: "${message}" - we don't have that on file. Can you reply to them?`,
+        INTERNAL_FROM);
+      return ok('Property question escalated');
     }
 
     /* -------- walking away -------- */
