@@ -407,10 +407,13 @@ exports.handler = async (event) => {
       const fresh = (await sb(`showing_requests?id=eq.${request.id}&select=*`))[0];
       await pushToIntake(fresh, listing);
 
+      const notes = listing.showing_notes
+        ? ` A note from the seller side: ${listing.showing_notes}`
+        : '';
       await sendSms(
         agentContactId,
         `Good news - the seller approved your showing at ${listing.address_full} ${slot}. ` +
-        `You're all set. We'll reach out afterward for feedback.`,
+        `You're all set.${notes} We'll reach out afterward for feedback.`,
         AGENT_FROM
       );
 
