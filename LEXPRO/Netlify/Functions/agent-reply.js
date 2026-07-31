@@ -175,6 +175,19 @@ function timeStrToMinutes(t) {
 
 function overlaps(aS, aE, bS, bE) { return aS < bE && bS < aE; }
 
+
+async function expireStaleHolds() {
+  const nowIso = new Date().toISOString();
+  try {
+    await sb(`showing_holds?status=eq.active&expires_at=lt.${nowIso}`, {
+      method: 'PATCH', body: { status: 'expired' }, prefer: 'return=minimal'
+    });
+    await sb(`showing_requests?status=eq.pending_seller_approval&hold_expires_at=lt.${nowIso}`, {
+      method: 'PATCH', body: { status: 'expired' }, prefer: 'return=minimal'
+    });
+  } catch (e) { console.error('expireStaleHolds failed (non-fatal):', e.message); }
+}
+
 async function getBusyBlocks(listingId, ignoreRequestId) {
   const holds = await sb(
     `showing_holds?listing_id=eq.${listingId}&status=eq.active&select=request_id,hold_start,hold_end`
@@ -361,6 +374,8 @@ exports.handler = async (event) => {
     );
     // No request at all -> intake hasn't happened. Stay silent; Donna's turf.
     if (!reqs.length) return ok('No request on file - leaving to intake');
+
+    await expireStaleHolds();
 
     const request = reqs[0];
     const listing = (await sb(`listings?id=eq.${request.listing_id}&select=*`))[0];
