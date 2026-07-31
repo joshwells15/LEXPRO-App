@@ -141,6 +141,14 @@
       <button class="sheet-close" id="sheetClose">&times;</button>
       <div class="sheet-title" id="sheetTitle">—</div>
 
+      <div class="field-label">Listing status</div>
+      <div class="seg" id="segStatus">
+        <button class="seg-btn" data-val="active">Active</button>
+        <button class="seg-btn" data-val="paused">Paused</button>
+        <button class="seg-btn" data-val="under_contract">Under Contract</button>
+      </div>
+      <div class="hint">Paused = temporarily off market (repairs, etc). Donna politely declines showings and offers to follow up.</div>
+
       <div class="field-label">Occupancy</div>
       <div class="seg" id="segOcc">
         <button class="seg-btn" data-val="occupied">Occupied</button>
@@ -161,7 +169,21 @@
         <input type="time" id="endTime">
       </div>
 
-      <div class="field-label">Showing instructions</div>
+      <div class="field-label">Notice required (hours)</div>
+      <div class="hours-row">
+        <input type="number" id="noticeHours" min="0" max="72" style="flex:1;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);font-size:15px;color:var(--text);">
+      </div>
+      <div class="hint">Agents asking for sooner get "the seller requests X hours notice" plus alternate times. 0 = no notice needed.</div>
+
+      <div class="field-label">Blocked times (Donna only)</div>
+      <div id="blackoutList"></div>
+      <button type="button" class="seg-btn" id="addBlackout" style="width:100%;background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius-md);padding:11px;margin-top:6px;color:var(--text-muted);">+ Add blocked window</button>
+      <div class="hint">e.g. seller home weekdays 10–2. Donna never offers these times and never tells the agent why.</div>
+
+      <div class="field-label">Internal notes (Donna only)</div>
+      <textarea id="internalNotes" placeholder="Context only Donna should know — e.g. seller works nights, don't call before noon. Never sent to agents."></textarea>
+
+      <div class="field-label">Showing instructions (sent to agent)</div>
       <textarea id="notes" placeholder="Write it like you'd text an agent — e.g. 2 hour heads up please. Lockbox on back door. Don't let the cat out of the basement."></textarea>
       <div class="hint">These ride along in the agent's confirmation text, word for word.</div>
 
@@ -204,12 +226,15 @@
           </div>
           <div class="lc-badges">
             ${l.status === 'under_contract' ? '<span class="badge uc">Under Contract</span>' : ''}
+            ${l.status === 'paused' ? '<span class="badge uc">Paused</span>' : ''}
             <span class="badge ${l.occupancy === 'vacant' ? 'vacant' : ''}">${l.occupancy}</span>
           </div>
         </div>
         <div class="lc-meta">
           <span>${fmtHours(l.allowed_start, l.allowed_end)}</span>
           <span>${l.requires_approval ? 'Seller approval' : 'Instant confirm'}</span>
+          ${l.notice_hours ? `<span>${l.notice_hours}hr notice</span>` : ''}
+          ${(l.blackout_windows || []).length ? `<span>${l.blackout_windows.length} blocked window${l.blackout_windows.length > 1 ? 's' : ''}</span>` : ''}
         </div>
         ${l.showing_notes ? `<div class="lc-notes">${l.showing_notes}</div>` : ''}
       </div>`).join('');
@@ -231,7 +256,35 @@
     const el = $(elId);
     [...el.children].forEach(b => b.classList.toggle('active', b.dataset.val === String(val)));
   }
-  ['segOcc','segAppr'].forEach(id => {
+  const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let blackouts = [];
+
+  function renderBlackouts() {
+    const el = $('blackoutList');
+    el.innerHTML = blackouts.map((w, i) => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:8px;">
+        <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+          ${DAYS.map((d, di) => `<button type="button" onclick="toggleDay(${i},${di})" style="flex:1;min-width:34px;padding:7px 0;border-radius:8px;border:1px solid var(--border);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;background:${w.days.includes(di) ? 'var(--primary)' : 'var(--bg)'};color:${w.days.includes(di) ? '#fff' : 'var(--text-muted)'};">${d}</button>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="time" value="${w.start}" onchange="blackouts[${i}].start=this.value" style="flex:1;padding:9px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;">
+          <span style="color:var(--text-hint);font-size:12px;">to</span>
+          <input type="time" value="${w.end}" onchange="blackouts[${i}].end=this.value" style="flex:1;padding:9px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;">
+          <button type="button" onclick="blackouts.splice(${i},1);renderBlackouts()" style="background:none;border:none;color:var(--text-hint);font-size:18px;cursor:pointer;padding:4px;">🗑</button>
+        </div>
+      </div>`).join('');
+  }
+  window.toggleDay = (i, d) => {
+    const idx = blackouts[i].days.indexOf(d);
+    if (idx === -1) blackouts[i].days.push(d); else blackouts[i].days.splice(idx, 1);
+    renderBlackouts();
+  };
+  $('addBlackout').onclick = () => {
+    blackouts.push({ days: [1,2,3,4,5], start: '10:00', end: '14:00', label: '' });
+    renderBlackouts();
+  };
+
+  ['segOcc','segAppr','segStatus'].forEach(id => {
     $(id).addEventListener('click', e => {
       const b = e.target.closest('.seg-btn'); if (!b) return;
       [...$(id).children].forEach(x => x.classList.remove('active'));
@@ -246,9 +299,14 @@
     $('sheetTitle').textContent = current.address_full;
     seg('segOcc', current.occupancy);
     seg('segAppr', current.requires_approval);
+    seg('segStatus', current.status === 'under_contract' ? 'under_contract' : current.status);
     $('startTime').value = String(current.allowed_start).slice(0,5);
     $('endTime').value = String(current.allowed_end).slice(0,5);
+    $('noticeHours').value = current.notice_hours || 0;
     $('notes').value = current.showing_notes || '';
+    $('internalNotes').value = current.internal_notes || '';
+    blackouts = JSON.parse(JSON.stringify(current.blackout_windows || []));
+    renderBlackouts();
     $('saveMsg').textContent = '';
     $('overlay').classList.add('open');
   };
@@ -264,9 +322,13 @@
       id: current.id,
       occupancy: occ,
       requires_approval: appr,
+      status: document.querySelector('#segStatus .active')?.dataset.val,
       allowed_start: $('startTime').value,
       allowed_end: $('endTime').value,
-      showing_notes: $('notes').value.trim()
+      notice_hours: parseInt($('noticeHours').value) || 0,
+      showing_notes: $('notes').value.trim(),
+      internal_notes: $('internalNotes').value.trim(),
+      blackout_windows: blackouts.filter(w => w.days.length && w.start < w.end)
     };
     btn.disabled = true; msg.className = 'save-msg'; msg.textContent = 'Saving…';
     try {
