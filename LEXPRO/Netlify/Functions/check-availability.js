@@ -969,8 +969,8 @@ exports.handler = async (event) => {
       matched_listing_address: listing.address_full,
       requested_time_normalized: normalized,
       reason_message: sellerReached
-        ? `${listing.address_full} is open ${normalized}. I've sent it to the seller for approval and will let you know as soon as I hear back.`
-        : `${listing.address_full} is open ${normalized}. I'm getting it confirmed with the seller and will follow up shortly.`,
+        ? `Got it - ${listing.address_full} ${normalized}. I'm checking with the seller now and will text you as soon as I hear back.`
+        : `Got it - ${listing.address_full} ${normalized}. I'm getting it confirmed with the seller and will follow up shortly.`,
       hold_id: hold.id,
       request_id: request.id,
       top_3_alternates: []

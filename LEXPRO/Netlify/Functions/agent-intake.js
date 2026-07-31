@@ -118,12 +118,19 @@ function todayStr() {
   const dtf = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
   return dtf.format(new Date()); // YYYY-MM-DD
 }
+function tomorrowStr() {
+  const dtf = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
+  return dtf.format(new Date(Date.now() + 86400000));
+}
 
 async function extractIntake(message, known) {
   const prompt =
 `You extract showing-request details from a real estate agent's SMS.
 
-Today's date: ${todayStr()} (America/Chicago). Times 1-7 with no am/pm mean PM.
+CRITICAL DATE ANCHORS (America/Chicago):
+- "today" = ${todayStr()}
+- "tomorrow" = ${tomorrowStr()}
+Resolve date words using ONLY these anchors. Times 1-7 with no am/pm mean PM.
 
 Already known from earlier messages (may be empty):
 ${JSON.stringify(known)}
