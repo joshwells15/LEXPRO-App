@@ -37,7 +37,8 @@ exports.handler = async (event) => {
     if (event.httpMethod === 'GET') {
       const rows = await sb(
         'listings?select=id,address_full,seller_name,status,occupancy,' +
-        'requires_approval,allowed_start,allowed_end,slot_minutes,notice_hours,showing_notes' +
+        'requires_approval,allowed_start,allowed_end,slot_minutes,notice_hours,' +
+        'showing_notes,internal_notes,blackout_windows' +
         '&order=address_full.asc'
       );
       return resp(200, { ok: true, listings: rows });
@@ -56,8 +57,20 @@ exports.handler = async (event) => {
       if (/^\d{2}:\d{2}$/.test(b.allowed_start || '')) patch.allowed_start = b.allowed_start;
       if (/^\d{2}:\d{2}$/.test(b.allowed_end || '')) patch.allowed_end = b.allowed_end;
       if (typeof b.showing_notes === 'string') patch.showing_notes = b.showing_notes.slice(0, 1000);
+      if (typeof b.internal_notes === 'string') patch.internal_notes = b.internal_notes.slice(0, 1000);
+      if (['active','paused','under_contract'].includes(b.status)) patch.status = b.status;
+      if (Array.isArray(b.blackout_windows)) {
+        const clean = b.blackout_windows.filter(w =>
+          w && Array.isArray(w.days) && w.days.every(d => d >= 0 && d <= 6) &&
+          /^\d{2}:\d{2}$/.test(w.start || '') && /^\d{2}:\d{2}$/.test(w.end || '') &&
+          w.start < w.end
+        ).slice(0, 10).map(w => ({ days: w.days, start: w.start, end: w.end, label: String(w.label || '').slice(0, 60) }));
+        patch.blackout_windows = clean;
+      }
       if (Number.isInteger(b.notice_hours) && b.notice_hours >= 0 && b.notice_hours <= 72)
         patch.notice_hours = b.notice_hours;
+      else if (typeof b.notice_hours === 'string' && /^\d+$/.test(b.notice_hours))
+        patch.notice_hours = Math.min(72, parseInt(b.notice_hours));
 
       if (!Object.keys(patch).length) return resp(400, { ok: false, error: 'nothing to update' });
 

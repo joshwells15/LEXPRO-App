@@ -282,6 +282,31 @@ exports.handler = async (event) => {
       });
     }
 
+    // Double listing_unclear -> escalate to Tanya instead of looping
+    if (avail.status === 'listing_unclear') {
+      const priorUnclear = readField(contact, 'unclear_count');
+      const n = (parseInt(priorUnclear) || 0) + 1;
+      await updateContactFields(contactId, { unclear_count: String(n) });
+      if (n >= 2) {
+        await updateContactFields(contactId, { unclear_count: '0' });
+        await sendSms(contactId,
+          `I'm having trouble matching that property on my end - let me have someone from our team reach out to help you directly.`);
+        try {
+          await ghl('/conversations/messages', {
+            method: 'POST', version: '2021-04-15',
+            body: { type: 'SMS', contactId: 'k4M3JrFVdMTwhKtIaQx6',
+              message: `Agent can't be matched to a listing. They said: "${message}" ` +
+                       `(from ${phone || 'unknown number'}). Can you reach out?`,
+              fromNumber: '+14176474633' }
+          });
+        } catch (e) { console.error('unclear escalation failed:', e.message); }
+        return ok('double unclear - escalated');
+      }
+    } else {
+      // successful match resets the counter
+      await updateContactFields(contactId, { unclear_count: '0' });
+    }
+
     // relay ONLY what the engine said - this function cannot compose confirmations
     let reply = avail.reason_message || `Let me check on that and get right back to you.`;
     if (Array.isArray(avail.top_3_alternates) && avail.top_3_alternates.length) {

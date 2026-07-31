@@ -470,6 +470,22 @@ function slotWithinRules(startUtc, listing) {
   return startMin >= allowedStart && endMin <= allowedEnd;
 }
 
+// blackout_windows: [{days:[1,2,3], start:"10:00", end:"14:00", label:"seller home"}]
+function hitsBlackout(startUtc, listing) {
+  const wins = Array.isArray(listing.blackout_windows) ? listing.blackout_windows : [];
+  if (!wins.length) return null;
+  const p = tzParts(startUtc);
+  const dow = new Date(Date.UTC(p.y, p.mo - 1, p.d)).getUTCDay();
+  const startMin = p.h * 60 + p.mi;
+  const endMin = startMin + (listing.slot_minutes || 60);
+  for (const w of wins) {
+    if (!Array.isArray(w.days) || !w.days.includes(dow)) continue;
+    const ws = timeStrToMinutes(w.start), we = timeStrToMinutes(w.end);
+    if (startMin < we && ws < endMin) return w;
+  }
+  return null;
+}
+
 function overlaps(aStart, aEnd, bStart, bEnd) {
   return aStart < bEnd && bStart < aEnd;
 }
@@ -524,6 +540,7 @@ function findAlternates(listing, busy, afterUtc, notBefore) {
       if (s <= afterUtc.getTime()) continue;      // must be after the requested time
       if (s < notBefore) continue;                // respects notice_hours
       if (busy.some(b => overlaps(s, e, b.start, b.end))) continue;
+      if (hitsBlackout(slotStart, listing)) continue;
 
       out.push(formatSlot(slotStart));
     }
@@ -751,6 +768,21 @@ exports.handler = async (event) => {
 
     const listing = listings[0];
 
+    if (listing.status === 'paused') {
+      return reply({
+        status: 'unavailable',
+        matched_listing_address: listing.address_full,
+        reason_message: `${listing.address_full} is temporarily off the market for showings right now. Want me to have someone reach out when it's available again?`
+      });
+    }
+    if (listing.status === 'under_contract') {
+      return reply({
+        status: 'unavailable',
+        matched_listing_address: listing.address_full,
+        reason_message: `${listing.address_full} is currently under contract, so we aren't scheduling showings on it. Anything else I can help with?`
+      });
+    }
+
     /* -------- 2. parse the requested slot -------- */
 
     const d = parseDate(showing_date);
@@ -817,6 +849,18 @@ exports.handler = async (event) => {
         matched_listing_address: listing.address_full,
         requested_time_normalized: normalized,
         reason_message: 'That time is outside the showing hours for this property.',
+        top_3_alternates: alts
+      });
+    }
+
+    const blk = hitsBlackout(startUtc, listing);
+    if (blk) {
+      const alts = findAlternates(listing, busy, startUtc, notBefore);
+      return reply({
+        status: 'unavailable',
+        matched_listing_address: listing.address_full,
+        requested_time_normalized: normalized,
+        reason_message: `The seller has asked us not to schedule showings during that window. Here are some times that do work:`,
         top_3_alternates: alts
       });
     }
