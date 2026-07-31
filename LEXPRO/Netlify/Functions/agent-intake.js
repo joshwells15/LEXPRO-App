@@ -211,6 +211,13 @@ exports.handler = async (event) => {
     };
 
     const x = await extractIntake(message, known);
+    // Deterministic date override - never trust the model with relative dates
+    const msgLower = message.toLowerCase();
+    if (/\b(today|tonight|this afternoon|this evening|this morning)\b/.test(msgLower)) {
+      x.showing_date = todayStr();
+    } else if (/\btomorrow\b/.test(msgLower)) {
+      x.showing_date = tomorrowStr();
+    }
     console.log(`intake extract: ${JSON.stringify(x)} | known: ${JSON.stringify(known)}`);
 
     const merged = {
