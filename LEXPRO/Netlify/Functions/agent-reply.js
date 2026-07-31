@@ -29,7 +29,8 @@ const INTAKE_WEBHOOK = process.env.SHOWING_INTAKE_WEBHOOK || null;
 
 const AGENT_FROM = '+14173742998';
 const INTERNAL_FROM = '+14176474633';
-const TANYA_CONTACT_ID = 'k4M3JrFVdMTwhKtIaQx6'; // Tanya - live
+// REHEARSAL: alerts -> Test Seller. SWAP TO TANYA k4M3JrFVdMTwhKtIaQx6 BEFORE 9AM DEMO.
+const TANYA_CONTACT_ID = '80YL8ihM02I1wlcswzyr';
 const AWAITING_TAG = 'awaiting-showing-approval';
 const TZ = 'America/Chicago';
 const HOLD_MINUTES = 120;
