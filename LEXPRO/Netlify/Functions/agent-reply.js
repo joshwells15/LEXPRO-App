@@ -29,8 +29,8 @@ const INTAKE_WEBHOOK = process.env.SHOWING_INTAKE_WEBHOOK || null;
 
 const AGENT_FROM = '+14173742998';
 const INTERNAL_FROM = '+14176474633';
-// TESTING: escalations -> Josh. Swap back to Tanya (k4M3JrFVdMTwhKtIaQx6) before go-live.
-const TANYA_CONTACT_ID = 'txnhMCDRPWLUXXykNuE6';
+// TESTING: internal alerts -> Test Seller contact. Swap to Tanya (k4M3JrFVdMTwhKtIaQx6) before go-live.
+const TANYA_CONTACT_ID = '80YL8ihM02I1wlcswzyr';
 const AWAITING_TAG = 'awaiting-showing-approval';
 const TZ = 'America/Chicago';
 const HOLD_MINUTES = 120;
@@ -250,9 +250,27 @@ Rules:
 /* Seller re-ask + intake push (mirror siblings)                       */
 /* ------------------------------------------------------------------ */
 
+async function findContactIdByPhone(phone) {
+  const p = e164(phone);
+  if (!p) return null;
+  try {
+    const r = await ghl(
+      `/contacts/search/duplicate?locationId=${GHL_LOCATION}&number=${encodeURIComponent(p)}`
+    );
+    return r?.contact?.id || null;
+  } catch (e) {
+    console.error('contact lookup failed:', e.message);
+    return null;
+  }
+}
+
 async function askSeller(listing, normalized) {
   let contactId = listing.seller_contact_id;
-  if (!contactId) return false;
+  if (!contactId) contactId = await findContactIdByPhone(listing.seller_phone);
+  if (!contactId) {
+    console.error(`askSeller: no contact for listing ${listing.id} (id+phone both failed)`);
+    return false;
+  }
 
   const first = listing.seller_first_name || (listing.seller_name || '').split(' ')[0];
   const when = normalized.replace(/^(Today|Tomorrow)/, m => m.toLowerCase()).replace(' CT', '');
@@ -365,6 +383,7 @@ exports.handler = async (event) => {
       console.error('classify failed:', e.message);
       verdict = { intent: 'unclear', date: null, time: null };
     }
+    console.log(`verdict: ${JSON.stringify(verdict)} | request ${request.id} status=${request.status}`);
 
     const nowIso = new Date().toISOString();
 
