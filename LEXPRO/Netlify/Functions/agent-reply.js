@@ -79,8 +79,29 @@ function e164(phone) {
   return String(phone).startsWith('+') ? String(phone) : `+${d}`;
 }
 
-async function sendSms(contactId, message, fromNumber) {
+async function lastOutboundMessage(contactId) {
+  try {
+    const search = await ghl(
+      `/conversations/search?locationId=${GHL_LOCATION}&contactId=${contactId}&limit=1`
+    );
+    const convoId = search?.conversations?.[0]?.id;
+    if (!convoId) return null;
+    const msgs = await ghl(`/conversations/${convoId}/messages?limit=10`);
+    const list = msgs?.messages?.messages || msgs?.messages || [];
+    const out = list.find(m => m.direction === 'outbound' && (m.body || m.message));
+    return out ? (out.body || out.message) : null;
+  } catch { return null; }
+}
+
+async function sendSms(contactId, message, fromNumber, dedupe = false) {
   if (!contactId) return null;
+  if (dedupe) {
+    const last = await lastOutboundMessage(contactId);
+    if (last && last.trim() === message.trim()) {
+      console.log('dedupe: suppressing identical repeat message');
+      return null;
+    }
+  }
   try {
     return await ghl('/conversations/messages', {
       method: 'POST',
@@ -228,7 +249,7 @@ The agent's reply: "${message}"
 
 Respond with ONLY a JSON object, no markdown:
 {
-  "intent": "accept_time" | "propose_time" | "status_check" | "property_question" | "walking_away" | "acknowledge" | "unclear",
+  "intent": "accept_time" | "propose_time" | "status_check" | "property_question" | "will_respond_later" | "walking_away" | "acknowledge" | "unclear",
   "date": "YYYY-MM-DD or null",
   "time": "HH:MM in 24h or null",
   "note": "one short sentence"
@@ -242,6 +263,7 @@ Rules:
 - property_question: asking about the property itself (beds, baths, sqft, acreage, year, garage, basement, HOA, etc.), not about scheduling.
 - walking_away: done entirely ("thanks anyway", "we'll pass", "never mind").
 - acknowledge: polite close after a confirmation ("great, thanks", "sounds good").
+- will_respond_later: they need time and will get back to us ("let me check", "checking with my clients", "give me a minute", "I'll get back to you"). Do NOT treat these as unclear.
 - unclear: anything else.
 - Times without am/pm between 1-7 mean PM for showings.`;
 
@@ -447,6 +469,10 @@ exports.handler = async (event) => {
 
     if (verdict.intent === 'acknowledge') {
       return ok('Acknowledged - no action');
+    }
+
+    if (verdict.intent === 'will_respond_later') {
+      return ok('Agent will respond later - staying quiet');
     }
 
     /* -------- status check -------- */
@@ -674,7 +700,7 @@ Output only the SMS text or UNKNOWN.` }]
 
     await sendSms(agentContactId,
       `Just to make sure I've got it right - are you good with one of the offered times, ` +
-      `or is there a different time that works better?`, AGENT_FROM);
+      `or is there a different time that works better?`, AGENT_FROM, true);
     return ok('Unclear - asked for clarification');
 
   } catch (err) {
