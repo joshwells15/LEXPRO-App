@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>LexPro | Listings</title>
+<style>
+  :root {
+    --bg:           #ffffff;
+    --surface:      #f7f7f7;
+    --surface-2:    #f0f0f0;
+    --border:       #e8e8e8;
+    --primary:      #111111;
+    --text:         #111111;
+    --text-muted:   #666666;
+    --text-hint:    #999999;
+    --green:        #1a7f37;
+    --font:         'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm:    10px;
+    --radius-md:    14px;
+    --radius-lg:    20px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { min-height: 100vh; background: var(--bg); font-family: var(--font); color: var(--text); }
+
+  .header {
+    padding: 18px 20px 12px; display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 5;
+  }
+  .back-btn {
+    width: 42px; height: 42px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; text-decoration: none; flex-shrink: 0;
+  }
+  .back-btn svg { width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .page-sub { font-size: 12px; color: var(--text-hint); margin-top: 2px; }
+
+  .list { padding: 16px 20px 60px; display: flex; flex-direction: column; gap: 12px; }
+
+  .listing-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 16px 18px; cursor: pointer; transition: background 0.15s;
+  }
+  .listing-card:active { background: var(--surface-2); }
+  .lc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .lc-address { font-size: 15px; font-weight: 600; line-height: 1.3; }
+  .lc-seller { font-size: 12px; color: var(--text-hint); margin-top: 3px; }
+  .lc-badges { display: flex; gap: 6px; flex-shrink: 0; }
+  .badge {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 4px 8px; border-radius: 6px; background: var(--surface-2); color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .badge.vacant { background: #eaf5ee; color: var(--green); border-color: #cfe8d8; }
+  .badge.uc { background: #fdf3e7; color: #a05a00; border-color: #f2dfc4; }
+  .lc-meta { font-size: 12px; color: var(--text-muted); margin-top: 10px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .lc-notes { font-size: 12px; color: var(--text-hint); margin-top: 8px; font-style: italic;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* editor sheet */
+  .sheet-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: none;
+    align-items: flex-end; z-index: 20;
+  }
+  .sheet-overlay.open { display: flex; }
+  .sheet {
+    background: var(--bg); width: 100%; border-radius: 20px 20px 0 0;
+    padding: 22px 20px calc(28px + env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto;
+  }
+  .sheet-title { font-size: 17px; font-weight: 700; line-height: 1.3; padding-right: 30px; }
+  .sheet-close { position: absolute; right: 18px; top: 18px; background: none; border: none;
+    font-size: 26px; color: var(--text-hint); cursor: pointer; line-height: 1; }
+  .sheet-inner { position: relative; }
+
+  .field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-hint); margin: 20px 0 8px; }
+
+  .seg {
+    display: flex; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: 4px; gap: 4px;
+  }
+  .seg-btn {
+    flex: 1; padding: 11px 0; border: none; background: none; border-radius: var(--radius-sm);
+    font-family: var(--font); font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer;
+  }
+  .seg-btn.active { background: var(--primary); color: #fff; }
+
+  .hours-row { display: flex; align-items: center; gap: 10px; }
+  .hours-row input[type="time"] {
+    flex: 1; padding: 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-md); font-family: var(--font); font-size: 15px; color: var(--text);
+  }
+  .hours-sep { color: var(--text-hint); font-size: 13px; }
+
+  textarea {
+    width: 100%; min-height: 90px; padding: 12px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    font-family: var(--font); font-size: 14px; color: var(--text); resize: vertical;
+  }
+  textarea::placeholder { color: var(--text-hint); }
+
+  .hint { font-size: 11.5px; color: var(--text-hint); margin-top: 7px; line-height: 1.45; }
+
+  .save-btn {
+    width: 100%; margin-top: 24px; background: var(--primary); color: #fff; border: none;
+    border-radius: var(--radius-md); padding: 15px; font-family: var(--font); font-size: 15px;
+    font-weight: 600; cursor: pointer;
+  }
+  .save-btn:disabled { opacity: 0.55; }
+  .save-msg { text-align: center; font-size: 12px; margin-top: 10px; min-height: 16px; }
+  .save-msg.ok { color: var(--green); }
+  .save-msg.err { color: #cc2233; }
+
+  .loading, .empty { text-align: center; color: var(--text-hint); font-size: 13px; padding: 50px 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a class="back-btn" href="home.html" id="backBtn">
+    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <div>
+    <div class="page-title">Listings</div>
+    <div class="page-sub">Showing rules &amp; instructions</div>
+  </div>
+</div>
+
+<div class="list" id="list"><div class="loading">Loading listings…</div></div>
+
+<div class="sheet-overlay" id="overlay">
+  <div class="sheet">
+    <div class="sheet-inner">
+      <button class="sheet-close" id="sheetClose">&times;</button>
+      <div class="sheet-title" id="sheetTitle">—</div>
+
+      <div class="field-label">Occupancy</div>
+      <div class="seg" id="segOcc">
+        <button class="seg-btn" data-val="occupied">Occupied</button>
+        <button class="seg-btn" data-val="vacant">Vacant</button>
+      </div>
+
+      <div class="field-label">Seller approval</div>
+      <div class="seg" id="segAppr">
+        <button class="seg-btn" data-val="true">Required</button>
+        <button class="seg-btn" data-val="false">Not needed</button>
+      </div>
+      <div class="hint">Not needed = showings confirm instantly with no text to the seller. Use for vacant properties only.</div>
+
+      <div class="field-label">Showing hours</div>
+      <div class="hours-row">
+        <input type="time" id="startTime">
+        <span class="hours-sep">to</span>
+        <input type="time" id="endTime">
+      </div>
+
+      <div class="field-label">Showing instructions</div>
+      <textarea id="notes" placeholder="Write it like you'd text an agent — e.g. 2 hour heads up please. Lockbox on back door. Don't let the cat out of the basement."></textarea>
+      <div class="hint">These ride along in the agent's confirmation text, word for word.</div>
+
+      <button class="save-btn" id="saveBtn">Save</button>
+      <div class="save-msg" id="saveMsg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // same session guard as the rest of the app
+  const user = JSON.parse(localStorage.getItem('lexpro_user') || sessionStorage.getItem('lexpro_user') || '{}');
+  if (!user.username) window.location.href = 'index.html';
+
+  const API = '/.netlify/functions/listing-rules';
+  let listings = [];
+  let current = null;
+
+  const $ = id => document.getElementById(id);
+
+  function fmtHours(s, e) {
+    const f = t => {
+      let [h, m] = String(t).split(':').map(Number);
+      const ap = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return m ? `${h}:${String(m).padStart(2,'0')} ${ap}` : `${h} ${ap}`;
+    };
+    return `${f(s)} – ${f(e)}`;
+  }
+
+  function render() {
+    const el = $('list');
+    if (!listings.length) { el.innerHTML = '<div class="empty">No listings found.</div>'; return; }
+    el.innerHTML = listings.map((l, i) => `
+      <div class="listing-card" onclick="openSheet(${i})">
+        <div class="lc-top">
+          <div>
+            <div class="lc-address">${l.address_full}</div>
+            <div class="lc-seller">${l.seller_name || ''}</div>
+          </div>
+          <div class="lc-badges">
+            ${l.status === 'under_contract' ? '<span class="badge uc">Under Contract</span>' : ''}
+            <span class="badge ${l.occupancy === 'vacant' ? 'vacant' : ''}">${l.occupancy}</span>
+          </div>
+        </div>
+        <div class="lc-meta">
+          <span>${fmtHours(l.allowed_start, l.allowed_end)}</span>
+          <span>${l.requires_approval ? 'Seller approval' : 'Instant confirm'}</span>
+        </div>
+        ${l.showing_notes ? `<div class="lc-notes">${l.showing_notes}</div>` : ''}
+      </div>`).join('');
+  }
+
+  async function load() {
+    try {
+      const r = await fetch(API);
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error);
+      listings = d.listings;
+      render();
+    } catch (e) {
+      $('list').innerHTML = '<div class="empty">Could not load listings. Pull to refresh or try again.</div>';
+    }
+  }
+
+  function seg(elId, val) {
+    const el = $(elId);
+    [...el.children].forEach(b => b.classList.toggle('active', b.dataset.val === String(val)));
+  }
+  ['segOcc','segAppr'].forEach(id => {
+    $(id).addEventListener('click', e => {
+      const b = e.target.closest('.seg-btn'); if (!b) return;
+      [...$(id).children].forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      // safety nudge: flipping to occupied forces approval back on
+      if (id === 'segOcc' && b.dataset.val === 'occupied') seg('segAppr', true);
+    });
+  });
+
+  window.openSheet = i => {
+    current = listings[i];
+    $('sheetTitle').textContent = current.address_full;
+    seg('segOcc', current.occupancy);
+    seg('segAppr', current.requires_approval);
+    $('startTime').value = String(current.allowed_start).slice(0,5);
+    $('endTime').value = String(current.allowed_end).slice(0,5);
+    $('notes').value = current.showing_notes || '';
+    $('saveMsg').textContent = '';
+    $('overlay').classList.add('open');
+  };
+
+  $('sheetClose').onclick = () => $('overlay').classList.remove('open');
+  $('overlay').addEventListener('click', e => { if (e.target === $('overlay')) $('overlay').classList.remove('open'); });
+
+  $('saveBtn').onclick = async () => {
+    const btn = $('saveBtn'), msg = $('saveMsg');
+    const occ = document.querySelector('#segOcc .active')?.dataset.val;
+    const appr = document.querySelector('#segAppr .active')?.dataset.val === 'true';
+    const body = {
+      id: current.id,
+      occupancy: occ,
+      requires_approval: appr,
+      allowed_start: $('startTime').value,
+      allowed_end: $('endTime').value,
+      showing_notes: $('notes').value.trim()
+    };
+    btn.disabled = true; msg.className = 'save-msg'; msg.textContent = 'Saving…';
+    try {
+      const r = await fetch(API, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error);
+      Object.assign(current, d.listing);
+      render();
+      msg.className = 'save-msg ok'; msg.textContent = 'Saved ✓';
+      setTimeout(() => $('overlay').classList.remove('open'), 600);
+    } catch (e) {
+      msg.className = 'save-msg err'; msg.textContent = 'Save failed: ' + e.message;
+    }
+    btn.disabled = false;
+  };
+
+  load();
+</script>
+</body>
+</html>

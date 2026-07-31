@@ -216,6 +216,15 @@
     <div class="btn-arrow">›</div>
   </a>
 
+  <a class="nav-btn" id="btnListings" href="listings.html">
+    <div class="btn-icon"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></div>
+    <div class="btn-text">
+      <div class="btn-title">Listings</div>
+      <div class="btn-sub">Showing rules &amp; instructions</div>
+    </div>
+    <div class="btn-arrow">&rsaquo;</div>
+  </a>
+
   <a class="nav-btn" id="btnContractors" href="contractors.html">
     <div class="btn-icon">
       <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
@@ -259,9 +268,9 @@
   const role = (user.role || '').toLowerCase();
 
   const VIEWS = {
-    admin:     { stats: true,  crm: false, transactions: true,  outreach: true,  teamChat: true, myTasks: true,  contractors: false },
-    tc:        { stats: false, crm: true,  transactions: true,  outreach: false, teamChat: true, myTasks: true,  contractors: true  },
-    marketing: { stats: false, crm: false, transactions: false, outreach: false, teamChat: true, myTasks: true,  contractors: false },
+    admin:     { stats: true,  crm: false, transactions: true,  outreach: true,  teamChat: true, myTasks: true,  contractors: false, listings: true  },
+    tc:        { stats: false, crm: true,  transactions: true,  outreach: false, teamChat: true, myTasks: true,  contractors: true,  listings: true  },
+    marketing: { stats: false, crm: false, transactions: false, outreach: false, teamChat: true, myTasks: true,  contractors: false, listings: false },
   };
 
   const view = VIEWS[role] || VIEWS.marketing; // unknown roles get the safest minimal view
@@ -273,6 +282,7 @@
   if (view.teamChat) document.getElementById('btnTeamChat').classList.add('visible');
   if (view.myTasks) document.getElementById('btnMyTasks').classList.add('visible');
   if (view.contractors) document.getElementById('btnContractors').classList.add('visible');
+  if (view.listings) document.getElementById('btnListings').classList.add('visible');
 
   const GHL_API_KEY = 'pit-4e98487c-3f65-409c-a264-16352f97c01a';
   const GHL_LOCATION_ID = 'R5PobkV1CRO23kz95yYB';
