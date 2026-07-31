@@ -432,8 +432,18 @@ exports.handler = async (event) => {
       `showing_requests?showing_agent_phone=eq.${encodeURIComponent(agentPhone)}` +
       `&order=created_at.desc&limit=1&select=*`
     );
-    // No request at all -> intake hasn't happened. Stay silent; Donna's turf.
-    if (!reqs.length) return ok('No request on file - leaving to intake');
+    // No request yet -> intake still in progress. Forward to agent-intake,
+    // which owns extraction and asks for whatever's missing.
+    if (!reqs.length) {
+      try {
+        await fetch('https://lexproteamapp.netlify.app/.netlify/functions/agent-intake', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contact_id: agentContactId, phone: agentPhone, message })
+        });
+      } catch (e) { console.error('intake forward failed:', e.message); }
+      return ok('No request - forwarded to intake');
+    }
 
     await expireStaleHolds();
 
