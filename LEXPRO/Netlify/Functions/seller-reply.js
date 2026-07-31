@@ -32,8 +32,7 @@ const INTAKE_WEBHOOK = process.env.SHOWING_INTAKE_WEBHOOK || null;
 
 const AGENT_FROM = '+14173742998';    // Donna's number - keeps the thread together
 const INTERNAL_FROM = '+14176474633'; // internal, Tanya/Lex
-// REHEARSAL: alerts -> Test Seller. SWAP TO TANYA k4M3JrFVdMTwhKtIaQx6 BEFORE 9AM DEMO.
-const TANYA_CONTACT_ID = '80YL8ihM02I1wlcswzyr';
+const TANYA_CONTACT_ID = 'k4M3JrFVdMTwhKtIaQx6'; // Tanya - LIVE
 const AWAITING_TAG = 'awaiting-showing-approval';
 const TZ = 'America/Chicago';
 
@@ -418,6 +417,15 @@ exports.handler = async (event) => {
       );
 
       if (sellerContactId) await removeTag(sellerContactId, AWAITING_TAG);
+
+      // FYI to Tanya - signal only, one per booked showing
+      await sendSms(
+        TANYA_CONTACT_ID,
+        `Booked: ${listing.address_full}, ${slot} - ` +
+        `${request.showing_agent_name || 'agent'} (${request.showing_agent_phone || ''}). ` +
+        `Seller approved by text.`,
+        INTERNAL_FROM
+      );
       return ok('Approved and confirmed', { request_id: request.id });
     }
 

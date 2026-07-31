@@ -19,8 +19,7 @@ const GHL_LOCATION = process.env.GHL_LOCATION_ID;
 
 const SELLER_FROM = '+14173742998';   // seller-facing number
 const INTERNAL_FROM = '+14176474633'; // internal, Tanya/Lex
-// REHEARSAL: alerts -> Test Seller. SWAP TO TANYA k4M3JrFVdMTwhKtIaQx6 BEFORE 9AM DEMO.
-const TANYA_CONTACT_ID = '80YL8ihM02I1wlcswzyr';
+const TANYA_CONTACT_ID = 'k4M3JrFVdMTwhKtIaQx6'; // Tanya - LIVE
 const AWAITING_TAG = 'awaiting-showing-approval';
 
 const TZ = 'America/Chicago';
@@ -913,6 +912,16 @@ exports.handler = async (event) => {
       const notes = listing.showing_notes
         ? ` Note from the seller side: ${listing.showing_notes}.`
         : '';
+
+      // FYI to Tanya - vacant/instant bookings
+      try {
+        await sendSms(
+          TANYA_CONTACT_ID,
+          `Booked (instant, vacant): ${listing.address_full}, ${normalized} - ` +
+          `${clean(showing_agent_name) || 'agent'} (${clean(showing_agent_phone) || ''}).`,
+          INTERNAL_FROM
+        );
+      } catch (e) { console.error('booking FYI failed (non-fatal):', e.message); }
 
       return reply({
         status: 'open',
