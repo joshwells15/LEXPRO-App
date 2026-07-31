@@ -914,7 +914,6 @@ exports.handler = async (event) => {
         ? ` Note from the seller side: ${listing.showing_notes}.`
         : '';
 
-      await muteDonnaForAgent(clean(showing_agent_phone));
       return reply({
         status: 'open',
         matched_listing_address: listing.address_full,
@@ -956,7 +955,6 @@ exports.handler = async (event) => {
       }
     }
 
-    await muteDonnaForAgent(clean(showing_agent_phone));
     return reply({
       status: 'open',
       matched_listing_address: listing.address_full,

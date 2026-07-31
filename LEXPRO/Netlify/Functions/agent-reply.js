@@ -99,6 +99,11 @@ async function addTag(contactId, tag) {
   } catch (e) { console.error('addTag failed:', e.message); }
 }
 
+
+async function muteDonna(contactId) {
+  try { await addTag(contactId, 'ai off'); } catch (e) { console.error('mute failed:', e.message); }
+}
+
 async function fetchLatestInboundMessage(contactId) {
   if (!contactId) return null;
   try {
@@ -412,6 +417,8 @@ exports.handler = async (event) => {
     await expireStaleHolds();
 
     const request = reqs[0];
+    // Donna's intake is done the moment we're handling the thread - silence her from here on.
+    if (agentContactId) await muteDonna(agentContactId);
     const listing = (await sb(`listings?id=eq.${request.listing_id}&select=*`))[0];
     if (!listing) return ok('Listing missing');
 
