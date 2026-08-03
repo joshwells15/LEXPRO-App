@@ -27,6 +27,8 @@
 // ENV: SUPABASE_URL, SUPABASE_SERVICE_KEY, GHL_API_KEY, GHL_LOCATION_ID,
 //      ANTHROPIC_API_KEY
 
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const GHL_KEY = process.env.GHL_API_KEY;
 const GHL_LOCATION = process.env.GHL_LOCATION_ID;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
@@ -34,6 +36,41 @@ const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 const AGENT_FROM = '+14173742998';
 const SELF_BASE = 'https://lexproteamapp.netlify.app/.netlify/functions';
 const TZ = 'America/Chicago';
+
+/* ---------------- Supabase session store ---------------- */
+
+async function sbFetch(path, { method = 'GET', body, prefer } = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: prefer || 'return=representation'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Supabase ${method} ${path} -> ${res.status}: ${text}`);
+  return text ? JSON.parse(text) : null;
+}
+
+async function getSession(contactId) {
+  try {
+    const r = await sbFetch(`intake_sessions?contact_id=eq.${encodeURIComponent(contactId)}`);
+    return (r && r[0]) || null;
+  } catch (e) { console.error('getSession failed:', e.message); return null; }
+}
+
+async function saveSession(contactId, fields) {
+  try {
+    await sbFetch('intake_sessions?on_conflict=contact_id', {
+      method: 'POST',
+      prefer: 'resolution=merge-duplicates,return=minimal',
+      body: { contact_id: contactId, ...fields, updated_at: new Date().toISOString() }
+    });
+  } catch (e) { console.error('saveSession failed:', e.message); }
+}
 
 /* ---------------- GHL ---------------- */
 
@@ -201,13 +238,14 @@ exports.handler = async (event) => {
   if (!message) return ok('no message');
 
   try {
-    // pull any partial intake already on the contact
+    // pull any partial intake from the session store (Supabase - deterministic)
     const contact = await getContact(contactId);
+    const session = await getSession(contactId) || {};
     const known = {
-      agent_name: readField(contact, 'showing_agent_name'),
-      listing_address: readField(contact, 'listing_address'),
-      showing_date: readField(contact, 'showing_date'),
-      showing_time: readField(contact, 'showing_time')
+      agent_name: session.agent_name || null,
+      listing_address: session.listing_address || null,
+      showing_date: session.showing_date || null,
+      showing_time: session.showing_time || null
     };
 
     const x = await extractIntake(message, known);
@@ -227,9 +265,9 @@ exports.handler = async (event) => {
       showing_time: x.showing_time || known.showing_time
     };
 
-    // persist progress
-    await updateContactFields(contactId, {
-      showing_agent_name: merged.agent_name,
+    // persist progress (session store)
+    await saveSession(contactId, {
+      agent_name: merged.agent_name,
       listing_address: merged.listing_address,
       showing_date: merged.showing_date,
       showing_time: merged.showing_time
@@ -251,11 +289,26 @@ exports.handler = async (event) => {
     if (!merged.agent_name) missing.push('your name');
 
     if (missing.length) {
+      const asks = (parseInt(session.ask_count) || 0) + 1;
+      await saveSession(contactId, { ask_count: asks });
+      if (asks >= 2) {
+        try {
+          await ghl('/conversations/messages', {
+            method: 'POST', version: '2021-04-15',
+            body: { type: 'SMS', contactId: 'k4M3JrFVdMTwhKtIaQx6',
+              message: `Donna may be struggling with a showing agent (${phone || 'unknown number'}). ` +
+                       `Their last message: "${message}". Still missing: ${missing.join(', ')}. Worth a look.`,
+              fromNumber: '+14176474633' }
+          });
+        } catch (e) { console.error('stuck-convo alert failed:', e.message); }
+      }
       const ask = missing.length === 1 ? missing[0] : missing.slice(0, -1).join(', ') + ' and ' + missing[missing.length - 1];
       await sendSms(contactId,
         `Hi${merged.agent_name ? ' ' + merged.agent_name.split(' ')[0] : ''}! Happy to get that set up - I just need ${ask}.`);
-      return ok('asked for missing fields', { missing });
+      return ok('asked for missing fields', { missing, asks });
     }
+
+    await saveSession(contactId, { ask_count: 0 });
 
     // all four present -> hit the availability engine (single source of truth)
     const availRes = await fetch(`${SELF_BASE}/check-availability`, {
@@ -274,21 +327,15 @@ exports.handler = async (event) => {
     const avail = await availRes.json();
     console.log(`availability: status=${avail.status} hold=${avail.hold_id}`);
 
-    // persist hold/request ids for agent-reply continuity
-    if (avail.request_id || avail.hold_id) {
-      await updateContactFields(contactId, {
-        request_id: avail.request_id || '',
-        hold_id: avail.hold_id || ''
-      });
-    }
-
     // Double listing_unclear -> escalate to Tanya instead of looping
     if (avail.status === 'listing_unclear') {
-      const priorUnclear = readField(contact, 'unclear_count');
-      const n = (parseInt(priorUnclear) || 0) + 1;
-      await updateContactFields(contactId, { unclear_count: String(n) });
+      const n = (parseInt(session.unclear_count) || 0) + 1;
+      await saveSession(contactId, { unclear_count: n });
+      // a bad address should not survive as "known" - clear it so the next
+      // message re-extracts fresh instead of looping on the failed one
+      await saveSession(contactId, { listing_address: null });
       if (n >= 2) {
-        await updateContactFields(contactId, { unclear_count: '0' });
+        await saveSession(contactId, { unclear_count: 0 });
         await sendSms(contactId,
           `I'm having trouble matching that property on my end - let me have someone from our team reach out to help you directly.`);
         try {
@@ -303,8 +350,8 @@ exports.handler = async (event) => {
         return ok('double unclear - escalated');
       }
     } else {
-      // successful match resets the counter
-      await updateContactFields(contactId, { unclear_count: '0' });
+      // successful match resets the counter and closes the session
+      await saveSession(contactId, { unclear_count: 0 });
     }
 
     // relay ONLY what the engine said - this function cannot compose confirmations
