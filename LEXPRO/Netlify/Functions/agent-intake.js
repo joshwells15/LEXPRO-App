@@ -241,6 +241,17 @@ exports.handler = async (event) => {
     // pull any partial intake from the session store (Supabase - deterministic)
     const contact = await getContact(contactId);
     const session = await getSession(contactId) || {};
+
+    // Escalated conversations belong to a human. Bot stays silent for 24h.
+    if (session.escalated_at) {
+      const ageMs = Date.now() - new Date(session.escalated_at).getTime();
+      if (ageMs < 24 * 3600000) {
+        console.log(`session escalated ${Math.round(ageMs/60000)}min ago - staying silent`);
+        return ok('escalated - silent');
+      }
+      // stale escalation: clear and proceed fresh
+      await saveSession(contactId, { escalated_at: null, unclear_count: 0, ask_count: 0 });
+    }
     const known = {
       agent_name: session.agent_name || null,
       listing_address: session.listing_address || null,
@@ -291,7 +302,8 @@ exports.handler = async (event) => {
     if (missing.length) {
       const asks = (parseInt(session.ask_count) || 0) + 1;
       await saveSession(contactId, { ask_count: asks });
-      if (asks >= 2) {
+      if (asks >= 3) {
+        // third failed assembly: alert Tanya, tell the agent a human is coming, go silent
         try {
           await ghl('/conversations/messages', {
             method: 'POST', version: '2021-04-15',
@@ -301,6 +313,10 @@ exports.handler = async (event) => {
               fromNumber: '+14176474633' }
           });
         } catch (e) { console.error('stuck-convo alert failed:', e.message); }
+        await saveSession(contactId, { escalated_at: new Date().toISOString() });
+        await sendSms(contactId,
+          `Let me have someone from our team reach out to get this set up for you directly.`);
+        return ok('triple ask - escalated and silent');
       }
       const ask = missing.length === 1 ? missing[0] : missing.slice(0, -1).join(', ') + ' and ' + missing[missing.length - 1];
       await sendSms(contactId,
@@ -335,7 +351,7 @@ exports.handler = async (event) => {
       // message re-extracts fresh instead of looping on the failed one
       await saveSession(contactId, { listing_address: null });
       if (n >= 2) {
-        await saveSession(contactId, { unclear_count: 0 });
+        await saveSession(contactId, { unclear_count: 0, escalated_at: new Date().toISOString() });
         await sendSms(contactId,
           `I'm having trouble matching that property on my end - let me have someone from our team reach out to help you directly.`);
         try {
