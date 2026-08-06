@@ -1,3 +1,5 @@
 [build]
   publish = "LEXPRO"
   functions = "LEXPRO/Netlify/Functions"
+[functions."feedback-chase"]
+  schedule = "*/30 * * * *"
