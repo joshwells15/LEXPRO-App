@@ -34,6 +34,70 @@ const AWAITING_TAG = 'awaiting-showing-approval';
 const TZ = 'America/Chicago';
 const HOLD_MINUTES = 120;
 
+
+/* ---------------- Google Sheets (feedback capture) ---------------- */
+
+const crypto = require('crypto');
+const SHEET_ID = '1KlfQEU02BcEM9RUTTi64-Eu60UzuaptT_EjE6OAXKOY';
+
+function b64url(input) {
+  return Buffer.from(input).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function getGoogleToken() {
+  const sa = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  const now = Math.floor(Date.now() / 1000);
+  const header = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const claims = b64url(JSON.stringify({
+    iss: sa.client_email,
+    scope: 'https://www.googleapis.com/auth/spreadsheets',
+    aud: 'https://oauth2.googleapis.com/token',
+    iat: now, exp: now + 3600
+  }));
+  const signer = crypto.createSign('RSA-SHA256');
+  signer.update(`${header}.${claims}`);
+  const signature = signer.sign(sa.private_key).toString('base64')
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const jwt = `${header}.${claims}.${signature}`;
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+  });
+  if (!res.ok) throw new Error(`google token ${res.status}`);
+  return (await res.json()).access_token;
+}
+
+// find the open Showings row for this agent phone (col H) with M empty; newest first
+async function captureTextedFeedback(agentPhone, feedbackText) {
+  const token = await getGoogleToken();
+  const res = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent('Showings')}!A2:S1000`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!res.ok) throw new Error(`sheets read ${res.status}`);
+  const rows = (await res.json()).values || [];
+  const digits = p => String(p || '').replace(/\D/g, '').slice(-10);
+  const want = digits(agentPhone);
+  let target = -1;
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const r = rows[i];
+    if (digits(r[7]) === want && !(r[12] || '').trim()) { target = i; break; }
+  }
+  if (target === -1) return null;
+  const rowNumber = target + 2;
+  const stamp = new Date().toLocaleString('en-US', { timeZone: TZ });
+  const body = { values: [[stamp, `(texted) ${feedbackText}`.slice(0, 800), stamp]] };
+  const up = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent('Showings')}!M${rowNumber}:O${rowNumber}?valueInputOption=USER_ENTERED`,
+    { method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body) }
+  );
+  if (!up.ok) throw new Error(`sheets stamp ${up.status}`);
+  return { rowNumber, sellerContactId: rows[target][3] || null, sellerFirst: rows[target][0] || null };
+}
+
+
 /* ------------------------------------------------------------------ */
 /* Supabase + GHL plumbing (same as siblings)                          */
 /* ------------------------------------------------------------------ */
@@ -248,7 +312,7 @@ The agent's reply: "${message}"
 
 Respond with ONLY a JSON object, no markdown:
 {
-  "intent": "accept_time" | "propose_time" | "status_check" | "property_question" | "will_respond_later" | "walking_away" | "acknowledge" | "unclear",
+  "intent": "accept_time" | "propose_time" | "status_check" | "property_question" | "feedback_given" | "will_respond_later" | "walking_away" | "acknowledge" | "unclear",
   "date": "YYYY-MM-DD or null",
   "time": "HH:MM in 24h or null",
   "note": "one short sentence"
@@ -263,6 +327,7 @@ Rules:
 - walking_away: done entirely ("thanks anyway", "we'll pass", "never mind").
 - acknowledge: polite close after a confirmation ("great, thanks", "sounds good").
 - will_respond_later: they need time and will get back to us ("let me check", "checking with my clients", "give me a minute", "I'll get back to you"). Do NOT treat these as unclear.
+- feedback_given: they are sharing opinions or reactions about a showing that already happened - what the buyers thought, condition, price reaction, whether they will offer ("buyers loved the kitchen but yard is too small", "nice house but overpriced, probably passing"). This is feedback, not scheduling.
 - unclear: anything else.
 - Times without am/pm between 1-7 mean PM for showings.`;
 
@@ -482,6 +547,58 @@ exports.handler = async (event) => {
 
     if (verdict.intent === 'will_respond_later') {
       return ok('Agent will respond later - staying quiet');
+    }
+
+    /* -------- feedback given by text (instead of the survey) -------- */
+
+    if (verdict.intent === 'feedback_given') {
+      await sendSms(agentContactId,
+        `That's really helpful - thank you! I'll pass it along to the seller.`, AGENT_FROM);
+
+      let captured = null;
+      try {
+        captured = await captureTextedFeedback(agentPhone, message);
+      } catch (e) { console.error('feedback capture failed:', e.message); }
+
+      if (!captured) {
+        // no open showing row found - make sure a human still sees the feedback
+        await sendSms(TANYA_CONTACT_ID,
+          `Agent texted feedback but I couldn't match it to an open showing row: ` +
+          `"${message}" (from ${agentPhone}). Can you log it?`, INTERNAL_FROM);
+        return ok('Feedback thanked; no row matched - Tanya alerted');
+      }
+
+      // diplomatic version to the seller (same treatment as the survey path)
+      if (captured.sellerContactId) {
+        try {
+          const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'x-api-key': ANTHROPIC_KEY,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-6',
+              max_tokens: 150,
+              messages: [{ role: 'user', content:
+`Rewrite this showing agent's texted feedback into one warm, professional sentence to send directly to the home seller. Truthful but diplomatic: soften blunt wording into tactful phrasing. Never invent positives. Feedback: "${message}". Output ONLY the sentence, no preamble.` }]
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const t = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+            if (t) {
+              await sendSms(captured.sellerContactId,
+                `Hi${captured.sellerFirst ? ' ' + captured.sellerFirst : ''}! Feedback is in from your recent showing: ${t}`,
+                AGENT_FROM);
+            }
+          }
+        } catch (e) { console.error('seller feedback relay failed:', e.message); }
+      }
+
+      console.log(`texted feedback captured on row ${captured.rowNumber}`);
+      return ok('Feedback captured', { row: captured.rowNumber });
     }
 
     /* -------- status check -------- */
