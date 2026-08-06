@@ -500,6 +500,79 @@ exports.handler = async (event) => {
     // No request yet -> intake still in progress. Forward to agent-intake,
     // which owns extraction and asks for whatever's missing.
     if (!reqs.length) {
+      // Before treating this as a booking, check: is it feedback about a past
+      // showing? (Agents booked by phone/Tanya have no request row but still
+      // text feedback.) Cheap classification on just this question.
+      let isFeedback = false;
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': ANTHROPIC_KEY,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 10,
+            messages: [{ role: 'user', content:
+`A real estate showing agent sent this SMS: "${message}"
+
+Is this feedback/opinions about a showing that already happened (buyer reactions, condition, price thoughts, passing/offering)? Or is it something else (booking request, question, scheduling)?
+
+Reply with exactly one word: FEEDBACK or OTHER` }]
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const t = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim().toUpperCase();
+          isFeedback = t.startsWith('FEEDBACK');
+        }
+      } catch (e) { console.error('no-request feedback check failed:', e.message); }
+
+      if (isFeedback) {
+        await sendSms(agentContactId,
+          `That's really helpful - thank you! I'll pass it along to the seller.`, AGENT_FROM);
+        let captured = null;
+        try { captured = await captureTextedFeedback(agentPhone, message); }
+        catch (e) { console.error('feedback capture failed:', e.message); }
+        if (!captured) {
+          await sendSms(TANYA_CONTACT_ID,
+            `Agent texted feedback but I couldn't match it to an open showing row: ` +
+            `"${message}" (from ${agentPhone}). Can you log it?`, INTERNAL_FROM);
+          return ok('No-request feedback thanked; no row matched - Tanya alerted');
+        }
+        if (captured.sellerContactId) {
+          try {
+            const res2 = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'x-api-key': ANTHROPIC_KEY,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json'
+              },
+              body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 150,
+                messages: [{ role: 'user', content:
+`Rewrite this showing agent's texted feedback into one warm, professional sentence to send directly to the home seller. Truthful but diplomatic: soften blunt wording into tactful phrasing. Never invent positives. Feedback: "${message}". Output ONLY the sentence, no preamble.` }]
+              })
+            });
+            if (res2.ok) {
+              const d2 = await res2.json();
+              const t2 = (d2.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+              if (t2) {
+                await sendSms(captured.sellerContactId,
+                  `Hi${captured.sellerFirst ? ' ' + captured.sellerFirst : ''}! Feedback is in from your recent showing: ${t2}`,
+                  AGENT_FROM);
+              }
+            }
+          } catch (e) { console.error('seller feedback relay failed:', e.message); }
+        }
+        console.log(`no-request texted feedback captured on row ${captured.rowNumber}`);
+        return ok('No-request feedback captured', { row: captured.rowNumber });
+      }
+
       try {
         await fetch('https://lexproteamapp.netlify.app/.netlify/functions/agent-intake', {
           method: 'POST',
