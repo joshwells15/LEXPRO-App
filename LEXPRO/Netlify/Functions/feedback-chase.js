@@ -191,7 +191,7 @@ function agentMsg(stage, agentFirst, address, surveyUrl) {
   switch (stage) {
     case 1: return `${hi}Thanks for showing ${address} today. When you have a sec, we'd love your feedback - it takes about a minute: ${surveyUrl}`;
     case 2: return `${hi}Just circling back on ${address} - your feedback really helps our seller. Quick link: ${surveyUrl}`;
-    case 3: return `${hi}One more nudge on ${address} - even a sentence helps. ${surveyUrl}`;
+    case 3: return `${hi}One more nudge on ${address} - it only takes a minute. ${surveyUrl}`;
     case 4: return `${hi}Last one, promise! If you have any thoughts on ${address}, our seller would love to hear them: ${surveyUrl}`;
   }
 }
@@ -200,9 +200,9 @@ function sellerMsg(stage, sellerFirst, address) {
   const hi = sellerFirst ? `Hi ${sellerFirst}! ` : 'Hi! ';
   switch (stage) {
     case 1: return `${hi}The showing at ${address} just wrapped up. We've reached out to the agent for feedback and will get it to you as soon as we hear back.`;
-    case 2: return `${hi}Quick update - we've followed up with the agent again for feedback on ${address}. Still on it!`;
-    case 3: return `${hi}We've reached out to the showing agent again on ${address}. Some agents take a bit - we'll keep at it.`;
-    case 4: return `${hi}One final follow-up went to the agent on ${address}. If we hear anything, you'll be the first to know.`;
+    case 2: return `${hi}Quick update - we've followed up with the agent again for feedback. Still on it!`;
+    case 3: return `${hi}We've reached out to the showing agent again. Some agents take a bit - we'll keep at it.`;
+    case 4: return `${hi}We've sent the agent another follow-up on the feedback. We'll let you know the moment we hear something.`;
   }
 }
 
