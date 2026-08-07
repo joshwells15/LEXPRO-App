@@ -707,7 +707,8 @@ Reply with exactly one word: FEEDBACK or OTHER` }]
     /* -------- property question -------- */
 
     if (verdict.intent === 'property_question') {
-      const facts = listing.property_facts || null;
+      let facts = listing.property_facts || null;
+      if (facts && facts.enrich_failed) facts = null;
       let answer = null;
       if (facts) {
         try {

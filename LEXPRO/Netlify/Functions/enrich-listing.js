@@ -119,8 +119,12 @@ exports.handler = async (event) => {
       try {
         const facts = await researchFacts(t.address_full);
         if (facts.match_confidence === 'low') {
-          // store nothing on low confidence - a wrong house is worse than no facts
-          results.push({ id: t.id, address: t.address_full, stored: false, reason: 'low confidence' });
+          // mark tried-and-failed so the sweep moves on (Donna treats it as no facts)
+          await sb(`listings?id=eq.${t.id}`, {
+            method: 'PATCH', prefer: 'return=minimal',
+            body: { property_facts: { enrich_failed: true, attempted_at: new Date().toISOString() } }
+          });
+          results.push({ id: t.id, address: t.address_full, stored: false, reason: 'low confidence - marked, will not retry' });
           continue;
         }
         delete facts.match_confidence;
