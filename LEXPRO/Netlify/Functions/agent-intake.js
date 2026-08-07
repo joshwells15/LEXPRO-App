@@ -108,6 +108,27 @@ async function getContact(contactId) {
   } catch (e) { console.error('getContact failed:', e.message); return null; }
 }
 
+
+async function writeAgentName(contactId, contact, fullName) {
+  if (!fullName) return;
+  try {
+    const existing = (contact?.firstName || '').trim();
+    // GHL auto-creates contacts with no name, or sometimes the raw phone as name.
+    const looksUnnamed = !existing || /^\+?\d[\d\s()-]*$/.test(existing);
+    if (!looksUnnamed) return;
+    const cleaned = String(fullName).replace(/\s+(with|at|from|of)\s+.*$/i, '').trim();
+    const parts = cleaned.split(/\s+/).slice(0, 3); // first + up to two surname tokens
+    const firstName = parts.shift() || '';
+    const lastName = parts.join(' ') || '';
+    if (!firstName) return;
+    await ghl(`/contacts/${contactId}`, {
+      method: 'PUT',
+      body: lastName ? { firstName, lastName } : { firstName }
+    });
+    console.log(`agent name written: ${firstName} ${lastName}`.trim());
+  } catch (e) { console.error('writeAgentName failed (non-fatal):', e.message); }
+}
+
 async function updateContactFields(contactId, fields) {
   // fields: { listing_address, showing_date, showing_time, showing_agent_name }
   try {
@@ -176,7 +197,7 @@ Agent's new message: "${message}"
 
 Respond ONLY with JSON:
 {
-  "agent_name": "full name if stated, else null",
+  "agent_name": "the person's name ONLY (first, or first+last). Never include brokerage/company names - 'Kathleen with RE/MAX' -> 'Kathleen'. Else null",
   "listing_address": "property address as written, else null",
   "showing_date": "YYYY-MM-DD resolved from words like today/tomorrow/Friday, else null",
   "showing_time": "HH:MM 24-hour, else null",
@@ -283,6 +304,9 @@ exports.handler = async (event) => {
       showing_date: merged.showing_date,
       showing_time: merged.showing_time
     });
+
+    // give the GHL contact a human name (Tanya's inbox stops showing bare numbers)
+    if (merged.agent_name) await writeAgentName(contactId, contact, merged.agent_name);
 
     if (x.is_showing_request === false && !merged.listing_address) {
       await sendSms(contactId,
