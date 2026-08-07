@@ -207,6 +207,23 @@ function sellerMsg(stage, sellerFirst, address) {
   }
 }
 
+
+async function logEscalation(kind, summary, extra = {}) {
+  try {
+    const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/escalations`, {
+      method: 'POST',
+      headers: {
+        apikey: process.env.SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({ kind, summary, ...extra })
+    });
+    if (!res.ok) console.error('logEscalation', res.status);
+  } catch (e) { console.error('logEscalation failed:', e.message); }
+}
+
 /* ---------------- handler ---------------- */
 
 exports.handler = async () => {
@@ -301,6 +318,9 @@ exports.handler = async () => {
           INTERNAL_FROM);
         if (okSend) {
           await stampChase(token, rowNumber, 'done');
+          await logEscalation('chase_exhausted',
+            `No feedback from ${agentName || 'agent'} on ${address} after 4 attempts`,
+            { detail: `Agent phone: ${agentPhone || 'not on file'}`, agent_name: agentName, agent_phone: agentPhone });
           summary.sent.push(`row ${rowNumber}: tanya-alert`);
         }
         continue;

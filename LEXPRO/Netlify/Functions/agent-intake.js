@@ -55,6 +55,16 @@ async function sbFetch(path, { method = 'GET', body, prefer } = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+
+async function logEscalation(kind, summary, extra = {}) {
+  try {
+    await sbFetch('escalations', {
+      method: 'POST', prefer: 'return=minimal',
+      body: { kind, summary, ...extra }
+    });
+  } catch (e) { console.error('logEscalation failed (non-fatal):', e.message); }
+}
+
 async function getSession(contactId) {
   try {
     const r = await sbFetch(`intake_sessions?contact_id=eq.${encodeURIComponent(contactId)}`);
@@ -201,12 +211,14 @@ Respond ONLY with JSON:
   "listing_address": "property address as written, else null",
   "showing_date": "YYYY-MM-DD resolved from words like today/tomorrow/Friday, else null",
   "showing_time": "HH:MM 24-hour, else null",
-  "is_showing_request": true/false
+  "is_showing_request": true/false,
+  "is_feedback": true/false
 }
 
 Rules:
 - Merge with known values: only overwrite a known value if the new message clearly changes it.
 - "is_showing_request" false only if this message is clearly not about booking a showing at all.
+- "is_feedback" true only if the message is sharing opinions/reactions about a showing that already happened (buyer reactions, condition, price thoughts, offering/passing). A booking request is NOT feedback.
 - Never invent values.`;
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -308,6 +320,26 @@ exports.handler = async (event) => {
     // give the GHL contact a human name (Tanya's inbox stops showing bare numbers)
     if (merged.agent_name) await writeAgentName(contactId, contact, merged.agent_name);
 
+    if (x.is_feedback === true) {
+      // First-contact feedback (agent booked by phone/Tanya, never texted before).
+      await sendSms(contactId,
+        `That's really helpful - thank you! I'll pass it along to the seller.`);
+      try {
+        await ghl('/conversations/messages', {
+          method: 'POST', version: '2021-04-15',
+          body: { type: 'SMS', contactId: 'k4M3JrFVdMTwhKtIaQx6',
+            message: `Showing feedback texted in from ${merged.agent_name || 'an agent'} ` +
+                     `(${phone || 'unknown'}): "${message}" - no showing row matched it ` +
+                     `automatically. Can you log it and relay to the seller?`,
+            fromNumber: '+14176474633' }
+        });
+      } catch (e) { console.error('feedback relay to Tanya failed:', e.message); }
+      await logEscalation('feedback_no_row',
+        `Feedback texted in with no showing row to attach it to`,
+        { detail: message, agent_name: merged.agent_name, agent_phone: phone });
+      return ok('first-contact feedback - thanked and relayed to Tanya');
+    }
+
     if (x.is_showing_request === false && !merged.listing_address) {
       await sendSms(contactId,
         `Hi! This is Donna with LexPro. Are you looking to set up a showing on one of our listings? ` +
@@ -338,6 +370,10 @@ exports.handler = async (event) => {
           });
         } catch (e) { console.error('stuck-convo alert failed:', e.message); }
         await saveSession(contactId, { escalated_at: new Date().toISOString() });
+        await logEscalation('stuck_intake',
+          `Donna can't assemble a showing request from this agent`,
+          { detail: `Last message: "${message}" | still missing: ${missing.join(', ')}`,
+            agent_name: merged.agent_name, agent_phone: phone, intake_contact_id: contactId });
         await sendSms(contactId,
           `Let me have someone from our team reach out to get this set up for you directly.`);
         return ok('triple ask - escalated and silent');
@@ -376,6 +412,10 @@ exports.handler = async (event) => {
       await saveSession(contactId, { listing_address: null });
       if (n >= 2) {
         await saveSession(contactId, { unclear_count: 0, escalated_at: new Date().toISOString() });
+        await logEscalation('unmatched_address',
+          `Agent can't be matched to a listing`,
+          { detail: message, agent_name: merged.agent_name, agent_phone: phone,
+            intake_contact_id: contactId });
         await sendSms(contactId,
           `I'm having trouble matching that property on my end - let me have someone from our team reach out to help you directly.`);
         try {

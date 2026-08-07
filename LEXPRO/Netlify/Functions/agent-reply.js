@@ -184,6 +184,16 @@ async function addTag(contactId, tag) {
 }
 
 
+
+async function logEscalation(kind, summary, extra = {}) {
+  try {
+    await sb('escalations', {
+      method: 'POST', prefer: 'return=minimal',
+      body: { kind, summary, ...extra }
+    });
+  } catch (e) { console.error('logEscalation failed (non-fatal):', e.message); }
+}
+
 async function muteDonna(contactId) {
   try { await addTag(contactId, 'ai off'); } catch (e) { console.error('mute failed:', e.message); }
 }
@@ -369,6 +379,16 @@ async function findContactIdByPhone(phone) {
   }
 }
 
+
+async function effectiveSellerListing(listing) {
+  if (!listing.parent_listing_id) return listing;
+  try {
+    const r = await sb(`listings?id=eq.${listing.parent_listing_id}&select=seller_contact_id,seller_phone,seller_name,seller_first_name,seller_last_name`);
+    if (r && r[0]) return { ...listing, ...r[0] };
+  } catch (e) { console.error('parent seller lookup failed, using own:', e.message); }
+  return listing;
+}
+
 async function askSeller(listing, normalized, priorContext) {
   let contactId = listing.seller_contact_id;
   if (!contactId) contactId = await findContactIdByPhone(listing.seller_phone);
@@ -540,6 +560,8 @@ Reply with exactly one word: FEEDBACK or OTHER` }]
           await sendSms(TANYA_CONTACT_ID,
             `Agent texted feedback but I couldn't match it to an open showing row: ` +
             `"${message}" (from ${agentPhone}). Can you log it?`, INTERNAL_FROM);
+          await logEscalation('feedback_no_row', `Texted feedback with no showing row`,
+            { detail: message, agent_phone: agentPhone });
           return ok('No-request feedback thanked; no row matched - Tanya alerted');
         }
         if (captured.sellerContactId) {
@@ -638,6 +660,8 @@ Reply with exactly one word: FEEDBACK or OTHER` }]
         await sendSms(TANYA_CONTACT_ID,
           `Agent texted feedback but I couldn't match it to an open showing row: ` +
           `"${message}" (from ${agentPhone}). Can you log it?`, INTERNAL_FROM);
+        await logEscalation('feedback_no_row', `Texted feedback with no showing row`,
+          { detail: message, agent_phone: agentPhone, request_id: request?.id });
         return ok('Feedback thanked; no row matched - Tanya alerted');
       }
 
@@ -752,6 +776,10 @@ Output only the SMS text or UNKNOWN.` }]
         `Showing agent ${request.showing_agent_name || ''} (${agentPhone}) asked about ` +
         `${listing.address_full}: "${message}" - we don't have that on file. Can you reply to them?`,
         INTERNAL_FROM);
+      await logEscalation('property_question',
+        `Question about ${listing.address_full} we couldn't answer`,
+        { detail: message, agent_name: request.showing_agent_name, agent_phone: agentPhone,
+          listing_id: listing.id, request_id: request.id });
       return ok('Property question escalated');
     }
 
@@ -873,7 +901,7 @@ Output only the SMS text or UNKNOWN.` }]
       const priorCtx = request.seller_response
         ? `The seller earlier said: "${request.seller_response}"`
         : null;
-      const sellerReached = await askSeller(listing, normalized, priorCtx);
+      const sellerReached = await askSeller(await effectiveSellerListing(listing), normalized, priorCtx);
 
       await sendSms(agentContactId,
         sellerReached

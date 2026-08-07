@@ -125,6 +125,45 @@ async function addTag(contactId, tag) {
 
 // Text the seller and flag them so their reply routes to seller-reply.js.
 // Never allowed to break the agent-facing response — logs and moves on.
+
+// Parent/child: approval routes through the PARENT's seller. Returns a copy of
+// the listing with seller_* fields taken from the parent; address and rules
+// stay the child's own.
+async function withEffectiveSeller(listing) {
+  if (!listing.parent_listing_id) return listing;
+  try {
+    const r = await sb(`listings?id=eq.${listing.parent_listing_id}&select=seller_contact_id,seller_phone,seller_name,seller_first_name,seller_last_name,seller_email`);
+    if (r && r[0]) return { ...listing, ...r[0] };
+  } catch (e) { console.error('parent seller lookup failed, using own:', e.message); }
+  return listing;
+}
+
+async function siblingUpsell(listing) {
+  try {
+    let other = null;
+    if (listing.parent_listing_id) {
+      const r = await sb(`listings?id=eq.${listing.parent_listing_id}&select=address_full,status`);
+      other = r && r[0];
+    } else {
+      const r = await sb(`listings?parent_listing_id=eq.${listing.id}&status=eq.active&select=address_full,status&limit=1`);
+      other = r && r[0];
+    }
+    if (other && other.status === 'active')
+      return ` Worth knowing: the same seller also has ${other.address_full.split(',')[0]} available if your buyer wants to see both.`;
+  } catch { }
+  return '';
+}
+
+
+async function logEscalation(kind, summary, extra = {}) {
+  try {
+    await sb('escalations', {
+      method: 'POST', prefer: 'return=minimal',
+      body: { kind, summary, ...extra }
+    });
+  } catch (e) { console.error('logEscalation failed (non-fatal):', e.message); }
+}
+
 async function notifySeller(listing, request, normalized, agentName) {
   try {
     let contactId = listing.seller_contact_id;
@@ -984,11 +1023,16 @@ exports.handler = async (event) => {
     /* -------- 6b. approval path: reach the seller or escalate -------- */
 
     const sellerReached = await notifySeller(
-      listing, request, normalized, clean(showing_agent_name)
+      await withEffectiveSeller(listing), request, normalized, clean(showing_agent_name)
     );
 
     if (!sellerReached) {
       // No phone, no contact, or send failed: Tanya handles it by hand.
+      await logEscalation('seller_unreachable',
+        `Can't reach the seller for ${listing.address_full} - agent wants ${normalized}`,
+        { detail: `Agent: ${clean(showing_agent_name) || 'unknown'} (${clean(showing_agent_phone) || 'no phone'})`,
+          agent_name: clean(showing_agent_name), agent_phone: clean(showing_agent_phone),
+          listing_id: listing.id, request_id: request.id });
       try {
         await sb(`showing_requests?id=eq.${request.id}`, {
           method: 'PATCH',
@@ -1013,7 +1057,7 @@ exports.handler = async (event) => {
       matched_listing_address: listing.address_full,
       requested_time_normalized: normalized,
       reason_message: sellerReached
-        ? `Got it - ${listing.address_full} ${normalized}. I'm checking with the seller now and will text you as soon as I hear back.`
+        ? `Got it - ${listing.address_full} ${normalized}. I'm checking with the seller now and will text you as soon as I hear back.${await siblingUpsell(listing)}`
         : `Got it - ${listing.address_full} ${normalized}. I'm getting it confirmed with the seller and will follow up shortly.`,
       hold_id: hold.id,
       request_id: request.id,
