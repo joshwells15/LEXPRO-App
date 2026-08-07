@@ -162,6 +162,12 @@
       </div>
       <div class="hint">Not needed = showings confirm instantly with no text to the seller. Use for vacant properties only.</div>
 
+      <div class="field-label">Linked to (same seller)</div>
+      <select id="parentSel" style="width:100%;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);font-size:14px;color:var(--text);">
+        <option value="">Not linked</option>
+      </select>
+      <div class="hint">For multi-property sellers (two homes on one land, investor bundles): link the secondary listing to the main one. Showing approvals go to the main listing's seller, and Donna mentions the other property to agents.</div>
+
       <div class="field-label">Showing hours</div>
       <div class="hours-row">
         <input type="time" id="startTime">
@@ -184,7 +190,7 @@
       <textarea id="internalNotes" placeholder="Context only Donna should know — e.g. seller works nights, don't call before noon. Never sent to agents."></textarea>
 
       <div class="field-label">Showing instructions (sent to agent)</div>
-      <textarea id="notes" placeholder="Write it like you'd text an agent — e.g. 2 hour heads up please. Lockbox on back door. Don't let the cat out of the basement."></textarea>
+      <textarea id="notes" placeholder="Write it like you'd text an agent — e.g. Lockbox on back door. Please turn off all lights. Don't let the cat out of the basement."></textarea>
       <div class="hint">These ride along in the agent's confirmation text, word for word.</div>
 
       <button class="save-btn" id="saveBtn">Save</button>
@@ -227,6 +233,7 @@
           <div class="lc-badges">
             ${l.status === 'under_contract' ? '<span class="badge uc">Under Contract</span>' : ''}
             ${l.status === 'paused' ? '<span class="badge uc">Paused</span>' : ''}
+            ${l.parent_listing_id ? '<span class="badge">Linked</span>' : ''}
             <span class="badge ${l.occupancy === 'vacant' ? 'vacant' : ''}">${l.occupancy}</span>
           </div>
         </div>
@@ -307,6 +314,12 @@
     $('internalNotes').value = current.internal_notes || '';
     blackouts = JSON.parse(JSON.stringify(current.blackout_windows || []));
     renderBlackouts();
+    const sel = $('parentSel');
+    sel.innerHTML = '<option value="">Not linked</option>' + listings
+      .filter(l => l.id !== current.id && !l.parent_listing_id)
+      .map(l => `<option value="${l.id}">${l.address_full.split(',')[0]} (${l.seller_name || 'no name'})</option>`)
+      .join('');
+    sel.value = current.parent_listing_id || '';
     $('saveMsg').textContent = '';
     $('overlay').classList.add('open');
   };
@@ -328,7 +341,8 @@
       notice_hours: parseInt($('noticeHours').value) || 0,
       showing_notes: $('notes').value.trim(),
       internal_notes: $('internalNotes').value.trim(),
-      blackout_windows: blackouts.filter(w => w.days.length && w.start < w.end)
+      blackout_windows: blackouts.filter(w => w.days.length && w.start < w.end),
+      parent_listing_id: $('parentSel').value || null
     };
     btn.disabled = true; msg.className = 'save-msg'; msg.textContent = 'Saving…';
     try {
