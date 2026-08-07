@@ -8,6 +8,49 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
+
+/* ---- app-status -> sheet Active column write-back ---- */
+const crypto = require('crypto');
+const SHEET_ID = '1KlfQEU02BcEM9RUTTi64-Eu60UzuaptT_EjE6OAXKOY';
+
+function b64url(i){return Buffer.from(i).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+
+async function getGoogleToken() {
+  const sa = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  const now = Math.floor(Date.now()/1000);
+  const header = b64url(JSON.stringify({alg:'RS256',typ:'JWT'}));
+  const claims = b64url(JSON.stringify({iss:sa.client_email,scope:'https://www.googleapis.com/auth/spreadsheets',aud:'https://oauth2.googleapis.com/token',iat:now,exp:now+3600}));
+  const signer = crypto.createSign('RSA-SHA256');
+  signer.update(`${header}.${claims}`);
+  const sig = signer.sign(sa.private_key).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const res = await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${header}.${claims}.${sig}`});
+  if(!res.ok) throw new Error('google token '+res.status);
+  return (await res.json()).access_token;
+}
+
+// status change -> sheet L column: active->Yes, anything else->No
+async function writeSheetActive(sellerContactId, newStatus) {
+  try {
+    const token = await getGoogleToken();
+    const read = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent('Active Listings')}!N2:N500`,
+      { headers: { Authorization: `Bearer ${token}` } });
+    if (!read.ok) throw new Error('read '+read.status);
+    const col = (await read.json()).values || [];
+    let rowNumber = -1;
+    for (let i = 0; i < col.length; i++) {
+      if ((col[i][0] || '').trim() === sellerContactId) { rowNumber = i + 2; break; }
+    }
+    if (rowNumber === -1) return false;
+    const val = newStatus === 'active' ? 'Yes' : 'No';
+    const up = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent('Active Listings')}!L${rowNumber}?valueInputOption=USER_ENTERED`,
+      { method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values: [[val]] }) });
+    if (!up.ok) throw new Error('write '+up.status);
+    console.log(`sheet Active set ${val} for ${sellerContactId} (row ${rowNumber})`);
+    return true;
+  } catch (e) { console.error('writeSheetActive failed (non-fatal):', e.message); return false; }
+}
+
 async function sb(path, { method = 'GET', body, prefer } = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     method,
@@ -83,6 +126,9 @@ exports.handler = async (event) => {
         body: patch
       });
       if (!row) return resp(404, { ok: false, error: 'listing not found' });
+      if (patch.status && row.seller_contact_id) {
+        await writeSheetActive(row.seller_contact_id, patch.status);
+      }
       return resp(200, { ok: true, listing: row });
     }
 
