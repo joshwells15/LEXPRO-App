@@ -160,6 +160,12 @@ exports.handler = async (event) => {
       }
     });
     console.log(`sync-listing: created ${row.address_full} (${row.id})`);
+    // auto-enrich the new listing (fire-and-forget - never blocks the sync)
+    fetch('https://lexproteamapp.netlify.app/.netlify/functions/enrich-listing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listing_id: row.id })
+    }).catch(e => console.error('enrich kick failed (non-fatal):', e.message));
     return resp(200, { ok: true, action: 'created', id: row.id, address: row.address_full });
 
   } catch (err) {
