@@ -174,14 +174,15 @@ function showingEndUtc(dateStr, timeStr) {
 }
 
 function parseStamp(q) {
-  // "" | "done" | "skip" | "3|2026-08-01T15:04:05Z"
+  // "" | "done" | "skip" | "relayed" | "3|2026-08-01T15:04:05Z" (any may end ";relayed")
   const s = String(q || '').trim();
-  if (!s) return { stage: 0, at: null };
-  if (s.toLowerCase() === 'done' || s.toLowerCase() === 'skip') return { stage: 99, at: null };
-  const m = s.match(/^(\d)\|(.+)$/);
-  if (m) return { stage: parseInt(m[1]), at: new Date(m[2]) };
-  // legacy value from the old Make scenario (timestamp or text) - treat as stage 1 done long ago
-  return { stage: 1, at: new Date(0) };
+  const relayed = /;?relayed$/i.test(s);
+  const core = s.replace(/;?relayed$/i, '').trim();
+  if (!core) return { stage: 0, at: null, relayed };
+  if (core.toLowerCase() === 'done' || core.toLowerCase() === 'skip') return { stage: 99, at: null, relayed };
+  const m = core.match(/^(\d)\|(.+)$/);
+  if (m) return { stage: parseInt(m[1]), at: new Date(m[2]), relayed };
+  return { stage: 1, at: new Date(0), relayed };
 }
 
 /* ---------------- messages ---------------- */
@@ -234,10 +235,54 @@ exports.handler = async () => {
       if (String(showDate).trim() < LAUNCH_DATE) continue; // pre-launch rows: never chased
       summary.checked++;
 
-      // survey already in -> nothing to chase
-      if (feedbackReceived && String(feedbackReceived).trim()) continue;
+      const parsed = parseStamp(chaseRaw);
 
-      const { stage: lastStage, at: lastAt } = parseStamp(chaseRaw);
+      // Feedback present (survey, texted, or Tanya manual)?
+      if (feedbackReceived && String(feedbackReceived).trim()) {
+        // Manual entries never got the seller relay - catch them here.
+        const content = (r[13] || '').trim();       // col N - the feedback
+        const surveyStamp = (r[14] || '').trim();    // col O - ONLY the survey path fills this
+        // Manual entry = N filled, O empty, not the texted path, not yet relayed.
+        // (Survey path: Make already texted the seller. Texted path: agent-reply did.)
+        const isManual = content && !surveyStamp && !content.startsWith('(texted)');
+        if (isManual && !parsed.relayed && sellerContactId) {
+          {
+            try {
+              const res = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                  'x-api-key': process.env.ANTHROPIC_API_KEY,
+                  'anthropic-version': '2023-06-01',
+                  'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: 'claude-sonnet-4-6',
+                  max_tokens: 150,
+                  messages: [{ role: 'user', content:
+`Rewrite this showing feedback into one warm, professional sentence to send directly to the home seller. Truthful but diplomatic; soften blunt wording. Never invent positives. Feedback: "${content}". Output ONLY the sentence.` }]
+                })
+              });
+              if (res.ok) {
+                const d = await res.json();
+                const t = (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+                if (t) {
+                  const sent = await sendSms(sellerContactId,
+                    `Hi${first ? ' ' + first : ''}! Feedback is in from your recent showing: ${t}`, AGENT_FROM);
+                  if (sent) {
+                    const newQ = chaseRaw && String(chaseRaw).trim()
+                      ? `${String(chaseRaw).trim()};relayed` : 'relayed';
+                    await stampChase(token, rowNumber, newQ);
+                    summary.sent.push(`row ${rowNumber}: manual-feedback relayed`);
+                  }
+                }
+              }
+            } catch (e) { console.error(`manual relay row ${rowNumber} failed:`, e.message); }
+          }
+        }
+        continue;
+      }
+
+      const { stage: lastStage, at: lastAt } = parsed;
       if (lastStage >= 5 || lastStage === 99) continue;
 
       const endUtc = showingEndUtc(String(showDate).trim(), String(showTime || '12:00').trim());
