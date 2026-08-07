@@ -104,10 +104,12 @@ exports.handler = async (event) => {
         return resp(200, { ok: true, skipped: 'facts already present (use force:true to redo)' });
       targets = [r[0]];
     } else if (body.sweep) {
+      // ONE per invocation - a research round is ~15-25s and must fit the
+      // function timeout. Callers loop until remaining hits 0.
       targets = await sb(
-        `listings?status=eq.active&property_facts=is.null&select=id,address_full&limit=5`
+        `listings?status=eq.active&property_facts=is.null&select=id,address_full&limit=1`
       );
-      if (!targets.length) return resp(200, { ok: true, note: 'nothing to enrich' });
+      if (!targets.length) return resp(200, { ok: true, note: 'nothing to enrich', remaining: 0 });
     } else {
       return resp(400, { ok: false, error: 'listing_id or sweep:true required' });
     }
@@ -135,8 +137,13 @@ exports.handler = async (event) => {
       }
     }
 
-    console.log('enrich-listing:', JSON.stringify(results.map(r => ({ a: r.address, ok: r.stored }))));
-    return resp(200, { ok: true, results });
+    let remaining = null;
+    try {
+      const left = await sb(`listings?status=eq.active&property_facts=is.null&select=id&limit=100`);
+      remaining = left.length;
+    } catch { }
+    console.log('enrich-listing:', JSON.stringify(results.map(r => ({ a: r.address, ok: r.stored }))), 'remaining:', remaining);
+    return resp(200, { ok: true, results, remaining });
   } catch (err) {
     console.error('enrich-listing error:', err);
     return resp(500, { ok: false, error: err.message });
