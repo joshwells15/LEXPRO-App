@@ -84,9 +84,10 @@ async function sb(path, { method = 'GET', body, prefer } = {}) {
 /* ---------- helpers ---------- */
 
 const DIRECTIONALS = new Set(['n','s','e','w','north','south','east','west','ne','nw','se','sw']);
+// MUST match check-availability's list exactly - key disagreement = duplicate rows
 const SUFFIXES = new Set(['st','street','ave','avenue','rd','road','dr','drive','ln','lane','ct','court',
-  'cir','circle','blvd','boulevard','way','pl','place','trl','trail','pkwy','parkway','hwy','highway',
-  'ter','terrace','loop','farm']);
+  'cir','circle','blvd','boulevard','pl','place','ter','terrace','way','trl','trail','pkwy','parkway',
+  'hwy','highway','loop','run','path','row','sq']);
 
 function normalizeAddress(raw) {
   if (!raw) return null;
