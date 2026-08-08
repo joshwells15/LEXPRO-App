@@ -1,38 +1,35 @@
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const MAKE_INTERCOM_WEBHOOK = process.env.MAKE_INTERCOM_WEBHOOK;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-
 const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
-
 const ASSIGNEES = {
   tanya:  { name: 'Tanya',  phone: '+14178802014', contactId: 'k4M3JrFVdMTwhKtIaQx6', docId: '1y-t-gM-5zlZkke0PNoSESmvxtEaMAl6dSxrDRDcEFBY' },
   justin: { name: 'Justin', phone: '+14178609896', contactId: 'rkWvwshxSxMeysx8GgmV', docId: '17Xpgn5OYbGD0AR69eXFhMOnOiN8virrudB85n2H5Aww' },
   josh:   { name: 'Josh',   phone: '+14178080046', contactId: 'txnhMCDRPWLUXXykNuE6', docId: '1OCDEmoqQnUJrfsN5qPxjQqlqa1fwz8q7N25uPbk_tYM' },
   lex:    { name: 'Lex',    phone: '+13605183555', contactId: 'd4k3gSVicZJrCw3Kekcj', docId: '1_8AnabstJh8DyrH_U3jczvL55a1VRtzye0fPe-LXtPE'  },
 };
-
 const BASE_SYSTEM_PROMPT = `You are Claude, a smart assistant working directly with Lex, the owner of LexPro Real Estate in Springfield, MO. You help Lex brainstorm ideas, think through strategies, manage his team, and chat about whatever is on his mind.
-
 His team:
 - Tanya: operations & transaction coordinator (paperwork, flags, scheduling, TC tasks)
 - Justin: marketing (flyers, social media, photos, open house materials)
 - Josh: systems & tech (CRM, workflows, automation, GHL, Make.com)
 - Lex: himself (for his own notes/reminders)
-
 Your two modes:
-
 MODE 1 — BRAINSTORM/CHAT:
 When the user asks questions, wants ideas, or is thinking out loud, respond conversationally and helpfully. Be concise but thorough. Use bullet points for lists of ideas. Keep a professional but casual tone — no fluff. Real estate and LexPro's business are your home turf, but you are a full general-purpose assistant: restaurants, sports, travel, gifts, local recommendations, anything. Never refuse a topic as outside your scope, and NEVER tell the user to search or Google something themselves — searching is YOUR job.
-
 LOCATION & ACCURACY RULES:
 - The user's current location is provided below. Any question about local places (restaurants, bars, shops, services, events) means their CURRENT location unless they say otherwise.
 - When asked about specific local businesses, current events, prices, hours, or anything requiring current or verifiable real-world info, USE WEB SEARCH before answering. Do not answer local recommendation questions from memory.
 - Never name a specific business as a recommendation unless you have verified via search that it exists in the user's current area. Making up places is the worst thing you can do.
 - If search comes up empty on something, say so honestly and offer the closest verified alternative.
-
+CLIENT & PROPERTY RULES:
+- The CLIENT ROSTER below lists LexPro's current listings: each seller's name and their property address. This is your source of truth for who the team's clients are.
+- When anyone mentions a client by name — especially possessive forms like "Benita's", "the Kozlov place", "at Walley's" — they mean that client's PROPERTY from the roster. Resolve it to the address and move on. NEVER web-search a client's name as if it were a business, and never ask for clarification when the roster has exactly one obvious match.
+- Include the resolved address in parentheses in any task you create, e.g. "Open house at Benita's (3502 N Bobwhite Dr) this weekend".
+- Only ask for clarification if the name genuinely matches nothing on the roster or matches multiple sellers ambiguously.
 MODE 2 — TASK ASSIGNMENT:
 When the user says something that indicates they want to assign work to team members — phrases like "have Tanya do X", "get Justin on Y", "tell Josh to Z", "have them do", "assign", etc. — extract the tasks and return them as structured JSON.
-
+IMPORTANT: messaging verbs are task assignments too. "Send a message to Lex that...", "tell Lex he needs to...", "let Justin know...", "remind Tanya about..." — all of these mean: create a task for that person carrying that message. Relaying a message TO a teammate is ALWAYS Mode 2, never a clarifying conversation.
 CRITICAL RULES:
 1. You must ALWAYS return valid JSON in the exact format below — every single response, including after using web search
 2. If it's a brainstorm/chat message, set tasks to an empty array []
@@ -42,13 +39,11 @@ CRITICAL RULES:
 6. Valid assignee values: "tanya", "justin", "josh", "lex"
 7. If no specific person is mentioned, infer from context: marketing → justin, TC/paperwork/scheduling → tanya, tech/CRM/system → josh
 8. Casual chat about non-work topics is always MODE 1 — never turn a restaurant question or small talk into a task
-
 ALWAYS respond in this exact JSON format, no exceptions. Your ENTIRE final answer must be one JSON object:
 {
   "reply": "Your conversational response here",
   "tasks": []
 }
-
 For task assignment:
 {
   "reply": "Got it — here's what I'm assigning:",
@@ -57,8 +52,28 @@ For task assignment:
     { "assignee": "justin", "task": "Create flyers for the open house", "due": null }
   ]
 }
-
 Never include markdown code fences. Never include anything outside the JSON object.`;
+// Live client roster from the listings registry — sellers + properties.
+// Cheap (one indexed read), always current, and the intercom's cure for
+// "who is Benita?" moments.
+async function fetchClientRoster() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/listings?select=seller_name,address_full,status&order=seller_name.asc`,
+      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+    );
+    if (!res.ok) return '';
+    const rows = await res.json();
+    if (!rows.length) return '';
+    const lines = rows
+      .filter(r => r.seller_name && r.address_full)
+      .map(r => `- ${r.seller_name}: ${r.address_full}${r.status !== 'active' ? ` (${r.status.replace('_', ' ')})` : ''}`);
+    return `\n\nCLIENT ROSTER (current LexPro listings — seller: property):\n${lines.join('\n')}`;
+  } catch (err) {
+    console.error('roster fetch failed (non-fatal):', err);
+    return '';
+  }
+}
 
 // Reverse geocode coordinates → { city, region } using free BigDataCloud endpoint (no API key)
 async function reverseGeocode(lat, lng) {
@@ -77,29 +92,23 @@ async function reverseGeocode(lat, lng) {
     return null;
   }
 }
-
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
-
   let body;
   try {
     body = JSON.parse(event.body);
   } catch {
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
   }
-
   const { action } = body;
-
   // ── ACTION: CHAT ──
   if (!action || action === 'chat') {
     const { history, location, user } = body;
-
     if (!history || !Array.isArray(history) || !history.length) {
       return { statusCode: 400, body: JSON.stringify({ error: 'history array is required' }) };
     }
-
     try {
       // Resolve current location — GPS coords from the app, fallback Springfield MO
       let place = { city: 'Springfield', region: 'Missouri' };
@@ -107,15 +116,14 @@ exports.handler = async (event) => {
         const geo = await reverseGeocode(location.latitude, location.longitude);
         if (geo) place = geo;
       }
-
       const userName = (typeof user === 'string' && user.trim())
         ? user.trim().charAt(0).toUpperCase() + user.trim().slice(1).toLowerCase()
         : 'Lex';
-
+      const roster = await fetchClientRoster();
       const systemPrompt =
         BASE_SYSTEM_PROMPT +
+        roster +
         `\n\nCURRENT CONTEXT:\n- You are talking to: ${userName}\n- Their current location right now: ${place.city}${place.region ? ', ' + place.region : ''}. Local questions mean THIS location.`;
-
       const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -144,14 +152,11 @@ exports.handler = async (event) => {
           ],
         }),
       });
-
       const claudeData = await claudeRes.json();
-
       if (!claudeRes.ok) {
         console.error('Claude API error:', JSON.stringify(claudeData));
         return { statusCode: 500, body: JSON.stringify({ error: 'Claude API error' }) };
       }
-
       // With web search enabled, content is a mix of block types.
       // Collect ALL text blocks in order — the final JSON answer is in the text.
       const raw = (claudeData.content || [])
@@ -159,7 +164,6 @@ exports.handler = async (event) => {
         .map(b => b.text || '')
         .join('')
         .trim();
-
       let parsed;
       try {
         const clean = raw.replace(/```json|```/g, '').trim();
@@ -174,7 +178,6 @@ exports.handler = async (event) => {
           body: JSON.stringify({ reply: raw, tasks: [] }),
         };
       }
-
       return {
         statusCode: 200,
         body: JSON.stringify({
@@ -182,42 +185,34 @@ exports.handler = async (event) => {
           tasks: parsed.tasks || [],
         }),
       };
-
     } catch (err) {
       console.error('lex-intercom chat error:', err);
       return { statusCode: 500, body: JSON.stringify({ error: 'Internal server error' }) };
     }
   }
-
   // ── ACTION: SEND ──
   if (action === 'send') {
     const { tasks, user } = body;
-
     if (!tasks || !Array.isArray(tasks) || !tasks.length) {
       return { statusCode: 400, body: JSON.stringify({ error: 'tasks array is required' }) };
     }
-
     const timestamp = new Date().toISOString();
     const dateLabel = new Date().toLocaleDateString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
       timeZone: 'America/Chicago',
     });
-
     const assignerKey = (typeof user === 'string' && user.trim()) ? user.trim().toLowerCase() : 'lex';
     const assignedByName = ASSIGNEES[assignerKey]?.name
       || (assignerKey.charAt(0).toUpperCase() + assignerKey.slice(1));
-
     const enrichedTasks = tasks.map((task, i) => {
       const key = (task.assignee || '').toLowerCase();
       const assignee = ASSIGNEES[key] || ASSIGNEES.tanya;
-
       const dueLine = task.due ? `\n\nDue: ${task.due}` : '';
       const assignedLine = (key === assignerKey)
         ? `You assigned yourself a task:`
         : `${assignedByName} assigned you a task:`;
       const smsMessage =
         `Hey ${assignee.name}! ${assignedLine}\n\n${task.task}${dueLine}\n\nLog in to the LexPro app to mark it complete.`;
-
       return {
         assignee: key,
         assigneeName: assignee.name,
@@ -232,7 +227,6 @@ exports.handler = async (event) => {
         messageJson: JSON.stringify(smsMessage),
       };
     });
-
     try {
       // 1. Write tasks to Supabase (feeds My Tasks tab + 9am reminder)
       const supaRows = enrichedTasks.map(t => ({
@@ -244,7 +238,6 @@ exports.handler = async (event) => {
         contact_id: t.contactId,
         assigned_by: assignerKey,
       }));
-
       const supaRes = await fetch(`${SUPABASE_URL}/rest/v1/lex_tasks`, {
         method: 'POST',
         headers: {
@@ -255,12 +248,10 @@ exports.handler = async (event) => {
         },
         body: JSON.stringify(supaRows),
       });
-
       if (!supaRes.ok) {
         const errText = await supaRes.text();
         console.error('Supabase insert error:', errText);
       }
-
       // 2. Fire Make webhook — ONE CALL PER TASK with flat fields
       if (!MAKE_INTERCOM_WEBHOOK) {
         console.warn('MAKE_INTERCOM_WEBHOOK not configured');
@@ -269,7 +260,6 @@ exports.handler = async (event) => {
           body: JSON.stringify({ success: true, sent: enrichedTasks.length, warning: 'Make webhook not yet configured' }),
         };
       }
-
       const webhookResults = await Promise.all(
         enrichedTasks.map(t =>
           fetch(MAKE_INTERCOM_WEBHOOK, {
@@ -279,23 +269,19 @@ exports.handler = async (event) => {
           })
         )
       );
-
       const failedCount = webhookResults.filter(r => !r.ok).length;
       if (failedCount > 0) {
         console.error(`${failedCount} webhook call(s) failed`);
         return { statusCode: 500, body: JSON.stringify({ error: `${failedCount} task notification(s) failed` }) };
       }
-
       return {
         statusCode: 200,
         body: JSON.stringify({ success: true, sent: enrichedTasks.length }),
       };
-
     } catch (err) {
       console.error('lex-intercom send error:', err);
       return { statusCode: 500, body: JSON.stringify({ error: 'Internal server error' }) };
     }
   }
-
   return { statusCode: 400, body: JSON.stringify({ error: 'Invalid action. Use: chat, send' }) };
 };
