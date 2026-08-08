@@ -7,3 +7,5 @@
   schedule = "*/15 * * * *"
 [functions."friday-clear"]
   schedule = "15 14 * * 5"
+[functions."weekly-digest"]
+  schedule = "0 23 * * 0"
