@@ -145,7 +145,7 @@ exports.handler = async () => {
     if (!res.ok) throw new Error(`sheets read ${res.status}: ${await res.text()}`);
     const rows = (await res.json()).values || [];
 
-    const registry = await sb('listings?select=id,address_key,seller_contact_id,status,occupancy,allowed_start,allowed_end,address_full,seller_phone,seller_email,seller_name');
+    const registry = await sb('listings?select=id,address_key,seller_contact_id,status,occupancy,allowed_start,allowed_end,address_full,seller_phone,seller_email,seller_name,seller_first_name,seller_last_name,house_number,street_token,city,state,zip');
     const byContact = {};
     for (const l of registry) {
       const k = `${l.seller_contact_id}|${l.address_key}`;
