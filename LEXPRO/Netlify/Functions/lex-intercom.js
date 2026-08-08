@@ -5,7 +5,7 @@ const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
 const ASSIGNEES = {
   tanya:  { name: 'Tanya',  phone: '+14178802014', contactId: 'k4M3JrFVdMTwhKtIaQx6', docId: '1y-t-gM-5zlZkke0PNoSESmvxtEaMAl6dSxrDRDcEFBY' },
   justin: { name: 'Justin', phone: '+14178609896', contactId: 'rkWvwshxSxMeysx8GgmV', docId: '17Xpgn5OYbGD0AR69eXFhMOnOiN8virrudB85n2H5Aww' },
-  josh:   { name: 'Josh',   phone: '+14178080046', contactId: 'txnhMCDRPWLUXXykNuE6', docId: '1OCDEmoqQnUJrfsN5qPxjQqlqa1fwz8q7N25uPbk_tYM' },
+  josh:   { name: 'Josh',   phone: '+14178080046', contactId: 'ffOWKX4TFQzXGeEIM8wM', docId: '1OCDEmoqQnUJrfsN5qPxjQqlqa1fwz8q7N25uPbk_tYM' },
   lex:    { name: 'Lex',    phone: '+13605183555', contactId: 'd4k3gSVicZJrCw3Kekcj', docId: '1_8AnabstJh8DyrH_U3jczvL55a1VRtzye0fPe-LXtPE'  },
 };
 const BASE_SYSTEM_PROMPT = `You are Claude, a smart assistant working directly with Lex, the owner of LexPro Real Estate in Springfield, MO. You help Lex brainstorm ideas, think through strategies, manage his team, and chat about whatever is on his mind.

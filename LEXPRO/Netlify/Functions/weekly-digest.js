@@ -9,7 +9,7 @@
 //     schedule = "0 23 * * 0"   # 23:00 UTC Sunday = 6 PM CDT
 //
 // JOSH's GHL contact - where the digest lands
-const JOSH_CONTACT_ID = 'txnhMCDRPWLUXXykNuE6';
+const JOSH_CONTACT_ID = 'ffOWKX4TFQzXGeEIM8wM';
 const INTERNAL_FROM = '+14176474633';
 
 const crypto = require('crypto');
