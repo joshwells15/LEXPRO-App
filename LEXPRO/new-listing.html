@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>LexPro | New Listing</title>
+<style>
+  :root {
+    --bg:#ffffff; --surface:#f7f7f7; --surface-2:#f0f0f0; --border:#e8e8e8;
+    --primary:#111111; --text:#111111; --text-muted:#666666; --text-hint:#999999;
+    --font:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;
+    --radius-sm:10px; --radius-md:14px; --radius-lg:20px;
+    --green:#065F46; --green-bg:#D1FAE5;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { min-height:100vh; min-height:100dvh; background:var(--bg); font-family:var(--font); color:var(--text); display:flex; flex-direction:column; }
+  .topbar { padding:14px 16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .back-btn { width:34px; height:34px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+    display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; cursor:pointer; }
+  .back-btn svg { width:16px; height:16px; stroke:var(--text-muted); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .topbar-info { flex:1; }
+  .topbar-title { font-size:17px; font-weight:700; letter-spacing:-0.3px; }
+  .topbar-sub { font-size:11px; color:var(--text-hint); margin-top:1px; }
+  .step-dots { display:flex; gap:6px; flex-shrink:0; }
+  .step-dot { width:8px; height:8px; border-radius:50%; background:var(--surface-2); transition:background 0.2s; }
+  .step-dot.on { background:var(--primary); }
+  .wrap { flex:1; overflow-y:auto; padding:16px; max-width:560px; width:100%; margin:0 auto; -webkit-overflow-scrolling:touch; }
+  .step { display:none; flex-direction:column; gap:14px; }
+  .step.active { display:flex; }
+  .pill-card { border:1.5px solid var(--border); border-radius:var(--radius-lg); background:var(--bg); overflow:hidden; }
+  .pill-header { padding:13px 16px; background:var(--surface); border-bottom:1px solid var(--border);
+    font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; }
+  .pill-body { padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
+  .field { display:flex; flex-direction:column; gap:5px; }
+  .field-label { font-size:11px; font-weight:600; color:var(--text-hint); text-transform:uppercase; letter-spacing:0.06em; }
+  .field input, .field select, .field textarea {
+    border:1.5px solid var(--border); border-radius:var(--radius-md); padding:11px 12px; font-family:var(--font);
+    font-size:15px; color:var(--text); background:var(--surface); outline:none; width:100%; appearance:none; -webkit-appearance:none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--primary); background:var(--bg); }
+  .field textarea { resize:none; min-height:72px; line-height:1.45; }
+  .frow { display:flex; gap:10px; }
+  .frow .field { flex:1; }
+  .sel-wrap { position:relative; }
+  .sel-wrap::after { content:'▾'; position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--text-hint); pointer-events:none; }
+  /* contact search */
+  .contact-box { position:relative; }
+  .results { position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--bg);
+    border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:0 8px 24px rgba(0,0,0,0.1);
+    z-index:40; max-height:220px; overflow-y:auto; display:none; }
+  .results.open { display:block; }
+  .result-item { padding:11px 14px; cursor:pointer; border-bottom:1px solid var(--border); }
+  .result-item:last-child { border-bottom:none; }
+  .result-item:active { background:var(--surface); }
+  .result-name { font-size:14px; font-weight:600; }
+  .result-phone { font-size:12px; color:var(--text-hint); margin-top:1px; }
+  .selected-chip { display:none; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border);
+    border-radius:999px; padding:8px 12px; font-size:13px; font-weight:600; width:fit-content; max-width:100%; }
+  .selected-chip.show { display:flex; }
+  .chip-x { background:none; border:none; font-family:var(--font); font-size:15px; color:var(--text-hint); cursor:pointer; line-height:1; }
+  /* segmented + yn */
+  .seg { display:flex; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px; }
+  .seg-btn { flex:1; padding:9px; border:none; border-radius:999px; background:none; font-family:var(--font);
+    font-size:13px; font-weight:600; color:var(--text-hint); cursor:pointer; transition:background 0.15s, color 0.15s; }
+  .seg-btn.on { background:var(--primary); color:#fff; }
+  /* address banner (step 2) */
+  .addr-banner { border:1.5px solid var(--primary); border-radius:var(--radius-lg); padding:14px 16px; background:var(--surface); }
+  .ab-label { font-size:10px; font-weight:600; color:var(--text-hint); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:3px; }
+  .ab-addr { font-size:16px; font-weight:700; line-height:1.35; }
+  .ab-seller { font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .big-btn {
+    background:var(--primary); border:1.5px solid #fff; outline:1px solid var(--border); color:#fff;
+    border-radius:var(--radius-lg); padding:15px; font-family:var(--font); font-size:15px; font-weight:600;
+    cursor:pointer; transition:background 0.15s, color 0.15s; width:100%;
+  }
+  @media (hover:hover) { .big-btn:hover { background:#fff; color:var(--primary); border-color:var(--primary); } }
+  .big-btn:active { background:#fff; color:var(--primary); }
+  .big-btn:disabled { background:var(--surface-2); color:var(--text-hint); border-color:var(--border); cursor:not-allowed; }
+  .ghost-btn { background:none; border:none; font-family:var(--font); font-size:13px; color:var(--text-hint);
+    cursor:pointer; text-decoration:underline; padding:6px; align-self:center; }
+  /* success */
+  .success-view { display:none; flex-direction:column; align-items:center; text-align:center; gap:14px; padding:48px 24px; }
+  .success-view.show { display:flex; }
+  .success-icon { width:64px; height:64px; border-radius:50%; background:var(--green-bg); display:flex; align-items:center; justify-content:center; font-size:30px; }
+  .success-title { font-size:20px; font-weight:700; }
+  .success-sub { font-size:13.5px; color:var(--text-muted); line-height:1.6; max-width:300px; }
+  .toast { display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#111; color:#fff;
+    padding:11px 20px; border-radius:12px; font-size:14px; font-weight:500; z-index:200; white-space:nowrap; }
+  .toast.show { display:block; }
+  .toast.success { background:var(--green); }
+  .toast.error { background:#DC2626; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="back-btn" id="backBtn">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </div>
+  <div class="topbar-info">
+    <div class="topbar-title">🪧 New Listing</div>
+    <div class="topbar-sub" id="stepSub">Step 1 of 2 · Seller & Property</div>
+  </div>
+  <div class="step-dots"><div class="step-dot on" id="dot1"></div><div class="step-dot" id="dot2"></div></div>
+</div>
+<div class="wrap">
+
+  <!-- ═══ STEP 1: SELLER & PROPERTY ═══ -->
+  <div class="step active" id="step1">
+    <div class="pill-card">
+      <div class="pill-header">Seller Contact</div>
+      <div class="pill-body">
+        <div class="field contact-box">
+          <div class="field-label">Search GHL Contacts</div>
+          <input type="text" id="contactSearch" placeholder="Start typing a name…" autocomplete="off">
+          <div class="results" id="results"></div>
+          <div class="selected-chip" id="selectedChip"><span id="chipLabel"></span><button class="chip-x" id="chipX">✕</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="pill-card">
+      <div class="pill-header">Property</div>
+      <div class="pill-body">
+        <div class="field"><div class="field-label">Street Address *</div><input type="text" id="fStreet" placeholder="123 Main St"></div>
+        <div class="frow">
+          <div class="field"><div class="field-label">City *</div><input type="text" id="fCity" placeholder="Springfield"></div>
+          <div class="field" style="max-width:90px;"><div class="field-label">State *</div><input type="text" id="fState" value="MO"></div>
+        </div>
+        <div class="frow">
+          <div class="field"><div class="field-label">Zip *</div><input type="text" id="fZip" placeholder="65804" inputmode="numeric"></div>
+          <div class="field"><div class="field-label">List Price</div><input type="text" id="fPrice" placeholder="$250,000" inputmode="numeric"></div>
+        </div>
+        <div class="frow">
+          <div class="field"><div class="field-label">Represented Side *</div>
+            <div class="sel-wrap"><select id="fSide"><option value="">— Select —</option><option value="Seller">Seller</option><option value="Buyer">Buyer</option><option value="Dual Agency">Dual Agency</option></select></div>
+          </div>
+          <div class="field"><div class="field-label">Live Date *</div><input type="date" id="fLiveDate"></div>
+        </div>
+      </div>
+    </div>
+    <button class="big-btn" id="toStep2">Set Showing Rules ›</button>
+  </div>
+
+  <!-- ═══ STEP 2: SHOWING RULES ═══ -->
+  <div class="step" id="step2">
+    <div class="addr-banner">
+      <div class="ab-label">Going live</div>
+      <div class="ab-addr" id="bannerAddr"></div>
+      <div class="ab-seller" id="bannerSeller"></div>
+    </div>
+    <div class="pill-card">
+      <div class="pill-header">Occupancy</div>
+      <div class="pill-body">
+        <div class="seg" id="occSeg">
+          <button class="seg-btn on" data-val="occupied">🏠 Occupied</button>
+          <button class="seg-btn" data-val="vacant">🔓 Vacant</button>
+        </div>
+        <div class="field">
+          <div class="field-label">Seller approval required for showings?</div>
+          <div class="seg" id="apprSeg">
+            <button class="seg-btn on" data-val="yes">Yes — ask seller first</button>
+            <button class="seg-btn" data-val="no">No — auto-confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pill-card">
+      <div class="pill-header">Showing Hours</div>
+      <div class="pill-body">
+        <div class="frow">
+          <div class="field"><div class="field-label">Earliest</div><input type="time" id="fStart" value="09:00"></div>
+          <div class="field"><div class="field-label">Latest</div><input type="time" id="fEnd" value="19:00"></div>
+        </div>
+        <div class="field"><div class="field-label">Notice required (hours)</div><input type="number" id="fNotice" value="0" min="0" inputmode="numeric"></div>
+        <div class="field"><div class="field-label">Showing notes (gate codes, pets, etc.)</div><textarea id="fNotes" placeholder="Optional…"></textarea></div>
+      </div>
+    </div>
+    <button class="big-btn" id="goLiveBtn">🪧 Create Listing — Go Live</button>
+    <button class="ghost-btn" id="backTo1">‹ Back to property details</button>
+  </div>
+
+  <!-- ═══ SUCCESS ═══ -->
+  <div class="success-view" id="successView">
+    <div class="success-icon">🪧</div>
+    <div class="success-title">Listing is live!</div>
+    <div class="success-sub" id="successSub"></div>
+    <button class="big-btn" style="max-width:280px;" onclick="location.href='crm-sellers.html'">Done</button>
+    <button class="ghost-btn" onclick="location.reload()">+ Add another listing</button>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+<script>
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(()=>{}); }
+  if (window.caches && caches.keys) { caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(()=>{}); }
+  const user = JSON.parse(sessionStorage.getItem('lexpro_user') || localStorage.getItem('lexpro_user') || '{}');
+  if (!user.username) window.location.href = 'index.html';
+
+  const toast = document.getElementById('toast');
+  function showToast(msg, type='') { toast.textContent = msg; toast.className = 'toast show' + (type ? ' '+type : ''); setTimeout(() => { toast.className = 'toast'; }, 3500); }
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ── STEP MACHINE ──
+  let onStep = 1;
+  const stepSub = document.getElementById('stepSub');
+  function showStep(n) {
+    onStep = n;
+    document.getElementById('step1').classList.toggle('active', n === 1);
+    document.getElementById('step2').classList.toggle('active', n === 2);
+    document.getElementById('dot1').classList.toggle('on', true);
+    document.getElementById('dot2').classList.toggle('on', n === 2);
+    stepSub.textContent = n === 1 ? 'Step 1 of 2 · Seller & Property' : 'Step 2 of 2 · Showing Rules';
+    window.scrollTo(0, 0);
+  }
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (onStep === 2) { showStep(1); return; }
+    if (document.referrer && history.length > 1) history.back();
+    else location.href = 'crm-sellers.html';
+  });
+  document.getElementById('backTo1').addEventListener('click', () => showStep(1));
+
+  // ── DEFAULTS ──
+  const t = new Date();
+  document.getElementById('fLiveDate').value = t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+
+  // ── CONTACT SEARCH ──
+  let selected = null, searchTimer = null;
+  const searchInput = document.getElementById('contactSearch');
+  const resultsBox = document.getElementById('results');
+  const chip = document.getElementById('selectedChip');
+  const chipLabel = document.getElementById('chipLabel');
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    const q = searchInput.value.trim();
+    if (q.length < 2) { resultsBox.classList.remove('open'); return; }
+    searchTimer = setTimeout(async () => {
+      try {
+        const res = await fetch('/.netlify/functions/tanya-get-contact', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: q })
+        });
+        const data = await res.json();
+        resultsBox.innerHTML = '';
+        if (data.found && data.contacts && data.contacts.length) {
+          data.contacts.slice(0, 6).forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'result-item';
+            item.innerHTML = `<div class="result-name">${esc(c.name || '')}</div><div class="result-phone">${esc(c.phone || 'no phone')}</div>`;
+            item.addEventListener('click', () => {
+              const parts = (c.name || '').trim().split(/\s+/);
+              selected = { id: c.id, firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || '', name: c.name || '', phone: c.phone || '', email: c.email || '' };
+              chipLabel.textContent = (c.name || 'Contact') + (c.phone ? ' · ' + c.phone : '');
+              chip.classList.add('show');
+              searchInput.value = ''; searchInput.style.display = 'none';
+              resultsBox.classList.remove('open');
+            });
+            resultsBox.appendChild(item);
+          });
+          resultsBox.classList.add('open');
+        } else resultsBox.classList.remove('open');
+      } catch (e) { resultsBox.classList.remove('open'); }
+    }, 350);
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('.contact-box')) resultsBox.classList.remove('open'); });
+  document.getElementById('chipX').addEventListener('click', () => {
+    selected = null; chip.classList.remove('show');
+    searchInput.style.display = ''; searchInput.focus();
+  });
+
+  // ── SEGMENTED CONTROLS ──
+  function segVal(id) { return document.querySelector('#' + id + ' .seg-btn.on').dataset.val; }
+  ['occSeg', 'apprSeg'].forEach(id => {
+    document.querySelectorAll('#' + id + ' .seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#' + id + ' .seg-btn').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+      });
+    });
+  });
+
+  // ── STEP 1 → 2 ──
+  document.getElementById('toStep2').addEventListener('click', () => {
+    if (!selected) { showToast('Select the seller contact first.', 'error'); return; }
+    const street = document.getElementById('fStreet').value.trim();
+    const city = document.getElementById('fCity').value.trim();
+    const state = document.getElementById('fState').value.trim();
+    const zip = document.getElementById('fZip').value.trim();
+    if (!street || !city || !state || !zip) { showToast('All address fields are required.', 'error'); return; }
+    if (!document.getElementById('fSide').value) { showToast('Pick the represented side.', 'error'); return; }
+    if (!document.getElementById('fLiveDate').value) { showToast('Pick the live date.', 'error'); return; }
+    document.getElementById('bannerAddr').textContent = `${street}, ${city}, ${state.toUpperCase()} ${zip}`;
+    document.getElementById('bannerSeller').textContent = 'Seller: ' + selected.name;
+    showStep(2);
+  });
+
+  // ── GO LIVE ──
+  document.getElementById('goLiveBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('goLiveBtn');
+    const street = document.getElementById('fStreet').value.trim();
+    const city = document.getElementById('fCity').value.trim();
+    if (!confirm(`Set ${selected.name} to Listing Live at ${street}?\n\nThis emails the seller, moves the pipeline, adds the sheet row, and registers the listing with its showing rules.`)) return;
+    btn.disabled = true; btn.textContent = 'Going live…';
+    try {
+      const res = await fetch('/.netlify/functions/create-listing', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contactId: selected.id,
+          firstName: selected.firstName, lastName: selected.lastName,
+          phone: selected.phone, email: selected.email,
+          street, city,
+          state: document.getElementById('fState').value.trim(),
+          zip: document.getElementById('fZip').value.trim(),
+          price: document.getElementById('fPrice').value.trim(),
+          side: document.getElementById('fSide').value,
+          liveDate: document.getElementById('fLiveDate').value,
+          occupancy: segVal('occSeg'),
+          requiresApproval: segVal('apprSeg') === 'yes',
+          allowedStart: document.getElementById('fStart').value || '09:00',
+          allowedEnd: document.getElementById('fEnd').value || '19:00',
+          noticeHours: document.getElementById('fNotice').value || 0,
+          showingNotes: document.getElementById('fNotes').value.trim()
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Go-live failed');
+      document.getElementById('step2').classList.remove('active');
+      document.getElementById('stepSub').textContent = 'Done';
+      document.getElementById('successSub').textContent =
+        `${street} is registered ${segVal('occSeg') === 'vacant' ? 'as vacant' : 'as occupied'} with showing hours ${document.getElementById('fStart').value}–${document.getElementById('fEnd').value}. The seller email, pipeline move, and sheet row are firing now.`;
+      document.getElementById('successView').classList.add('show');
+      window.scrollTo(0, 0);
+    } catch (err) {
+      showToast(err.message || 'Something went wrong — try again.', 'error');
+      btn.disabled = false; btn.textContent = '🪧 Create Listing — Go Live';
+    }
+  });
+</script>
+</body>
+</html>
