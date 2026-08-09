@@ -40,6 +40,7 @@ exports.handler = async (event) => {
         closing_gift_ordered:   'closing_gift_ordered',
         commission_amount:      'commission_amount',
         sales_price:            'sales_price',
+        earnest_money:          'earnest_money_amount',
         street:                 'buyer__subject_property_street',
         city:                   'buyer__subject_property_city',
         state:                  'buyer__subject_property_state',
