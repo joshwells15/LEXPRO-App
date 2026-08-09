@@ -80,9 +80,35 @@
   .nav-btn.light .btn-sub { color:var(--text-hint); }
   .nav-btn.light .btn-arrow { color:var(--text-hint); }
   .nav-btn.light:active { background:var(--surface-2); }
+  /* ── LOGO SWOOP ── */
+  .swoop-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 999;
+    display: flex; align-items: center; justify-content: center;
+    animation: overlayFade 2.4s ease forwards;
+    pointer-events: none;
+  }
+  .swoop-logo { display: flex; align-items: center; animation: swoop 2.4s cubic-bezier(0.45,0,0.25,1) forwards; }
+  .sw-lex { font-size: 44px; font-weight: 700; color: var(--primary); letter-spacing: 5px; line-height: 1; }
+  .sw-pro-box { border: 3.5px solid var(--primary); border-radius: 10px; padding: 4px 12px; margin-left: 8px; }
+  .sw-pro { font-size: 44px; font-weight: 700; color: var(--primary); letter-spacing: 5px; line-height: 1; display: block; }
+  @keyframes swoop {
+    0%   { transform: translateY(40vh) scale(0.5); opacity: 0; }
+    22%  { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+    32%  { transform: scale(1) rotate(0deg); }
+    62%  { transform: scale(1) rotate(360deg); }
+    72%  { transform: scale(1) rotate(360deg); }
+    100% { transform: translateY(-38vh) scale(0.42) rotate(360deg); opacity: 0; }
+  }
+  @keyframes overlayFade {
+    0%, 78% { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
+  }
 </style>
 </head>
 <body>
+<div class="swoop-overlay" id="swoopOverlay" style="display:none;">
+  <div class="swoop-logo"><span class="sw-lex">LEX</span><div class="sw-pro-box"><span class="sw-pro">PRO</span></div></div>
+</div>
 <div class="header">
   <div class="hdr-logo"><span class="hl-lex">LEX</span><div class="hl-pro-box"><span class="hl-pro">PRO</span></div></div>
   <div class="hdr-name" id="hdrName"></div>
@@ -130,6 +156,15 @@
 </div>
 <div class="footer">LexPro Real Estate &bull; Springfield, MO</div>
 <script>
+  // ── LOGO SWOOP: once per login session ──
+  if (!sessionStorage.getItem('lexpro_swooped')) {
+    sessionStorage.setItem('lexpro_swooped', '1');
+    const so = document.getElementById('swoopOverlay');
+    so.style.display = 'flex';
+    setTimeout(() => so.remove(), 2500);
+  } else {
+    document.getElementById('swoopOverlay').remove();
+  }
   // ── SERVICE WORKER EXORCISM: unregister all workers + purge caches (permanent cache-bust fix) ──
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(()=>{});

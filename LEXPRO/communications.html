@@ -56,17 +56,27 @@
     width: 100%; max-width: 340px;
   }
   .qa-btn {
-    padding: 14px 16px; background: var(--surface); border: 1px solid var(--border);
+    padding: 14px 16px; background: var(--primary); border: 1.5px solid #ffffff;
+    outline: 1px solid var(--border);
     border-radius: var(--radius-md); font-family: var(--font); font-size: 12px;
-    font-weight: 500; color: var(--text-muted); cursor: pointer; text-align: left;
-    line-height: 1.4; transition: background 0.15s, border-color 0.15s;
+    font-weight: 500; color: #fff; cursor: pointer; text-align: left;
+    line-height: 1.4; transition: background 0.15s, color 0.15s;
     display: flex; flex-direction: row; align-items: center; gap: 12px;
   }
-  .qa-btn:active { background: var(--surface-2); border-color: var(--primary); }
+  .qa-btn .qa-label { color: #fff; }
+  .qa-btn .qa-sub { color: rgba(255,255,255,0.55); }
+  @media (hover:hover) {
+    .qa-btn:hover { background: #ffffff; border-color: var(--primary); }
+    .qa-btn:hover .qa-label { color: var(--primary); }
+    .qa-btn:hover .qa-sub { color: var(--text-muted); }
+  }
+  .qa-btn:active { background: #ffffff; }
+  .qa-btn:active .qa-label { color: var(--primary); }
+  .qa-btn:active .qa-sub { color: var(--text-muted); }
   .qa-text { display: flex; flex-direction: column; gap: 2px; }
   .qa-icon { font-size: 20px; flex-shrink: 0; }
-  .qa-label { font-size: 12px; font-weight: 600; color: var(--text); }
-  .qa-sub { font-size: 11px; color: var(--text-hint); }
+  .qa-label { font-size: 12px; font-weight: 600; }
+  .qa-sub { font-size: 11px; }
   .msg-row { display: flex; flex-direction: column; gap: 2px; }
   .msg-bubble {
     max-width: 88%; padding: 12px 14px; border-radius: 18px;
