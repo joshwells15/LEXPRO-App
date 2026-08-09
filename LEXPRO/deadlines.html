@@ -125,21 +125,24 @@
   </div>
 </div>
 <div class="wrap">
-  <div class="pill-card pop-ok">
-    <div class="pill-header">Contact</div>
+  <div class="pill-card">
+    <div class="pill-header">Listing</div>
     <div class="pill-body">
-      <div class="field contact-box">
-        <div class="field-label">Search GHL Contacts</div>
-        <input type="text" id="contactSearch" placeholder="Start typing a name…" autocomplete="off">
-        <div class="results" id="results"></div>
-        <div class="selected-chip" id="selectedChip"><span id="chipLabel"></span><button class="chip-x" id="chipX">✕</button></div>
+      <div class="field">
+        <div class="field-label">Pick the listing</div>
+        <div class="sel-wrap"><select id="listingSel"><option value="">Loading listings…</option></select></div>
       </div>
     </div>
+  </div>
+  <div class="addr-banner" id="banner">
+    <div class="ab-label">Deadlines for</div>
+    <div class="ab-addr" id="bAddr"></div>
+    <div class="ab-seller" id="bSeller"></div>
   </div>
   <div class="pill-card">
     <div class="pill-header">Transaction Deadlines</div>
     <div class="pill-body">
-      <div id="dlBox"><div class="dl-empty">Search for a contact to view their deadlines.</div></div>
+      <div id="dlBox"><div class="dl-empty">Pick a listing to view its deadlines.</div></div>
     </div>
   </div>
 </div>
@@ -156,46 +159,43 @@
   function showToast(msg, type='') { toast.textContent = msg; toast.className = 'toast show' + (type ? ' '+type : ''); setTimeout(() => { toast.className = 'toast'; }, 3500); }
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // ── CONTACT SEARCH ──
-  let searchTimer = null;
-  const searchInput = document.getElementById('contactSearch');
-  const resultsBox = document.getElementById('results');
-  const chip = document.getElementById('selectedChip');
-  const chipLabel = document.getElementById('chipLabel');
-  searchInput.addEventListener('input', () => {
-    clearTimeout(searchTimer);
-    const q = searchInput.value.trim();
-    if (q.length < 2) { resultsBox.classList.remove('open'); return; }
-    searchTimer = setTimeout(async () => {
-      try {
-        const res = await fetch('/.netlify/functions/search-contacts?query=' + encodeURIComponent(q));
-        const data = await res.json();
-        const contacts = data.contacts || [];
-        resultsBox.innerHTML = '';
-        if (!contacts.length) resultsBox.innerHTML = '<div class="result-item"><div class="result-name">No contacts found</div></div>';
-        else contacts.forEach(c => {
-          const nm = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || c.contactName || 'Unnamed';
-          const item = document.createElement('div');
-          item.className = 'result-item';
-          item.innerHTML = `<div class="result-name">${esc(nm)}</div><div class="result-phone">${esc(c.phone || 'no phone on file')}</div>`;
-          item.addEventListener('click', () => {
-            chipLabel.textContent = nm;
-            chip.classList.add('show');
-            searchInput.value = ''; searchInput.style.display = 'none';
-            resultsBox.classList.remove('open');
-            loadDeadlines(c.id);
-          });
-          resultsBox.appendChild(item);
-        });
-        resultsBox.classList.add('open');
-      } catch (e) { resultsBox.classList.remove('open'); }
-    }, 350);
-  });
-  document.addEventListener('click', e => { if (!e.target.closest('.contact-box')) resultsBox.classList.remove('open'); });
-  document.getElementById('chipX').addEventListener('click', () => {
-    chip.classList.remove('show');
-    searchInput.style.display = ''; searchInput.focus();
-    document.getElementById('dlBox').innerHTML = '<div class="dl-empty">Search for a contact to view their deadlines.</div>';
+  // ── LISTING PICKER (registry-fed, same as UC page) ──
+  const SB = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
+  const SBK = 'sb_publishable_TCNeI1Mg36-kXLJKA33h1g_emUHiC-Z';
+  let listings = [];
+  (async function loadListings() {
+    const sel = document.getElementById('listingSel');
+    try {
+      const res = await fetch(SB + '/rest/v1/listings?status=in.(active,under_contract)&select=id,address_full,seller_name,seller_contact_id,status&order=address_full.asc', {
+        headers: { 'apikey': SBK, 'Authorization': 'Bearer ' + SBK }
+      });
+      listings = await res.json();
+      sel.innerHTML = '<option value="">— Select a listing —</option>';
+      listings.forEach((l, i) => {
+        const o = document.createElement('option');
+        o.value = i;
+        o.textContent = l.address_full + (l.status === 'under_contract' ? ' · UC' : '');
+        sel.appendChild(o);
+      });
+    } catch (e) { sel.innerHTML = '<option value="">Could not load — refresh</option>'; }
+  })();
+  document.getElementById('listingSel').addEventListener('change', e => {
+    const i = e.target.value;
+    const banner = document.getElementById('banner');
+    if (i === '') {
+      banner.classList.remove('show');
+      document.getElementById('dlBox').innerHTML = '<div class="dl-empty">Pick a listing to view its deadlines.</div>';
+      return;
+    }
+    const l = listings[i];
+    document.getElementById('bAddr').textContent = l.address_full;
+    document.getElementById('bSeller').textContent = 'Seller: ' + (l.seller_name || 'unknown');
+    banner.classList.add('show');
+    if (!l.seller_contact_id) {
+      document.getElementById('dlBox').innerHTML = '<div class="dl-empty">This listing has no linked GHL contact.</div>';
+      return;
+    }
+    loadDeadlines(l.seller_contact_id);
   });
 
   // ── DEADLINES: >5d normal · ≤5 yellow · ≤3 red · closing blue ──
