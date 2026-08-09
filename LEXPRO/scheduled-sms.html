@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>LexPro | Scheduled SMS</title>
+<style>
+  :root {
+    --bg:#ffffff; --surface:#f7f7f7; --surface-2:#f0f0f0; --border:#e8e8e8;
+    --primary:#111111; --text:#111111; --text-muted:#666666; --text-hint:#999999;
+    --font:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;
+    --radius-sm:10px; --radius-md:14px; --radius-lg:20px;
+    --green:#065F46; --green-bg:#D1FAE5; --amber:#78350F; --amber-bg:#FEF3C7;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { min-height:100vh; min-height:100dvh; background:var(--bg); font-family:var(--font); color:var(--text); display:flex; flex-direction:column; }
+  .topbar { padding:14px 16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .back-btn { width:34px; height:34px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+    display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; }
+  .back-btn svg { width:16px; height:16px; stroke:var(--text-muted); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .topbar-info { flex:1; }
+  .topbar-title { font-size:17px; font-weight:700; letter-spacing:-0.3px; }
+  .topbar-sub { font-size:11px; color:var(--text-hint); margin-top:1px; }
+  .refresh-btn { width:34px; height:34px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+  .refresh-btn svg { width:16px; height:16px; stroke:var(--text-muted); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .wrap { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px; max-width:560px; width:100%; margin:0 auto; -webkit-overflow-scrolling:touch; }
+  /* ── PILL SECTIONS ── */
+  .pill-card { border:1.5px solid var(--border); border-radius:var(--radius-lg); background:var(--bg); overflow:hidden; }
+  .pill-header { padding:13px 16px; background:var(--surface); border-bottom:1px solid var(--border);
+    font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;
+    display:flex; align-items:center; gap:8px; }
+  .pill-body { padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
+  .field { display:flex; flex-direction:column; gap:5px; }
+  .field-label { font-size:11px; font-weight:600; color:var(--text-hint); text-transform:uppercase; letter-spacing:0.06em; }
+  .field input[type=text], .field input[type=tel], .field input[type=date], .field input[type=time], .field textarea {
+    border:1.5px solid var(--border); border-radius:var(--radius-md); padding:11px 12px; font-family:var(--font);
+    font-size:15px; color:var(--text); background:var(--surface); outline:none; width:100%;
+  }
+  .field input:focus, .field textarea:focus { border-color:var(--primary); background:var(--bg); }
+  .field textarea { resize:none; min-height:84px; line-height:1.45; }
+  .dt-row { display:flex; gap:10px; }
+  .dt-row .field { flex:1; }
+  /* contact search */
+  .contact-box { position:relative; }
+  .results { position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--bg);
+    border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:0 8px 24px rgba(0,0,0,0.1);
+    z-index:40; max-height:220px; overflow-y:auto; display:none; }
+  .results.open { display:block; }
+  .result-item { padding:11px 14px; cursor:pointer; border-bottom:1px solid var(--border); }
+  .result-item:last-child { border-bottom:none; }
+  .result-item:active { background:var(--surface); }
+  .result-name { font-size:14px; font-weight:600; }
+  .result-phone { font-size:12px; color:var(--text-hint); margin-top:1px; }
+  .selected-chip { display:none; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border);
+    border-radius:999px; padding:7px 12px; font-size:13px; font-weight:600; width:fit-content; }
+  .selected-chip.show { display:flex; }
+  .chip-x { background:none; border:none; font-family:var(--font); font-size:15px; color:var(--text-hint); cursor:pointer; line-height:1; }
+  .search-hint { font-size:11px; color:var(--text-hint); }
+  .sched-btn {
+    background:var(--primary); border:1.5px solid #fff; outline:1px solid var(--border); color:#fff;
+    border-radius:var(--radius-lg); padding:14px; font-family:var(--font); font-size:15px; font-weight:600;
+    cursor:pointer; transition:background 0.15s, color 0.15s; width:100%;
+  }
+  @media (hover:hover) { .sched-btn:hover { background:#fff; color:var(--primary); border-color:var(--primary); } }
+  .sched-btn:active { background:#fff; color:var(--primary); }
+  .sched-btn:disabled { background:var(--surface-2); color:var(--text-hint); border-color:var(--border); cursor:not-allowed; }
+  /* queue items */
+  .q-item { border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px; display:flex; flex-direction:column; gap:6px; }
+  .q-top { display:flex; align-items:center; gap:8px; }
+  .q-name { font-size:14px; font-weight:600; }
+  .q-when { font-size:11px; margin-left:auto; background:var(--amber-bg); color:var(--amber); padding:2px 8px; border-radius:999px; font-weight:600; white-space:nowrap; }
+  .q-when.sent { background:var(--green-bg); color:var(--green); }
+  .q-msg { font-size:13px; color:var(--text-muted); line-height:1.45; }
+  .q-cancel { align-self:flex-end; background:none; border:1px solid var(--border); border-radius:var(--radius-sm);
+    font-family:var(--font); font-size:12px; color:var(--text-hint); cursor:pointer; padding:5px 10px; }
+  .q-cancel:active { background:var(--surface); }
+  .pill-empty { font-size:13px; color:var(--text-hint); text-align:center; padding:10px 0; }
+  .loading { text-align:center; color:var(--text-hint); font-size:13px; padding:10px 0; }
+  .toast { display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#111; color:#fff;
+    padding:11px 20px; border-radius:12px; font-size:14px; font-weight:500; z-index:200; white-space:nowrap; }
+  .toast.show { display:block; }
+  .toast.success { background:var(--green); }
+  .toast.error { background:#DC2626; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back-btn" href="communications.html" id="backBtn">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <div class="topbar-info">
+    <div class="topbar-title">⏰ Scheduled SMS</div>
+    <div class="topbar-sub">Set a text for later — sends automatically</div>
+  </div>
+  <button class="refresh-btn" id="refreshBtn" title="Refresh">
+    <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+  </button>
+</div>
+<div class="wrap">
+
+  <!-- ═══ PILL 1: COMPOSER ═══ -->
+  <div class="pill-card">
+    <div class="pill-header">✏️ New Scheduled Text</div>
+    <div class="pill-body">
+      <div class="field contact-box">
+        <div class="field-label">To</div>
+        <input type="text" id="contactSearch" placeholder="Search contacts or type a phone number…" autocomplete="off">
+        <div class="results" id="results"></div>
+        <div class="selected-chip" id="selectedChip">
+          <span id="chipLabel"></span>
+          <button class="chip-x" id="chipX">✕</button>
+        </div>
+        <div class="search-hint">Pick from GHL, or just type a number like 417-555-1234</div>
+      </div>
+      <div class="field">
+        <div class="field-label">Message</div>
+        <textarea id="msgInput" placeholder="What should the text say?"></textarea>
+      </div>
+      <div class="dt-row">
+        <div class="field">
+          <div class="field-label">Send Date</div>
+          <input type="date" id="dateInput">
+        </div>
+        <div class="field">
+          <div class="field-label">Send Time</div>
+          <input type="time" id="timeInput">
+        </div>
+      </div>
+      <button class="sched-btn" id="schedBtn" disabled>Schedule Text ›</button>
+      <div class="search-hint" style="text-align:center;">Sends within 30 minutes of the chosen time</div>
+    </div>
+  </div>
+
+  <!-- ═══ PILL 2: PENDING QUEUE ═══ -->
+  <div class="pill-card">
+    <div class="pill-header">⏳ Pending Queue</div>
+    <div class="pill-body" id="pendingBody"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- ═══ PILL 3: RECENTLY SENT ═══ -->
+  <div class="pill-card">
+    <div class="pill-header">✅ Recently Sent</div>
+    <div class="pill-body" id="sentBody"><div class="loading">Loading…</div></div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+<script>
+  // ── SW EXORCISM + AUTH + SMART BACK ──
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(()=>{}); }
+  if (window.caches && caches.keys) { caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(()=>{}); }
+  const user = JSON.parse(sessionStorage.getItem('lexpro_user') || localStorage.getItem('lexpro_user') || '{}');
+  if (!user.username) window.location.href = 'index.html';
+  document.getElementById('backBtn').addEventListener('click', function(e) {
+    if (document.referrer && history.length > 1) { e.preventDefault(); history.back(); }
+  });
+  const toast = document.getElementById('toast');
+  function showToast(msg, type='') {
+    toast.textContent = msg;
+    toast.className = 'toast show' + (type ? ' '+type : '');
+    setTimeout(() => { toast.className = 'toast'; }, 3000);
+  }
+  // ── STATE ──
+  let selected = null; // { first, last, phone, contactId } or free-typed phone
+  const searchInput = document.getElementById('contactSearch');
+  const resultsBox = document.getElementById('results');
+  const chip = document.getElementById('selectedChip');
+  const chipLabel = document.getElementById('chipLabel');
+  const msgInput = document.getElementById('msgInput');
+  const dateInput = document.getElementById('dateInput');
+  const timeInput = document.getElementById('timeInput');
+  const schedBtn = document.getElementById('schedBtn');
+  // default date = today (local)
+  const today = new Date();
+  dateInput.value = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  dateInput.min = dateInput.value;
+  function phoneOnly(s) { return /^[\d\s\-\(\)\+\.]{7,}$/.test(s.trim()); }
+  function validate() {
+    const hasTarget = !!selected || phoneOnly(searchInput.value);
+    schedBtn.disabled = !(hasTarget && msgInput.value.trim() && dateInput.value && timeInput.value);
+  }
+  [msgInput, dateInput, timeInput].forEach(el => el.addEventListener('input', validate));
+  // ── CONTACT SEARCH ──
+  let searchTimer = null;
+  searchInput.addEventListener('input', () => {
+    validate();
+    const q = searchInput.value.trim();
+    clearTimeout(searchTimer);
+    if (q.length < 2 || phoneOnly(q)) { resultsBox.classList.remove('open'); return; }
+    searchTimer = setTimeout(async () => {
+      try {
+        const res = await fetch('/.netlify/functions/tanya-get-contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: q })
+        });
+        const data = await res.json();
+        resultsBox.innerHTML = '';
+        if (data.found && data.contacts && data.contacts.length) {
+          data.contacts.slice(0, 6).forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'result-item';
+            item.innerHTML = `<div class="result-name">${esc(c.name || '')}</div><div class="result-phone">${esc(c.phone || 'no phone')}</div>`;
+            item.addEventListener('click', () => selectContact(c));
+            resultsBox.appendChild(item);
+          });
+          resultsBox.classList.add('open');
+        } else {
+          resultsBox.classList.remove('open');
+        }
+      } catch(e) { resultsBox.classList.remove('open'); }
+    }, 350);
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.contact-box')) resultsBox.classList.remove('open');
+  });
+  function selectContact(c) {
+    const parts = (c.name || '').trim().split(/\s+/);
+    selected = {
+      first: parts[0] || '', last: parts.slice(1).join(' ') || '',
+      phone: c.phone || '', contactId: c.id || ''
+    };
+    chipLabel.textContent = (c.name || 'Contact') + (c.phone ? ' · ' + c.phone : '');
+    chip.classList.add('show');
+    searchInput.value = '';
+    searchInput.style.display = 'none';
+    resultsBox.classList.remove('open');
+    validate();
+  }
+  document.getElementById('chipX').addEventListener('click', () => {
+    selected = null;
+    chip.classList.remove('show');
+    searchInput.style.display = '';
+    searchInput.focus();
+    validate();
+  });
+  // ── SCHEDULE ──
+  schedBtn.addEventListener('click', async () => {
+    schedBtn.disabled = true;
+    schedBtn.textContent = 'Scheduling…';
+    const payload = {
+      action: 'create',
+      first: selected ? selected.first : '',
+      last:  selected ? selected.last : '',
+      phone: selected ? selected.phone : searchInput.value.trim(),
+      contactId: selected ? selected.contactId : '',
+      message: msgInput.value.trim(),
+      sendDate: dateInput.value,
+      sendTime: timeInput.value
+    };
+    try {
+      const res = await fetch('/.netlify/functions/schedule-sms', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || 'failed');
+      showToast('Scheduled! ⏰', 'success');
+      msgInput.value = ''; timeInput.value = '';
+      if (selected) { selected = null; chip.classList.remove('show'); searchInput.style.display = ''; }
+      else searchInput.value = '';
+      loadLists();
+    } catch(e) {
+      showToast(e.message === 'valid phone required' ? 'Check the phone number' : 'Could not schedule — try again', 'error');
+    }
+    schedBtn.textContent = 'Schedule Text ›';
+    validate();
+  });
+  // ── LISTS ──
+  async function loadLists() {
+    try {
+      const res = await fetch('/.netlify/functions/schedule-sms', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'list' })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error();
+      renderPending(data.pending || []);
+      renderSent(data.sent || []);
+    } catch(e) {
+      document.getElementById('pendingBody').innerHTML = '<div class="pill-empty">Could not load — hit refresh.</div>';
+      document.getElementById('sentBody').innerHTML = '<div class="pill-empty">Could not load — hit refresh.</div>';
+    }
+  }
+  function fmtWhen(d, t) {
+    if (!d) return '';
+    const dt = new Date(d + 'T' + (t || '00:00'));
+    if (isNaN(dt)) return d + ' ' + (t || '');
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' +
+           dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+  function personLabel(it) {
+    const n = (it.first + ' ' + it.last).trim();
+    return n || formatPhone(it.phone);
+  }
+  function formatPhone(p) {
+    const d = String(p||'').replace(/\D/g,'');
+    if (d.length === 11) return `(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`;
+    return p || '';
+  }
+  function renderPending(items) {
+    const body = document.getElementById('pendingBody');
+    if (!items.length) { body.innerHTML = '<div class="pill-empty">Nothing waiting to send.</div>'; return; }
+    body.innerHTML = '';
+    items.forEach(it => {
+      const el = document.createElement('div');
+      el.className = 'q-item';
+      el.innerHTML = `
+        <div class="q-top">
+          <div class="q-name">${esc(personLabel(it))}</div>
+          <div class="q-when">${esc(fmtWhen(it.sendDate, it.sendTime))}</div>
+        </div>
+        <div class="q-msg">${esc(it.message)}</div>
+        <button class="q-cancel">Cancel</button>`;
+      el.querySelector('.q-cancel').addEventListener('click', async (e) => {
+        const btn = e.target;
+        btn.disabled = true; btn.textContent = 'Cancelling…';
+        try {
+          const res = await fetch('/.netlify/functions/schedule-sms', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'cancel', row: it.row })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.ok) throw new Error();
+          showToast('Cancelled', 'success');
+          loadLists();
+        } catch(err) {
+          showToast('Could not cancel — try again', 'error');
+          btn.disabled = false; btn.textContent = 'Cancel';
+        }
+      });
+      body.appendChild(el);
+    });
+  }
+  function renderSent(items) {
+    const body = document.getElementById('sentBody');
+    if (!items.length) { body.innerHTML = '<div class="pill-empty">No sent texts yet.</div>'; return; }
+    body.innerHTML = '';
+    items.forEach(it => {
+      const el = document.createElement('div');
+      el.className = 'q-item';
+      el.innerHTML = `
+        <div class="q-top">
+          <div class="q-name">${esc(personLabel(it))}</div>
+          <div class="q-when sent">${esc(it.sentAt || fmtWhen(it.sendDate, it.sendTime))}</div>
+        </div>
+        <div class="q-msg">${esc(it.message)}</div>`;
+      body.appendChild(el);
+    });
+  }
+  document.getElementById('refreshBtn').addEventListener('click', loadLists);
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  loadLists();
+</script>
+</body>
+</html>
