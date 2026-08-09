@@ -51,7 +51,7 @@
 <body>
 
 <div class="header">
-  <a class="back-btn" href="tanya-home.html" onclick="if(!document.referrer.includes('tanya')){this.href='home.html'}">
+  <a class="back-btn" href="crm.html" onclick="if(document.referrer&&history.length>1){history.back();return false;}" onclick="if(!document.referrer.includes('tanya')){this.href='home.html'}">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
   </a>
   <div>
