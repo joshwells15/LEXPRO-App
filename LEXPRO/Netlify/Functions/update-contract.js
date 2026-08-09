@@ -72,7 +72,7 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json',
         'Version': '2021-07-28',
       },
-      body: JSON.stringify({ locationId: GHL_LOCATION, customFields }),
+      body: JSON.stringify({ customFields }),
     });
     const data = await res.json();
     if (!res.ok) {
