@@ -11,10 +11,13 @@
 //
 // POST {
 //   contactId, firstName, lastName, phone, email,
-//   street, city, state, zip, price, side, liveDate,
+//   street, city, state, zip, price, liveDate,
 //   occupancy ('occupied'|'vacant'), requiresApproval (bool),
 //   allowedStart ('09:00'), allowedEnd ('19:00'),
-//   noticeHours (int), showingNotes
+//   noticeHours (int), showingNotes, internalNotes,
+//   linkedTo (uuid of parent listing or null),
+//   blackoutWindows: [ {day:'Mon',start:'08:00',end:'12:00'} weekly
+//                      | {date:'2026-08-15',start:'13:00',end:'15:00'} one-off ]
 // }
 
 const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
@@ -47,10 +50,11 @@ exports.handler = async (event) => {
 
   const {
     contactId, firstName = '', lastName = '', phone = '', email = '',
-    street = '', city = '', state = 'MO', zip = '', price = '', side = '', liveDate = '',
+    street = '', city = '', state = 'MO', zip = '', price = '', liveDate = '',
     occupancy = 'occupied', requiresApproval = true,
     allowedStart = '09:00', allowedEnd = '19:00',
-    noticeHours = 0, showingNotes = ''
+    noticeHours = 0, showingNotes = '', internalNotes = '',
+    linkedTo = null, blackoutWindows = []
   } = b;
 
   if (!contactId) return resp(400, { error: 'No contact selected.' });
@@ -92,6 +96,9 @@ exports.handler = async (event) => {
     allowed_end: allowedEnd || '19:00',
     notice_hours: parseInt(noticeHours, 10) || 0,
     showing_notes: showingNotes || null,
+    internal_notes: internalNotes || null,
+    parent_listing_id: linkedTo || null,
+    blackout_windows: Array.isArray(blackoutWindows) ? blackoutWindows.filter(w => w && w.start && w.end && (w.day || w.date)) : [],
     status: 'active',
     updated_at: new Date().toISOString()
   };
@@ -129,7 +136,6 @@ exports.handler = async (event) => {
       { key: 'seller__subject_property_zip_code', field_value: zip.trim() },
       { key: 'seller_transactions',               field_value: 'Listing Live' },
     ];
-    if (side) customFields.push({ key: 'represented_side', field_value: [side] });
     if (liveDate) customFields.push({ key: 'listing_live', field_value: liveDate });
     if (price) {
       const cleanPrice = String(price).replace(/[^0-9.]/g, '');
