@@ -58,6 +58,7 @@
   .result-item { padding:11px 14px; cursor:pointer; border-bottom:1px solid var(--border); }
   .result-item:last-child { border-bottom:none; }
   .result-item:active { background:var(--surface); }
+  @media (hover:hover) { .result-item:hover { background:var(--surface); } }
   .result-name { font-size:14px; font-weight:600; }
   .result-phone { font-size:12px; color:var(--text-hint); margin-top:1px; }
   .selected-chip { display:none; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border);
@@ -82,6 +83,18 @@
   @media (hover:hover) { .big-btn:hover { background:#fff; color:var(--primary); border-color:var(--primary); } }
   .big-btn:active { background:#fff; color:var(--primary); }
   .big-btn:disabled { background:var(--surface-2); color:var(--text-hint); border-color:var(--border); cursor:not-allowed; }
+  .add-row-btn { background:var(--surface); border:1.5px dashed var(--border); border-radius:var(--radius-md);
+    padding:11px; font-family:var(--font); font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; width:100%; }
+  .add-row-btn:active { border-color:var(--primary); color:var(--primary); }
+  .bo-row { border:1px solid var(--border); border-radius:var(--radius-md); padding:10px; display:flex; flex-direction:column; gap:8px; background:var(--surface); }
+  .bo-top { display:flex; gap:8px; align-items:center; }
+  .bo-type { display:flex; background:var(--bg); border:1px solid var(--border); border-radius:999px; padding:2px; flex:1; }
+  .bo-type button { flex:1; padding:6px; border:none; border-radius:999px; background:none; font-family:var(--font); font-size:12px; font-weight:600; color:var(--text-hint); cursor:pointer; }
+  .bo-type button.on { background:var(--primary); color:#fff; }
+  .bo-x { background:none; border:none; font-size:16px; color:var(--text-hint); cursor:pointer; padding:0 6px; }
+  .bo-row input, .bo-row select { border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; font-family:var(--font); font-size:14px; background:var(--bg); outline:none; width:100%; appearance:none; -webkit-appearance:none; }
+  .bo-when { display:flex; gap:8px; }
+  .bo-when > * { flex:1; }
   .ghost-btn { background:none; border:none; font-family:var(--font); font-size:13px; color:var(--text-hint);
     cursor:pointer; text-decoration:underline; padding:6px; align-self:center; }
   /* success */
@@ -135,12 +148,7 @@
           <div class="field"><div class="field-label">Zip *</div><input type="text" id="fZip" placeholder="65804" inputmode="numeric"></div>
           <div class="field"><div class="field-label">List Price</div><input type="text" id="fPrice" placeholder="$250,000" inputmode="numeric"></div>
         </div>
-        <div class="frow">
-          <div class="field"><div class="field-label">Represented Side *</div>
-            <div class="sel-wrap"><select id="fSide"><option value="">— Select —</option><option value="Seller">Seller</option><option value="Buyer">Buyer</option><option value="Dual Agency">Dual Agency</option></select></div>
-          </div>
-          <div class="field"><div class="field-label">Live Date *</div><input type="date" id="fLiveDate"></div>
-        </div>
+        <div class="field"><div class="field-label">Live Date *</div><input type="date" id="fLiveDate"></div>
       </div>
     </div>
     <button class="big-btn" id="toStep2">Set Showing Rules ›</button>
@@ -177,7 +185,29 @@
           <div class="field"><div class="field-label">Latest</div><input type="time" id="fEnd" value="19:00"></div>
         </div>
         <div class="field"><div class="field-label">Notice required (hours)</div><input type="number" id="fNotice" value="0" min="0" inputmode="numeric"></div>
-        <div class="field"><div class="field-label">Showing notes (gate codes, pets, etc.)</div><textarea id="fNotes" placeholder="Optional…"></textarea></div>
+      </div>
+    </div>
+    <div class="pill-card">
+      <div class="pill-header">Blocked Times</div>
+      <div class="pill-body">
+        <div id="blackoutList" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <button type="button" class="add-row-btn" id="addBlackout">+ Add blocked time</button>
+      </div>
+    </div>
+    <div class="pill-card">
+      <div class="pill-header">Linked To</div>
+      <div class="pill-body">
+        <div class="field">
+          <div class="field-label">Link this listing to another (optional)</div>
+          <div class="sel-wrap"><select id="fLinked"><option value="">None</option></select></div>
+        </div>
+      </div>
+    </div>
+    <div class="pill-card">
+      <div class="pill-header">Notes</div>
+      <div class="pill-body">
+        <div class="field"><div class="field-label">Showing notes (shared with agents — gate codes, pets, etc.)</div><textarea id="fNotes" placeholder="Optional…"></textarea></div>
+        <div class="field"><div class="field-label">Internal notes (team only)</div><textarea id="fInternal" placeholder="Optional…"></textarea></div>
       </div>
     </div>
     <button class="big-btn" id="goLiveBtn">🪧 Create Listing — Go Live</button>
@@ -240,29 +270,29 @@
     if (q.length < 2) { resultsBox.classList.remove('open'); return; }
     searchTimer = setTimeout(async () => {
       try {
-        const res = await fetch('/.netlify/functions/tanya-get-contact', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: q })
-        });
+        const res = await fetch('/.netlify/functions/search-contacts?query=' + encodeURIComponent(q));
         const data = await res.json();
+        const contacts = data.contacts || [];
         resultsBox.innerHTML = '';
-        if (data.found && data.contacts && data.contacts.length) {
-          data.contacts.slice(0, 6).forEach(c => {
+        if (!contacts.length) {
+          resultsBox.innerHTML = '<div class="result-item"><div class="result-name">No contacts found</div></div>';
+        } else {
+          contacts.forEach(c => {
+            const nm = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || c.contactName || 'Unnamed';
             const item = document.createElement('div');
             item.className = 'result-item';
-            item.innerHTML = `<div class="result-name">${esc(c.name || '')}</div><div class="result-phone">${esc(c.phone || 'no phone')}</div>`;
+            item.innerHTML = `<div class="result-name">${esc(nm)}</div><div class="result-phone">${esc(c.phone || 'no phone on file')}</div>`;
             item.addEventListener('click', () => {
-              const parts = (c.name || '').trim().split(/\s+/);
-              selected = { id: c.id, firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || '', name: c.name || '', phone: c.phone || '', email: c.email || '' };
-              chipLabel.textContent = (c.name || 'Contact') + (c.phone ? ' · ' + c.phone : '');
+              selected = { id: c.id, firstName: c.firstName || nm.split(' ')[0] || '', lastName: c.lastName || nm.split(' ').slice(1).join(' ') || '', name: nm, phone: c.phone || '', email: c.email || '' };
+              chipLabel.textContent = nm + (c.phone ? ' · ' + c.phone : '');
               chip.classList.add('show');
               searchInput.value = ''; searchInput.style.display = 'none';
               resultsBox.classList.remove('open');
             });
             resultsBox.appendChild(item);
           });
-          resultsBox.classList.add('open');
-        } else resultsBox.classList.remove('open');
+        }
+        resultsBox.classList.add('open');
       } catch (e) { resultsBox.classList.remove('open'); }
     }, 350);
   });
@@ -283,6 +313,74 @@
     });
   });
 
+  // ── LINKED-TO: load active listings from registry ──
+  (async function loadLinkable() {
+    try {
+      const res = await fetch('https://dqiiekdfmocvizzvmwlc.supabase.co/rest/v1/listings?status=eq.active&select=id,address_full&order=address_full.asc', {
+        headers: { 'apikey': 'sb_publishable_TCNeI1Mg36-kXLJKA33h1g_emUHiC-Z', 'Authorization': 'Bearer sb_publishable_TCNeI1Mg36-kXLJKA33h1g_emUHiC-Z' }
+      });
+      const rows = await res.json();
+      const sel = document.getElementById('fLinked');
+      (rows || []).forEach(r => {
+        const o = document.createElement('option');
+        o.value = r.id; o.textContent = r.address_full;
+        sel.appendChild(o);
+      });
+    } catch (e) { /* dropdown just stays None-only */ }
+  })();
+
+  // ── BLOCKED TIMES repeater ──
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const blackoutList = document.getElementById('blackoutList');
+  document.getElementById('addBlackout').addEventListener('click', () => addBlackoutRow());
+  function addBlackoutRow() {
+    const row = document.createElement('div');
+    row.className = 'bo-row';
+    row.dataset.type = 'weekly';
+    row.innerHTML = `
+      <div class="bo-top">
+        <div class="bo-type">
+          <button type="button" class="on" data-t="weekly">Weekly</button>
+          <button type="button" data-t="date">Specific date</button>
+        </div>
+        <button type="button" class="bo-x">✕</button>
+      </div>
+      <div class="bo-when">
+        <select class="bo-day">${DAYS.map(d => `<option value="${d}">${d}</option>`).join('')}</select>
+        <input type="date" class="bo-date" style="display:none;">
+      </div>
+      <div class="bo-when">
+        <input type="time" class="bo-start" value="08:00">
+        <input type="time" class="bo-end" value="12:00">
+      </div>`;
+    row.querySelectorAll('.bo-type button').forEach(b => {
+      b.addEventListener('click', () => {
+        row.querySelectorAll('.bo-type button').forEach(x => x.classList.remove('on'));
+        b.classList.add('on');
+        row.dataset.type = b.dataset.t;
+        row.querySelector('.bo-day').style.display = b.dataset.t === 'weekly' ? '' : 'none';
+        row.querySelector('.bo-date').style.display = b.dataset.t === 'date' ? '' : 'none';
+      });
+    });
+    row.querySelector('.bo-x').addEventListener('click', () => row.remove());
+    blackoutList.appendChild(row);
+  }
+  function collectBlackouts() {
+    const out = [];
+    blackoutList.querySelectorAll('.bo-row').forEach(row => {
+      const start = row.querySelector('.bo-start').value;
+      const end = row.querySelector('.bo-end').value;
+      if (!start || !end) return;
+      if (row.dataset.type === 'weekly') {
+        out.push({ day: row.querySelector('.bo-day').value, start, end });
+      } else {
+        const d = row.querySelector('.bo-date').value;
+        if (d) out.push({ date: d, start, end });
+      }
+    });
+    return out;
+  }
+
   // ── STEP 1 → 2 ──
   document.getElementById('toStep2').addEventListener('click', () => {
     if (!selected) { showToast('Select the seller contact first.', 'error'); return; }
@@ -291,7 +389,6 @@
     const state = document.getElementById('fState').value.trim();
     const zip = document.getElementById('fZip').value.trim();
     if (!street || !city || !state || !zip) { showToast('All address fields are required.', 'error'); return; }
-    if (!document.getElementById('fSide').value) { showToast('Pick the represented side.', 'error'); return; }
     if (!document.getElementById('fLiveDate').value) { showToast('Pick the live date.', 'error'); return; }
     document.getElementById('bannerAddr').textContent = `${street}, ${city}, ${state.toUpperCase()} ${zip}`;
     document.getElementById('bannerSeller').textContent = 'Seller: ' + selected.name;
@@ -316,14 +413,16 @@
           state: document.getElementById('fState').value.trim(),
           zip: document.getElementById('fZip').value.trim(),
           price: document.getElementById('fPrice').value.trim(),
-          side: document.getElementById('fSide').value,
           liveDate: document.getElementById('fLiveDate').value,
           occupancy: segVal('occSeg'),
           requiresApproval: segVal('apprSeg') === 'yes',
           allowedStart: document.getElementById('fStart').value || '09:00',
           allowedEnd: document.getElementById('fEnd').value || '19:00',
           noticeHours: document.getElementById('fNotice').value || 0,
-          showingNotes: document.getElementById('fNotes').value.trim()
+          showingNotes: document.getElementById('fNotes').value.trim(),
+          internalNotes: document.getElementById('fInternal').value.trim(),
+          linkedTo: document.getElementById('fLinked').value || null,
+          blackoutWindows: collectBlackouts()
         })
       });
       const data = await res.json();

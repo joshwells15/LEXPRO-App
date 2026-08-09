@@ -196,19 +196,17 @@
     if (q.length < 2 || phoneOnly(q)) { resultsBox.classList.remove('open'); return; }
     searchTimer = setTimeout(async () => {
       try {
-        const res = await fetch('/.netlify/functions/tanya-get-contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: q })
-        });
+        const res = await fetch('/.netlify/functions/search-contacts?query=' + encodeURIComponent(q));
         const data = await res.json();
+        const contacts = data.contacts || [];
         resultsBox.innerHTML = '';
-        if (data.found && data.contacts && data.contacts.length) {
-          data.contacts.slice(0, 6).forEach(c => {
+        if (contacts.length) {
+          contacts.slice(0, 6).forEach(c => {
+            const nm = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || c.contactName || 'Unnamed';
             const item = document.createElement('div');
             item.className = 'result-item';
-            item.innerHTML = `<div class="result-name">${esc(c.name || '')}</div><div class="result-phone">${esc(c.phone || 'no phone')}</div>`;
-            item.addEventListener('click', () => selectContact(c));
+            item.innerHTML = `<div class="result-name">${esc(nm)}</div><div class="result-phone">${esc(c.phone || 'no phone')}</div>`;
+            item.addEventListener('click', () => selectContact({ id: c.id, name: nm, phone: c.phone || '' }));
             resultsBox.appendChild(item);
           });
           resultsBox.classList.add('open');
