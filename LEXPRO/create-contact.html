@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>LexPro | Create Contact</title>
+<style>
+  :root {
+    --bg:#ffffff; --surface:#f7f7f7; --surface-2:#f0f0f0; --border:#e8e8e8;
+    --primary:#111111; --text:#111111; --text-muted:#666666; --text-hint:#999999;
+    --font:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;
+    --radius-sm:10px; --radius-md:14px; --radius-lg:20px;
+    --green:#065F46; --green-bg:#D1FAE5; --amber:#78350F; --amber-bg:#FEF3C7;
+    --red:#991B1B; --red-bg:#FEE2E2; --blue:#1E40AF; --blue-bg:#DBEAFE;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { min-height:100vh; min-height:100dvh; background:var(--bg); font-family:var(--font); color:var(--text); display:flex; flex-direction:column; }
+  .topbar { padding:14px 16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .back-btn { width:34px; height:34px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+    display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; }
+  .back-btn svg { width:16px; height:16px; stroke:var(--text-muted); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .topbar-info { flex:1; }
+  .topbar-title { font-size:17px; font-weight:700; letter-spacing:-0.3px; }
+  .topbar-sub { font-size:11px; color:var(--text-hint); margin-top:1px; }
+  .wrap { flex:1; overflow-y:auto; padding:16px; max-width:560px; width:100%; margin:0 auto; -webkit-overflow-scrolling:touch;
+    display:flex; flex-direction:column; gap:14px; }
+  .pill-card { border:1.5px solid var(--border); border-radius:var(--radius-lg); background:var(--bg); overflow:hidden; }
+  .pill-card.pop-ok { overflow:visible; }
+  .pill-card.pop-ok .pill-header { border-radius:calc(var(--radius-lg) - 2px) calc(var(--radius-lg) - 2px) 0 0; }
+  .pill-header { padding:13px 16px; background:var(--surface); border-bottom:1px solid var(--border);
+    font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; }
+  .pill-body { padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
+  .field { display:flex; flex-direction:column; gap:5px; }
+  .field-label { font-size:11px; font-weight:600; color:var(--text-hint); text-transform:uppercase; letter-spacing:0.06em; }
+  .field input, .field select, .field textarea {
+    border:1.5px solid var(--border); border-radius:var(--radius-md); padding:11px 12px; font-family:var(--font);
+    font-size:15px; color:var(--text); background:var(--surface); outline:none; width:100%; appearance:none; -webkit-appearance:none; }
+  .field input:focus, .field select:focus { border-color:var(--primary); background:var(--bg); }
+  .frow { display:flex; gap:10px; }
+  .frow .field { flex:1; }
+  .sel-wrap { position:relative; }
+  .sel-wrap::after { content:'▾'; position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--text-hint); pointer-events:none; }
+  .addr-banner { border:1.5px solid var(--primary); border-radius:var(--radius-lg); padding:14px 16px; background:var(--surface); display:none; }
+  .addr-banner.show { display:block; }
+  .ab-label { font-size:10px; font-weight:600; color:var(--text-hint); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:3px; }
+  .ab-addr { font-size:16px; font-weight:700; line-height:1.35; }
+  .ab-seller { font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .seg { display:flex; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px; }
+  .seg-btn { flex:1; padding:9px; border:none; border-radius:999px; background:none; font-family:var(--font);
+    font-size:13px; font-weight:600; color:var(--text-hint); cursor:pointer; transition:background 0.15s, color 0.15s; }
+  .seg-btn.on { background:var(--primary); color:#fff; }
+  .radio-group { display:flex; flex-direction:column; gap:8px; }
+  .radio-opt { display:flex; align-items:center; gap:10px; padding:12px 14px; border:1.5px solid var(--border);
+    border-radius:var(--radius-md); cursor:pointer; font-size:14px; font-weight:500; background:var(--surface);
+    transition:border-color 0.15s, background 0.15s, color 0.15s; user-select:none; }
+  .radio-opt.selected { border-color:var(--primary); background:var(--primary); color:#fff; }
+  .radio-dot { width:16px; height:16px; border-radius:50%; border:2px solid currentColor; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .radio-dot::after { content:''; width:8px; height:8px; border-radius:50%; background:currentColor; opacity:0; }
+  .radio-opt.selected .radio-dot::after { opacity:1; }
+  .yn-group { display:flex; gap:10px; }
+  .yn-btn { flex:1; padding:11px; border:1.5px solid var(--border); background:var(--surface); border-radius:var(--radius-md);
+    font-family:var(--font); font-size:14px; font-weight:600; color:var(--text-hint); cursor:pointer; transition:all 0.15s; }
+  .yn-btn.selected { border-color:var(--primary); background:var(--primary); color:#fff; }
+  .big-btn { background:var(--primary); border:1.5px solid #fff; outline:1px solid var(--border); color:#fff;
+    border-radius:var(--radius-lg); padding:14px; font-family:var(--font); font-size:15px; font-weight:600;
+    cursor:pointer; transition:background 0.15s, color 0.15s; width:100%; }
+  @media (hover:hover) { .big-btn:hover { background:#fff; color:var(--primary); border-color:var(--primary); } }
+  .big-btn:active { background:#fff; color:var(--primary); }
+  .big-btn:disabled { background:var(--surface-2); color:var(--text-hint); border-color:var(--border); cursor:not-allowed; }
+  .toast { display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#111; color:#fff;
+    padding:11px 20px; border-radius:12px; font-size:14px; font-weight:500; z-index:200; white-space:nowrap; }
+  .toast.show { display:block; }
+  .toast.success { background:var(--green); }
+  .toast.error { background:#DC2626; }
+
+  .success-view { display:none; flex-direction:column; align-items:center; text-align:center; gap:14px; padding:40px 24px; }
+  .success-view.show { display:flex; }
+  .success-icon { width:64px; height:64px; border-radius:50%; background:var(--green-bg); display:flex; align-items:center; justify-content:center; font-size:30px; }
+  .success-title { font-size:20px; font-weight:700; }
+  .success-sub { font-size:13.5px; color:var(--text-muted); line-height:1.6; max-width:300px; }
+  .ghost-btn { background:none; border:none; font-family:var(--font); font-size:13px; color:var(--text-hint);
+    cursor:pointer; text-decoration:underline; padding:6px; align-self:center; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back-btn" href="crm.html" id="backBtn">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <div class="topbar-info">
+    <div class="topbar-title">➕ Create a Contact</div>
+    <div class="topbar-sub">New buyer or seller — tagged lexpro</div>
+  </div>
+</div>
+<div class="wrap">
+  <div id="formView" style="display:flex; flex-direction:column; gap:14px;">
+    <div class="pill-card">
+      <div class="pill-header">Contact Info</div>
+      <div class="pill-body">
+        <div class="frow">
+          <div class="field"><div class="field-label">First Name *</div><input type="text" id="fFirst" placeholder="First"></div>
+          <div class="field"><div class="field-label">Last Name *</div><input type="text" id="fLast" placeholder="Last"></div>
+        </div>
+        <div class="field"><div class="field-label">Phone *</div><input type="tel" id="fPhone" placeholder="(417) 555-0100"></div>
+        <div class="field"><div class="field-label">Email</div><input type="email" id="fEmail" placeholder="name@email.com"></div>
+      </div>
+    </div>
+    <div class="pill-card">
+      <div class="pill-header">Represented Side</div>
+      <div class="pill-body">
+        <div class="seg" id="sideSeg">
+          <button class="seg-btn on" data-val="Seller">🏡 Seller</button>
+          <button class="seg-btn" data-val="Buyer">🔑 Buyer</button>
+          <button class="seg-btn" data-val="Dual Agency">🤝 Dual</button>
+        </div>
+      </div>
+    </div>
+    <button class="big-btn" id="createBtn">➕ Create Contact</button>
+  </div>
+  <div class="success-view" id="successView">
+    <div class="success-icon">➕</div>
+    <div class="success-title" id="sTitle">Contact created!</div>
+    <div class="success-sub" id="sSub"></div>
+    <button class="big-btn" style="max-width:280px;" id="nextStepBtn"></button>
+    <button class="ghost-btn" onclick="location.reload()">+ Add another contact</button>
+    <button class="ghost-btn" onclick="location.href='crm.html'">Back to CRM</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(()=>{}); }
+  if (window.caches && caches.keys) { caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(()=>{}); }
+  const user = JSON.parse(sessionStorage.getItem('lexpro_user') || localStorage.getItem('lexpro_user') || '{}');
+  if (!user.username) window.location.href = 'index.html';
+  document.getElementById('backBtn').addEventListener('click', function(e) {
+    if (document.referrer && history.length > 1) { e.preventDefault(); history.back(); }
+  });
+  const toast = document.getElementById('toast');
+  function showToast(msg, type='') { toast.textContent = msg; toast.className = 'toast show' + (type ? ' '+type : ''); setTimeout(() => { toast.className = 'toast'; }, 3500); }
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  document.querySelectorAll('#sideSeg .seg-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#sideSeg .seg-btn').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+    });
+  });
+  document.getElementById('createBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('createBtn');
+    const first = document.getElementById('fFirst').value.trim();
+    const last = document.getElementById('fLast').value.trim();
+    const phone = document.getElementById('fPhone').value.trim();
+    const email = document.getElementById('fEmail').value.trim();
+    const side = document.querySelector('#sideSeg .seg-btn.on').dataset.val;
+    if (!first || !last) { showToast('First and last name are required.', 'error'); return; }
+    if (!phone) { showToast('Phone is required.', 'error'); return; }
+    btn.disabled = true; btn.textContent = 'Creating…';
+    try {
+      const res = await fetch('/.netlify/functions/create-contact', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName: first, lastName: last, phone, email, side })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Could not create contact.');
+      document.getElementById('formView').style.display = 'none';
+      document.getElementById('sTitle').textContent = data.isNew ? 'Contact created!' : 'Contact already existed — updated.';
+      document.getElementById('sSub').textContent = `${first} ${last} is in GHL, tagged lexpro, marked as ${side}.`;
+      const nb = document.getElementById('nextStepBtn');
+      if (side === 'Buyer') { nb.textContent = '📝 Start Buyer Under Contract'; nb.onclick = () => location.href = 'uc-buyer.html'; }
+      else { nb.textContent = '🪧 Start a New Listing'; nb.onclick = () => location.href = 'new-listing.html'; }
+      document.getElementById('successView').classList.add('show');
+    } catch (err) {
+      showToast(err.message || 'Something went wrong.', 'error');
+      btn.disabled = false; btn.textContent = '➕ Create Contact';
+    }
+  });
+</script>
+</body>
+</html>
