@@ -218,12 +218,7 @@
     document.getElementById('eventsTitle').textContent = `${MONTHS[month]} ${day} — ${closings.length} event${closings.length !== 1 ? 's' : ''}`;
     renderEventsList(closings);
   }
-  function navigateToOpp(idx) {
-    const c = window._currentClosings[idx];
-    if (!c) return;
-    sessionStorage.setItem('lexpro_opp', JSON.stringify(c.oppData));
-    window.location.href = 'transaction.html?id=' + c.oppId + '&side=' + c.side;
-  }
+  function navigateToOpp(idx) { /* appointment cards are informational */ }
   function renderEventsList(closings) {
     const list = document.getElementById('eventsList');
     if (!closings || closings.length === 0) {
@@ -274,58 +269,49 @@
   }
   function buildLegend() {
     const legend = document.getElementById('legend');
-    legend.innerHTML = EVENT_TYPES.map(t =>
+    legend.innerHTML = TYPE_COLORS.filter(t => !['title','financial'].includes(t.kw)).map(t =>
       `<div class="legend-item"><div class="legend-dot" style="background:${t.color}"></div>${t.label}</div>`
     ).join('');
+  }
+  // Map appointment titles -> type + color (keyword match)
+  const TYPE_COLORS = [
+    { kw: 'closing',              label: 'Closing',              color: '#111111' },
+    { kw: 'inspection notice',    label: 'Inspection Notice',    color: '#b86e00' },
+    { kw: 'inspection response',  label: 'Inspection Response',  color: '#cc2233' },
+    { kw: 'appraisal',            label: 'Appraisal',            color: '#185fa5' },
+    { kw: 'walkthrough',          label: 'Final Walkthrough',    color: '#534ab7' },
+    { kw: 'listing live',         label: 'Listing Live',         color: '#993c1d' },
+    { kw: 'under contract',       label: 'Under Contract',       color: '#0f6e56' },
+    { kw: 'notice submitted',     label: 'Notice Submitted',     color: '#854f0b' },
+    { kw: 'title',                label: 'Title',                color: '#0e7490' },
+    { kw: 'financial',            label: 'Financing',            color: '#7c2d92' }
+  ];
+  function typeFor(title) {
+    const t = (title || '').toLowerCase();
+    for (const tc of TYPE_COLORS) if (t.includes(tc.kw)) return tc;
+    return { label: 'Event', color: '#666666' };
   }
   async function loadClosings() {
     buildLegend();
     try {
-      const [buyerRes, sellerRes] = await Promise.all([
-        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${BUYER_PIPELINE}&limit=100`, {
-          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
-        }).then(r => r.json()),
-        fetch(`https://services.leadconnectorhq.com/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${SELLER_PIPELINE}&limit=100`, {
-          headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
-        }).then(r => r.json())
-      ]);
-      const buyerOpps = (buyerRes.opportunities || []).map(o => ({ ...o, side: 'buyer' }));
-      const sellerOpps = (sellerRes.opportunities || []).map(o => ({ ...o, side: 'seller' }));
-      const allOpps = [...buyerOpps, ...sellerOpps].filter(o => o.status !== 'lost');
-      const events = await Promise.all(allOpps.map(async opp => {
-        const contactId = opp.contactId || opp.contact?.id;
-        if (!contactId) return [];
-        try {
-          const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
-            headers: { 'Authorization': `Bearer ${GHL_API_KEY}`, 'Version': '2021-07-28', 'Accept': 'application/json' }
-          });
-          const data = await res.json();
-          const cf = data.contact?.customFields || [];
-          const streetId = opp.side === 'buyer' ? 'UbWD9ClprLSo3iABNqDm' : 'jUrEI5UBPdfZj2mWujx7';
-          const streetField = cf.find(f => f.id === streetId);
-          const contactName = opp.contact?.name || opp.name || 'Unknown';
-          const address = streetField?.value || null;
-          const oppEvents = [];
-          EVENT_TYPES.forEach(et => {
-            const field = cf.find(f => f.id === et.id);
-            if (field?.value) {
-              oppEvents.push({
-                oppId: opp.id,
-                side: opp.side,
-                contactName,
-                address,
-                eventDate: field.value,
-                eventType: et.label,
-                eventColor: et.color,
-                oppData: opp,
-                isClosing: et.id === CLOSING_FIELD_ID
-              });
-            }
-          });
-          return oppEvents;
-        } catch(e) { return []; }
-      }));
-      allClosings = events.flat().filter(Boolean);
+      const res = await fetch('/.netlify/functions/get-calendar');
+      const data = await res.json();
+      const appts = data.appointments || [];
+      allClosings = appts.filter(a => a.startTime).map(a => {
+        const tc = typeFor(a.title);
+        const raw = (a.title || '').trim();
+        // Titles look like "Event Type - Name/Address"; split for display
+        const dashIdx = raw.indexOf(' - ');
+        const who = dashIdx > -1 ? raw.slice(dashIdx + 3) : '';
+        return {
+          contactName: who || raw || 'Event',
+          address: null,
+          eventDate: a.startTime.split('T')[0] + 'T12:00:00',
+          eventType: tc.label,
+          eventColor: tc.color,
+          fullTitle: raw
+        };
+      });
       renderCalendar();
       showUpcoming();
     } catch(e) {

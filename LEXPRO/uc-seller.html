@@ -210,6 +210,12 @@
         o.textContent = l.address_full + (l.status === 'under_contract' ? ' · UC' : '');
         sel.appendChild(o);
       });
+      // deep link: ?listing=<registry id>
+      const want = new URLSearchParams(location.search).get('listing');
+      if (want) {
+        const idx = listings.findIndex(l => l.id === want);
+        if (idx > -1) { sel.value = idx; sel.dispatchEvent(new Event('change')); }
+      }
     } catch (e) {
       sel.innerHTML = '<option value="">Could not load — refresh</option>';
     }

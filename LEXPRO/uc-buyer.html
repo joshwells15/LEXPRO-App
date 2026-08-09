@@ -259,6 +259,18 @@
 
   function onContactPicked() { document.getElementById('workArea').style.display = 'flex'; }
   function onContactCleared() { document.getElementById('workArea').style.display = 'none'; }
+  // deep link: ?contact=<ghl id>&name=&phone=
+  (function preselect() {
+    const p = new URLSearchParams(location.search);
+    const id = p.get('contact');
+    if (!id) return;
+    const nm = p.get('name') || 'Contact';
+    selected = { id, name: nm, phone: p.get('phone') || '' };
+    chipLabel.textContent = nm + (selected.phone ? ' · ' + selected.phone : '');
+    chip.classList.add('show');
+    searchInput.style.display = 'none';
+    onContactPicked();
+  })();
 
   document.querySelectorAll('#modeSeg .seg-btn').forEach(b => {
     b.addEventListener('click', () => {

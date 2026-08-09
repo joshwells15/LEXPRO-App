@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LexPro">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>LexPro | Under Contract Board</title>
+<style>
+  :root {
+    --bg:#ffffff; --surface:#f7f7f7; --surface-2:#f0f0f0; --border:#e8e8e8;
+    --primary:#111111; --text:#111111; --text-muted:#666666; --text-hint:#999999;
+    --font:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;
+    --radius-sm:10px; --radius-md:14px; --radius-lg:20px;
+    --green:#065F46; --green-bg:#D1FAE5; --amber:#78350F; --amber-bg:#FEF3C7;
+    --red:#991B1B; --red-bg:#FEE2E2; --blue:#1E40AF; --blue-bg:#DBEAFE;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { min-height:100vh; min-height:100dvh; background:var(--bg); font-family:var(--font); color:var(--text); display:flex; flex-direction:column; }
+  .topbar { padding:14px 16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .back-btn { width:34px; height:34px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+    display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0; }
+  .back-btn svg { width:16px; height:16px; stroke:var(--text-muted); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .topbar-info { flex:1; }
+  .topbar-title { font-size:17px; font-weight:700; letter-spacing:-0.3px; }
+  .topbar-sub { font-size:11px; color:var(--text-hint); margin-top:1px; }
+  .wrap { flex:1; overflow-y:auto; padding:16px; max-width:560px; width:100%; margin:0 auto; -webkit-overflow-scrolling:touch;
+    display:flex; flex-direction:column; gap:14px; }
+  .pill-card { border:1.5px solid var(--border); border-radius:var(--radius-lg); background:var(--bg); overflow:hidden; }
+  .pill-card.pop-ok { overflow:visible; }
+  .pill-card.pop-ok .pill-header { border-radius:calc(var(--radius-lg) - 2px) calc(var(--radius-lg) - 2px) 0 0; }
+  .pill-header { padding:13px 16px; background:var(--surface); border-bottom:1px solid var(--border);
+    font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; }
+  .pill-body { padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
+  .field { display:flex; flex-direction:column; gap:5px; }
+  .field-label { font-size:11px; font-weight:600; color:var(--text-hint); text-transform:uppercase; letter-spacing:0.06em; }
+  .field input, .field select, .field textarea {
+    border:1.5px solid var(--border); border-radius:var(--radius-md); padding:11px 12px; font-family:var(--font);
+    font-size:15px; color:var(--text); background:var(--surface); outline:none; width:100%; appearance:none; -webkit-appearance:none; }
+  .field input:focus, .field select:focus { border-color:var(--primary); background:var(--bg); }
+  .frow { display:flex; gap:10px; }
+  .frow .field { flex:1; }
+  .sel-wrap { position:relative; }
+  .sel-wrap::after { content:'▾'; position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--text-hint); pointer-events:none; }
+  .addr-banner { border:1.5px solid var(--primary); border-radius:var(--radius-lg); padding:14px 16px; background:var(--surface); display:none; }
+  .addr-banner.show { display:block; }
+  .ab-label { font-size:10px; font-weight:600; color:var(--text-hint); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:3px; }
+  .ab-addr { font-size:16px; font-weight:700; line-height:1.35; }
+  .ab-seller { font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .seg { display:flex; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px; }
+  .seg-btn { flex:1; padding:9px; border:none; border-radius:999px; background:none; font-family:var(--font);
+    font-size:13px; font-weight:600; color:var(--text-hint); cursor:pointer; transition:background 0.15s, color 0.15s; }
+  .seg-btn.on { background:var(--primary); color:#fff; }
+  .radio-group { display:flex; flex-direction:column; gap:8px; }
+  .radio-opt { display:flex; align-items:center; gap:10px; padding:12px 14px; border:1.5px solid var(--border);
+    border-radius:var(--radius-md); cursor:pointer; font-size:14px; font-weight:500; background:var(--surface);
+    transition:border-color 0.15s, background 0.15s, color 0.15s; user-select:none; }
+  .radio-opt.selected { border-color:var(--primary); background:var(--primary); color:#fff; }
+  .radio-dot { width:16px; height:16px; border-radius:50%; border:2px solid currentColor; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .radio-dot::after { content:''; width:8px; height:8px; border-radius:50%; background:currentColor; opacity:0; }
+  .radio-opt.selected .radio-dot::after { opacity:1; }
+  .yn-group { display:flex; gap:10px; }
+  .yn-btn { flex:1; padding:11px; border:1.5px solid var(--border); background:var(--surface); border-radius:var(--radius-md);
+    font-family:var(--font); font-size:14px; font-weight:600; color:var(--text-hint); cursor:pointer; transition:all 0.15s; }
+  .yn-btn.selected { border-color:var(--primary); background:var(--primary); color:#fff; }
+  .big-btn { background:var(--primary); border:1.5px solid #fff; outline:1px solid var(--border); color:#fff;
+    border-radius:var(--radius-lg); padding:14px; font-family:var(--font); font-size:15px; font-weight:600;
+    cursor:pointer; transition:background 0.15s, color 0.15s; width:100%; }
+  @media (hover:hover) { .big-btn:hover { background:#fff; color:var(--primary); border-color:var(--primary); } }
+  .big-btn:active { background:#fff; color:var(--primary); }
+  .big-btn:disabled { background:var(--surface-2); color:var(--text-hint); border-color:var(--border); cursor:not-allowed; }
+  .toast { display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#111; color:#fff;
+    padding:11px 20px; border-radius:12px; font-size:14px; font-weight:500; z-index:200; white-space:nowrap; }
+  .toast.show { display:block; }
+  .toast.success { background:var(--green); }
+  .toast.error { background:#DC2626; }
+
+  .tabs { display:flex; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px; }
+  .tab-b { flex:1; padding:10px; border:none; border-radius:999px; background:none; font-family:var(--font);
+    font-size:14px; font-weight:600; color:var(--text-hint); cursor:pointer; transition:all 0.15s; }
+  .tab-b.on { background:var(--primary); color:#fff; }
+  .uc-card { border:1.5px solid var(--border); border-radius:var(--radius-lg); background:var(--bg); padding:15px 16px;
+    display:flex; flex-direction:column; gap:8px; cursor:pointer; transition:border-color 0.15s, transform 0.1s; text-decoration:none; color:var(--text); }
+  .uc-card:active { transform:scale(0.98); border-color:var(--primary); }
+  .uc-card.urgent { border-color:#FECACA; background:#FEF2F2; }
+  .uc-card.soon { border-color:#FDE68A; background:#FFFBEB; }
+  .uc-top { display:flex; align-items:flex-start; gap:10px; }
+  .uc-name { font-size:16px; font-weight:700; line-height:1.3; flex:1; }
+  .close-badge { font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap; flex-shrink:0; }
+  .cb-red { background:var(--red-bg); color:var(--red); }
+  .cb-yellow { background:var(--amber-bg); color:var(--amber); }
+  .cb-green { background:var(--green-bg); color:var(--green); }
+  .cb-gray { background:var(--surface-2); color:var(--text-hint); }
+  .uc-addr { font-size:13px; color:var(--text-muted); line-height:1.35; }
+  .uc-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .stage-pill { font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; background:var(--surface); border:1px solid var(--border); color:var(--text-muted); }
+  .uc-date { font-size:11px; color:var(--text-hint); }
+  .board-empty { font-size:13px; color:var(--text-hint); text-align:center; padding:32px 0; }
+  .loading { font-size:13px; color:var(--text-hint); text-align:center; padding:32px 0; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back-btn" href="crm.html" id="backBtn">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <div class="topbar-info">
+    <div class="topbar-title">🔒 Under Contract Board</div>
+    <div class="topbar-sub">Everything in flight · closest closing first</div>
+  </div>
+</div>
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab-b on" id="tabSellers">🏡 Sellers</button>
+    <button class="tab-b" id="tabBuyers">🔑 Buyers</button>
+  </div>
+  <div id="boardBox"><div class="loading">Loading transactions…</div></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(()=>{}); }
+  if (window.caches && caches.keys) { caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(()=>{}); }
+  const user = JSON.parse(sessionStorage.getItem('lexpro_user') || localStorage.getItem('lexpro_user') || '{}');
+  if (!user.username) window.location.href = 'index.html';
+  document.getElementById('backBtn').addEventListener('click', function(e) {
+    if (document.referrer && history.length > 1) { e.preventDefault(); history.back(); }
+  });
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  const SB = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
+  const SBK = 'sb_publishable_TCNeI1Mg36-kXLJKA33h1g_emUHiC-Z';
+  const SHEET_ID = '1KlfQEU02BcEM9RUTTi64-Eu60UzuaptT_EjE6OAXKOY';
+  const API_KEY = 'AIzaSyD6mLXltjqMao1Ej0cALICxUGScHB5IKbE';
+  const BUYER_UC_STAGES = ['Under Contract','Inspection Period','Appraisal Period','Clear To Close'];
+
+  let side = 'sellers';
+  let closingByContact = {};   // contactId -> YYYY-MM-DD (from Transactions Calendar)
+  let ucByContact = {};        // contactId -> YYYY-MM-DD (Under Contract appt)
+  let sellers = [], buyers = [];
+  let loaded = false;
+
+  document.getElementById('tabSellers').addEventListener('click', () => switchSide('sellers'));
+  document.getElementById('tabBuyers').addEventListener('click', () => switchSide('buyers'));
+  function switchSide(s) {
+    side = s;
+    document.getElementById('tabSellers').classList.toggle('on', s === 'sellers');
+    document.getElementById('tabBuyers').classList.toggle('on', s === 'buyers');
+    render();
+  }
+
+  function daysOut(dateStr) {
+    if (!dateStr) return null;
+    const today = new Date(); today.setHours(0,0,0,0);
+    return Math.round((new Date(dateStr + 'T00:00:00') - today) / 86400000);
+  }
+  function fmtDate(dateStr) {
+    if (!dateStr) return '';
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  function badge(days) {
+    if (days === null) return { cls: 'cb-gray', txt: 'No closing set' };
+    if (days < 0) return { cls: 'cb-red', txt: Math.abs(days) + 'd past close' };
+    if (days === 0) return { cls: 'cb-red', txt: 'Closes TODAY' };
+    if (days <= 3) return { cls: 'cb-red', txt: 'Closes in ' + days + 'd' };
+    if (days <= 5) return { cls: 'cb-yellow', txt: 'Closes in ' + days + 'd' };
+    return { cls: 'cb-green', txt: 'Closes ' + fmtDate(null) === '' ? '' : 'Closes in ' + days + 'd' };
+  }
+
+  async function loadAll() {
+    try {
+      const [calRes, sellRes, buyRes] = await Promise.all([
+        fetch('/.netlify/functions/get-calendar').then(r => r.json()).catch(() => ({ appointments: [] })),
+        fetch(SB + '/rest/v1/listings?status=eq.under_contract&select=id,address_full,seller_name,seller_contact_id&order=address_full.asc', {
+          headers: { 'apikey': SBK, 'Authorization': 'Bearer ' + SBK }
+        }).then(r => r.json()).catch(() => []),
+        fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/' + encodeURIComponent('Buyers!A2:K1000') + '?key=' + API_KEY)
+          .then(r => r.json()).catch(() => ({ values: [] }))
+      ]);
+      (calRes.appointments || []).forEach(a => {
+        if (!a.startTime || !a.contactId) return;
+        const d = a.startTime.split('T')[0];
+        const t = (a.title || '').toLowerCase();
+        if (t.includes('closing')) {
+          if (!closingByContact[a.contactId] || d > closingByContact[a.contactId]) closingByContact[a.contactId] = d;
+        }
+        if (t.includes('under contract')) ucByContact[a.contactId] = d;
+      });
+      sellers = (Array.isArray(sellRes) ? sellRes : []).map(l => ({
+        name: l.seller_name || 'Unknown seller',
+        address: l.address_full,
+        contactId: l.seller_contact_id,
+        stage: 'Under Contract',
+        ucDate: (l.seller_contact_id && ucByContact[l.seller_contact_id]) || '',
+        closing: (l.seller_contact_id && closingByContact[l.seller_contact_id]) || '',
+        href: 'uc-seller.html?listing=' + l.id
+      }));
+      buyers = ((buyRes.values || [])).filter(r => BUYER_UC_STAGES.includes((r[8] || '').trim())).map(r => ({
+        name: ((r[0] || '') + ' ' + (r[1] || '')).trim() || 'Unknown buyer',
+        address: r[2] || '',
+        contactId: (r[10] || '').trim(),
+        stage: (r[8] || '').trim(),
+        ucDate: r[5] || '',
+        closing: r[6] || ((r[10] && closingByContact[(r[10]||'').trim()]) || ''),
+        href: 'uc-buyer.html?contact=' + encodeURIComponent((r[10] || '').trim()) + '&name=' + encodeURIComponent(((r[0]||'') + ' ' + (r[1]||'')).trim()) + '&phone=' + encodeURIComponent(r[3] || '')
+      }));
+      loaded = true;
+      render();
+    } catch (e) {
+      document.getElementById('boardBox').innerHTML = '<div class="board-empty">Could not load the board — refresh to retry.</div>';
+    }
+  }
+
+  function render() {
+    const box = document.getElementById('boardBox');
+    if (!loaded) { box.innerHTML = '<div class="loading">Loading transactions…</div>'; return; }
+    const items = (side === 'sellers' ? sellers : buyers).slice();
+    if (!items.length) {
+      box.innerHTML = '<div class="board-empty">Nothing under contract on the ' + (side === 'sellers' ? 'seller' : 'buyer') + ' side right now. 🎉</div>';
+      return;
+    }
+    items.sort((a, b) => {
+      if (!a.closing && !b.closing) return 0;
+      if (!a.closing) return 1;
+      if (!b.closing) return -1;
+      return a.closing.localeCompare(b.closing);
+    });
+    box.innerHTML = '';
+    const list = document.createElement('div');
+    list.style.cssText = 'display:flex; flex-direction:column; gap:12px;';
+    items.forEach(it => {
+      const days = daysOut(it.closing);
+      let cls = '', bCls = 'cb-gray', bTxt = 'No closing set';
+      if (days !== null) {
+        if (days <= 3) { cls = 'urgent'; bCls = 'cb-red'; bTxt = days < 0 ? Math.abs(days) + 'd past close' : days === 0 ? 'Closes TODAY' : 'Closes in ' + days + 'd'; }
+        else if (days <= 5) { cls = 'soon'; bCls = 'cb-yellow'; bTxt = 'Closes in ' + days + 'd'; }
+        else { bCls = 'cb-green'; bTxt = 'Closes ' + fmtDate(it.closing); }
+      }
+      const card = document.createElement('a');
+      card.className = 'uc-card' + (cls ? ' ' + cls : '');
+      card.href = it.href;
+      card.innerHTML = `
+        <div class="uc-top">
+          <div class="uc-name">${esc(it.name)}</div>
+          <div class="close-badge ${bCls}">${esc(bTxt)}</div>
+        </div>
+        ${it.address ? `<div class="uc-addr">${esc(it.address)}</div>` : ''}
+        <div class="uc-meta">
+          <div class="stage-pill">${esc(it.stage)}</div>
+          ${it.ucDate ? `<div class="uc-date">UC ${fmtDate(it.ucDate)}</div>` : ''}
+        </div>`;
+      list.appendChild(card);
+    });
+    box.appendChild(list);
+  }
+  loadAll();
+</script>
+</body>
+</html>
