@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<title>LexPro | Tanya</title>
+<title>LexPro | Morning Brief</title>
 <style>
   :root {
     --bg:#ffffff; --surface:#f7f7f7; --surface-2:#f0f0f0; --border:#e8e8e8;
@@ -48,44 +48,21 @@
   .logo-pro { font-size:38px; font-weight:700; color:var(--primary); letter-spacing:4px; line-height:1; display:block; }
   .logo-sub { font-size:10px; color:var(--text-hint); text-transform:uppercase; letter-spacing:0.22em; margin-top:6px; }
   .footer { text-align:center; padding:0 0 32px; font-size:11px; color:var(--text-hint); letter-spacing:0.08em; text-transform:uppercase; }
-  .nav-btn { width:100%; max-width:420px; border-radius:var(--radius-lg); padding:20px; display:flex; align-items:center;
-    gap:16px; cursor:pointer; text-decoration:none; transition:transform 0.1s, background 0.15s, color 0.15s; }
-  .nav-btn:active { transform:scale(0.98); }
-  .nav-btn .btn-emoji { width:46px; height:46px; border-radius:var(--radius-sm); display:flex; align-items:center;
-    justify-content:center; flex-shrink:0; font-size:24px; }
-  .btn-text { flex:1; }
-  .btn-title { font-size:17px; font-weight:600; }
-  .btn-sub { font-size:12px; margin-top:3px; }
-  .btn-arrow { font-size:22px; line-height:1; }
-  /* Tanya style: black, white border+text, invert on hover/press */
-  .nav-btn.tanya { background:var(--primary); border:1.5px solid #ffffff; outline:1px solid var(--border); color:#fff; }
-  .nav-btn.tanya .btn-emoji { background:rgba(255,255,255,0.1); }
-  .nav-btn.tanya .btn-title { color:#fff; }
-  .nav-btn.tanya .btn-sub { color:rgba(255,255,255,0.55); }
-  .nav-btn.tanya .btn-arrow { color:rgba(255,255,255,0.4); }
-  @media (hover:hover) {
-    .nav-btn.tanya:hover { background:#ffffff; border-color:var(--primary); }
-    .nav-btn.tanya:hover .btn-title { color:var(--primary); }
-    .nav-btn.tanya:hover .btn-sub { color:var(--text-muted); }
-    .nav-btn.tanya:hover .btn-arrow { color:var(--text-muted); }
-    .nav-btn.tanya:hover .btn-emoji { background:var(--surface-2); }
-  }
-  .nav-btn.tanya:active { background:#ffffff; }
-  .nav-btn.tanya:active .btn-title { color:var(--primary); }
-  .nav-btn.tanya:active .btn-sub { color:var(--text-muted); }
-  /* light style (admin/marketing + hubs) */
-  .nav-btn.light { background:var(--surface); border:1px solid var(--border); }
-  .nav-btn.light .btn-emoji { background:var(--surface-2); }
-  .nav-btn.light .btn-title { color:var(--text); }
-  .nav-btn.light .btn-sub { color:var(--text-hint); }
-  .nav-btn.light .btn-arrow { color:var(--text-hint); }
-  .nav-btn.light:active { background:var(--surface-2); }
+
+  .brief-wrap { flex:1; overflow-y:auto; padding:20px 16px 32px; max-width:560px; margin:0 auto; width:100%; }
+  .brief-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:18px; font-size:15px; line-height:1.6; white-space:pre-wrap; }
+  .brief-card strong { font-weight:600; }
+  .loading { text-align:center; color:var(--text-hint); padding:48px 0; font-size:14px; }
+  .speak-btn { width:100%; max-width:560px; margin:12px auto 0; display:flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px;
+    font-family:var(--font); font-size:14px; color:var(--text-muted); cursor:pointer; }
 </style>
 </head>
 <body>
 <div class="header">
-  <div class="hdr-logo"><span class="hl-lex">LEX</span><div class="hl-pro-box"><span class="hl-pro">PRO</span></div></div>
-  <div class="hdr-name" id="hdrName"></div>
+  <a class="back-btn" href="tanya-home.html" id="backBtn">‹</a>
+  <div class="hdr-name">🌞 Good Morning Brief</div>
   <div class="hdr-icons">
     <a class="icon-btn" href="calendar.html" title="Calendar">📆</a>
     <div class="settings-wrap">
@@ -97,38 +74,11 @@
     </div>
   </div>
 </div>
-<div class="main">
-  <div class="logo-area">
-    <div class="logo-mark"><span class="logo-lex">LEX</span><div class="logo-pro-box"><span class="logo-pro">PRO</span></div></div>
-    <div class="logo-sub">Real Estate Command</div>
-  </div>
-  <a class="nav-btn tanya" href="morning-brief.html">
-    <div class="btn-emoji">🌞</div>
-    <div class="btn-text"><div class="btn-title">Good Morning Brief</div><div class="btn-sub">Today + rest of week</div></div>
-    <div class="btn-arrow">›</div>
-  </a>
-  <a class="nav-btn tanya" href="team-chat.html">
-    <div class="btn-emoji">📯</div>
-    <div class="btn-text"><div class="btn-title">Team Chat</div><div class="btn-sub">Donna, tasks & the team</div></div>
-    <div class="btn-arrow">›</div>
-  </a>
-  <a class="nav-btn tanya" href="communications.html">
-    <div class="btn-emoji">💬</div>
-    <div class="btn-text"><div class="btn-title">Communications</div><div class="btn-sub">Follow-ups, blasts & texts</div></div>
-    <div class="btn-arrow">›</div>
-  </a>
-  <a class="nav-btn tanya" href="crm.html">
-    <div class="btn-emoji">🤖</div>
-    <div class="btn-text"><div class="btn-title">CRM</div><div class="btn-sub">Listings, showings & deals</div></div>
-    <div class="btn-arrow">›</div>
-  </a>
-  <a class="nav-btn tanya" href="contractors.html">
-    <div class="btn-emoji">🏢</div>
-    <div class="btn-text"><div class="btn-title">Business Contacts</div><div class="btn-sub">Lenders, title, trades & more</div></div>
-    <div class="btn-arrow">›</div>
-  </a>
+<div class="brief-wrap">
+  <div class="loading" id="loading">Pulling your brief…</div>
+  <div class="brief-card" id="briefCard" style="display:none;"></div>
+  <button class="speak-btn" id="speakBtn" style="display:none;">🔊 Read aloud</button>
 </div>
-<div class="footer">LexPro Real Estate &bull; Springfield, MO</div>
 <script>
   // ── SERVICE WORKER EXORCISM: unregister all workers + purge caches (permanent cache-bust fix) ──
   if ('serviceWorker' in navigator) {
@@ -139,8 +89,6 @@
   }
   const user = JSON.parse(sessionStorage.getItem('lexpro_user') || localStorage.getItem('lexpro_user') || '{}');
   if (!user.username) window.location.href = 'index.html';
-  document.getElementById('hdrName').textContent =
-    user.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : '';
   const gearBtn = document.getElementById('gearBtn');
   const gearMenu = document.getElementById('gearMenu');
   gearBtn.addEventListener('click', e => { e.stopPropagation(); gearMenu.classList.toggle('open'); });
@@ -151,6 +99,37 @@
     localStorage.removeItem('lexpro_user');
     window.location.href = 'index.html';
   }
+
+  function fmt(t){return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');}
+  let briefText = '';
+  (async () => {
+    try {
+      const res = await fetch('/.netlify/functions/tanya-morning-brief', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+      const data = await res.json();
+      briefText = data.brief || 'Had trouble pulling your brief — go back and try again.';
+    } catch(e) { briefText = 'Connection hiccup — go back and try again.'; }
+    document.getElementById('loading').style.display = 'none';
+    const card = document.getElementById('briefCard');
+    card.innerHTML = fmt(briefText);
+    card.style.display = 'block';
+    const sb = document.getElementById('speakBtn');
+    sb.style.display = 'flex';
+    if (window.speechSynthesis) {
+      const utt = new SpeechSynthesisUtterance(briefText);
+      utt.rate = 0.92;
+      const voices = window.speechSynthesis.getVoices();
+      const pref = voices.find(v=>v.name==='Samantha')||voices.find(v=>v.name==='Karen')||voices.find(v=>/en/i.test(v.lang));
+      if (pref) utt.voice = pref;
+      window.speechSynthesis.speak(utt);
+    }
+    sb.addEventListener('click', () => {
+      if (window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); sb.innerHTML='🔊 Read aloud'; return; }
+      const u = new SpeechSynthesisUtterance(briefText); u.rate = 0.92;
+      sb.innerHTML='🔇 Stop'; u.onend=()=>{sb.innerHTML='🔊 Read aloud';};
+      window.speechSynthesis.speak(u);
+    });
+  })();
 </script>
 </body>
 </html>

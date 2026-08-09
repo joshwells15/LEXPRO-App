@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<title>LexPro | Tanya</title>
+<title>LexPro | Sellers</title>
 <style>
   :root {
     --bg:#ffffff; --surface:#f7f7f7; --surface-2:#f0f0f0; --border:#e8e8e8;
@@ -80,12 +80,15 @@
   .nav-btn.light .btn-sub { color:var(--text-hint); }
   .nav-btn.light .btn-arrow { color:var(--text-hint); }
   .nav-btn.light:active { background:var(--surface-2); }
+  .toast { display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#111; color:#fff;
+    padding:11px 20px; border-radius:12px; font-size:14px; font-weight:500; z-index:200; white-space:nowrap; }
+  .toast.show { display:block; }
 </style>
 </head>
 <body>
 <div class="header">
-  <div class="hdr-logo"><span class="hl-lex">LEX</span><div class="hl-pro-box"><span class="hl-pro">PRO</span></div></div>
-  <div class="hdr-name" id="hdrName"></div>
+  <a class="back-btn" href="crm.html" id="backBtn">‹</a>
+  <div class="hdr-name">🏡 Sellers</div>
   <div class="hdr-icons">
     <a class="icon-btn" href="calendar.html" title="Calendar">📆</a>
     <div class="settings-wrap">
@@ -97,38 +100,29 @@
     </div>
   </div>
 </div>
-<div class="main">
-  <div class="logo-area">
-    <div class="logo-mark"><span class="logo-lex">LEX</span><div class="logo-pro-box"><span class="logo-pro">PRO</span></div></div>
-    <div class="logo-sub">Real Estate Command</div>
-  </div>
-  <a class="nav-btn tanya" href="morning-brief.html">
-    <div class="btn-emoji">🌞</div>
-    <div class="btn-text"><div class="btn-title">Good Morning Brief</div><div class="btn-sub">Today + rest of week</div></div>
+<div class="main" style="justify-content:flex-start; padding-top:28px;">
+  <a class="nav-btn tanya" href="#" onclick="comingSoon(event)">
+    <div class="btn-emoji">🪧</div>
+    <div class="btn-text"><div class="btn-title">New Listing</div><div class="btn-sub">Enter listing → rules → go live</div></div>
     <div class="btn-arrow">›</div>
   </a>
-  <a class="nav-btn tanya" href="team-chat.html">
-    <div class="btn-emoji">📯</div>
-    <div class="btn-text"><div class="btn-title">Team Chat</div><div class="btn-sub">Donna, tasks & the team</div></div>
+  <a class="nav-btn tanya" href="log-showing.html">
+    <div class="btn-emoji">📅</div>
+    <div class="btn-text"><div class="btn-title">Showing Intake</div><div class="btn-sub">Log a phone-booked showing</div></div>
     <div class="btn-arrow">›</div>
   </a>
-  <a class="nav-btn tanya" href="communications.html">
-    <div class="btn-emoji">💬</div>
-    <div class="btn-text"><div class="btn-title">Communications</div><div class="btn-sub">Follow-ups, blasts & texts</div></div>
+  <a class="nav-btn tanya" href="#" onclick="comingSoon(event)">
+    <div class="btn-emoji">📝</div>
+    <div class="btn-text"><div class="btn-title">Under Contract</div><div class="btn-sub">Dates, status & details</div></div>
     <div class="btn-arrow">›</div>
   </a>
-  <a class="nav-btn tanya" href="crm.html">
-    <div class="btn-emoji">🤖</div>
-    <div class="btn-text"><div class="btn-title">CRM</div><div class="btn-sub">Listings, showings & deals</div></div>
-    <div class="btn-arrow">›</div>
-  </a>
-  <a class="nav-btn tanya" href="contractors.html">
-    <div class="btn-emoji">🏢</div>
-    <div class="btn-text"><div class="btn-title">Business Contacts</div><div class="btn-sub">Lenders, title, trades & more</div></div>
+  <a class="nav-btn tanya" href="#" onclick="comingSoon(event)">
+    <div class="btn-emoji">⏳</div>
+    <div class="btn-text"><div class="btn-title">Deadlines</div><div class="btn-sub">Transaction dates by urgency</div></div>
     <div class="btn-arrow">›</div>
   </a>
 </div>
-<div class="footer">LexPro Real Estate &bull; Springfield, MO</div>
+<div class="toast" id="toast"></div>
 <script>
   // ── SERVICE WORKER EXORCISM: unregister all workers + purge caches (permanent cache-bust fix) ──
   if ('serviceWorker' in navigator) {
@@ -139,8 +133,6 @@
   }
   const user = JSON.parse(sessionStorage.getItem('lexpro_user') || localStorage.getItem('lexpro_user') || '{}');
   if (!user.username) window.location.href = 'index.html';
-  document.getElementById('hdrName').textContent =
-    user.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : '';
   const gearBtn = document.getElementById('gearBtn');
   const gearMenu = document.getElementById('gearMenu');
   gearBtn.addEventListener('click', e => { e.stopPropagation(); gearMenu.classList.toggle('open'); });
@@ -150,6 +142,13 @@
     localStorage.removeItem('lexpro_remember');
     localStorage.removeItem('lexpro_user');
     window.location.href = 'index.html';
+  }
+  function comingSoon(e) {
+    e.preventDefault();
+    const t = document.getElementById('toast');
+    t.textContent = 'Coming in the next phase 🔜';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
   }
 </script>
 </body>
