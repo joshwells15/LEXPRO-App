@@ -159,6 +159,7 @@
             <div class="field"><div class="field-label">Under Contract Date</div><input type="date" id="ucDate"></div>
             <div class="field"><div class="field-label">Tentative Closing</div><input type="date" id="closeDate"></div>
           </div>
+          <div class="field"><div class="field-label">Earnest Money</div><input type="text" id="fEarnest" placeholder="e.g. 2500" inputmode="numeric"></div>
         </div>
       </div>
       <div class="pill-card">
@@ -193,7 +194,6 @@
             <div class="field"><div class="field-label">Commission Amount</div><input type="text" id="fComm" placeholder="e.g. 9750" inputmode="numeric"></div>
             <div class="field"><div class="field-label">Sales Price</div><input type="text" id="fSales" placeholder="e.g. 325000" inputmode="numeric"></div>
           </div>
-          <div class="field"><div class="field-label">Earnest Money</div><input type="text" id="fEarnest" placeholder="e.g. 2500" inputmode="numeric"></div>
         </div>
       </div>
       <button class="big-btn" id="saveDetails">Save Transaction Details</button>
@@ -306,6 +306,7 @@
       zip: document.getElementById('pZip').value.trim(),
       under_contract_date: document.getElementById('ucDate').value,
       tentative_closing_date: document.getElementById('closeDate').value,
+      earnest_money: document.getElementById('fEarnest').value.trim(),
       inspection_notice_days: document.getElementById('dInsp').value,
       inspection_notice_resp: document.getElementById('dInspR').value,
       appraisal_days: document.getElementById('dAppr').value,
@@ -318,8 +319,7 @@
     save({
       closing_gift_ordered: yn ? yn.dataset.val : '',
       commission_amount: document.getElementById('fComm').value.trim(),
-      sales_price: document.getElementById('fSales').value.trim(),
-      earnest_money: document.getElementById('fEarnest').value.trim()
+      sales_price: document.getElementById('fSales').value.trim()
     }, document.getElementById('saveDetails'), 'Save Transaction Details');
   });
 </script>
