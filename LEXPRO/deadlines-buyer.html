@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<title>LexPro | Deadlines</title>
+<title>LexPro | Buyer Deadlines</title>
 <style>
   :root {
     --bg:#ffffff; --surface:#f7f7f7; --surface-2:#f0f0f0; --border:#e8e8e8;
@@ -116,20 +116,20 @@
 </head>
 <body>
 <div class="topbar">
-  <a class="back-btn" href="crm-sellers.html" id="backBtn">
+  <a class="back-btn" href="crm-buyers.html" id="backBtn">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </a>
   <div class="topbar-info">
-    <div class="topbar-title">⏳ Deadlines</div>
+    <div class="topbar-title">⏳ Buyer Deadlines</div>
     <div class="topbar-sub">Transaction dates & urgency</div>
   </div>
 </div>
 <div class="wrap">
   <div class="pill-card">
-    <div class="pill-header">Listing</div>
+    <div class="pill-header">Buyer</div>
     <div class="pill-body">
       <div class="field">
-        <div class="field-label">Pick the listing</div>
+        <div class="field-label">Pick the buyer</div>
         <div class="sel-wrap"><select id="listingSel"><option value="">Loading listings…</option></select></div>
       </div>
     </div>
@@ -142,7 +142,7 @@
   <div class="pill-card">
     <div class="pill-header">Transaction Deadlines</div>
     <div class="pill-body">
-      <div id="dlBox"><div class="dl-empty">Pick an under-contract listing to view its deadlines.</div></div>
+      <div id="dlBox"><div class="dl-empty">Pick an under-contract buyer to view their deadlines.</div></div>
     </div>
   </div>
 </div>
@@ -159,22 +159,28 @@
   function showToast(msg, type='') { toast.textContent = msg; toast.className = 'toast show' + (type ? ' '+type : ''); setTimeout(() => { toast.className = 'toast'; }, 3500); }
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // ── LISTING PICKER (registry-fed, same as UC page) ──
-  const SB = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
-  const SBK = 'sb_publishable_TCNeI1Mg36-kXLJKA33h1g_emUHiC-Z';
-  let listings = [];
-  (async function loadListings() {
+  // ── BUYER PICKER (Buyers sheet, under-contract range only) ──
+  const SHEET_ID = '1KlfQEU02BcEM9RUTTi64-Eu60UzuaptT_EjE6OAXKOY';
+  const SHEETS_API_KEY = 'AIzaSyD6mLXltjqMao1Ej0cALICxUGScHB5IKbE';
+  const BUYER_UC_STAGES = ['Under Contract','Inspection Period','Appraisal Period','Clear To Close'];
+  let buyers = [];
+  (async function loadBuyers() {
     const sel = document.getElementById('listingSel');
     try {
-      const res = await fetch(SB + '/rest/v1/listings?status=eq.under_contract&select=id,address_full,seller_name,seller_contact_id,status&order=address_full.asc', {
-        headers: { 'apikey': SBK, 'Authorization': 'Bearer ' + SBK }
-      });
-      listings = await res.json();
-      sel.innerHTML = '<option value="">— Select an under-contract listing —</option>';
-      listings.forEach((l, i) => {
+      const res = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/' + encodeURIComponent('Buyers!A2:K1000') + '?key=' + SHEETS_API_KEY);
+      const data = await res.json();
+      buyers = (data.values || []).filter(r => (r[0] || r[1]) && BUYER_UC_STAGES.includes((r[8] || '').trim()))
+        .map(r => ({
+          name: ((r[0] || '') + ' ' + (r[1] || '')).trim(),
+          address: r[2] || '',
+          stage: (r[8] || '').trim(),
+          contactId: (r[10] || '').trim()
+        }));
+      sel.innerHTML = '<option value="">— Select an under-contract buyer —</option>';
+      buyers.forEach((bu, i) => {
         const o = document.createElement('option');
         o.value = i;
-        o.textContent = l.address_full;
+        o.textContent = bu.name + (bu.address ? ' — ' + bu.address : '');
         sel.appendChild(o);
       });
     } catch (e) { sel.innerHTML = '<option value="">Could not load — refresh</option>'; }
@@ -184,18 +190,18 @@
     const banner = document.getElementById('banner');
     if (i === '') {
       banner.classList.remove('show');
-      document.getElementById('dlBox').innerHTML = '<div class="dl-empty">Pick an under-contract listing to view its deadlines.</div>';
+      document.getElementById('dlBox').innerHTML = '<div class="dl-empty">Pick an under-contract buyer to view their deadlines.</div>';
       return;
     }
-    const l = listings[i];
-    document.getElementById('bAddr').textContent = l.address_full;
-    document.getElementById('bSeller').textContent = 'Seller: ' + (l.seller_name || 'unknown');
+    const bu = buyers[i];
+    document.getElementById('bAddr').textContent = bu.name;
+    document.getElementById('bSeller').textContent = bu.address || bu.stage;
     banner.classList.add('show');
-    if (!l.seller_contact_id) {
-      document.getElementById('dlBox').innerHTML = '<div class="dl-empty">This listing has no linked GHL contact.</div>';
+    if (!bu.contactId) {
+      document.getElementById('dlBox').innerHTML = '<div class="dl-empty">This buyer has no linked GHL contact.</div>';
       return;
     }
-    loadDeadlines(l.seller_contact_id);
+    loadDeadlines(bu.contactId);
   });
 
   // ── DEADLINES: >5d normal · ≤5 yellow · ≤3 red · closing blue ──

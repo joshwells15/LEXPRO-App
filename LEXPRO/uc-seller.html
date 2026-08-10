@@ -73,6 +73,28 @@
   @media (hover:hover) { .big-btn:hover { background:#fff; color:var(--primary); border-color:var(--primary); } }
   .big-btn:active { background:#fff; color:var(--primary); }
   .big-btn:disabled { background:var(--surface-2); color:var(--text-hint); border-color:var(--border); cursor:not-allowed; }
+  .uc-item { border:1.5px solid var(--border); border-radius:var(--radius-md); padding:13px 14px; cursor:pointer;
+    background:var(--surface); transition:border-color 0.15s, transform 0.1s; }
+  .uc-item:active { transform:scale(0.98); border-color:var(--primary); }
+  .uc-item-name { font-size:15px; font-weight:700; }
+  .uc-item-addr { font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .uc-empty { font-size:13px; color:var(--text-hint); text-align:center; padding:14px 0; }
+  .snap-val { font-size:16px; font-weight:700; padding:4px 0; }
+  .dl-list { display:flex; flex-direction:column; gap:6px; }
+  .dl-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px;
+    border:1.5px solid var(--border); border-radius:var(--radius-md); background:var(--surface); }
+  .dl-row.urgent { border-color:#FECACA; background:#FEF2F2; }
+  .dl-row.soon { border-color:#FDE68A; background:#FFFBEB; }
+  .dl-row.closing { border-color:#BFDBFE; background:#EFF6FF; }
+  .dl-label { font-size:13px; font-weight:600; }
+  .dl-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .dl-date { font-size:12px; color:var(--text-muted); }
+  .dl-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap; }
+  .b-urgent { background:#FEE2E2; color:#991B1B; }
+  .b-soon { background:#FEF3C7; color:#78350F; }
+  .b-ok { background:#D1FAE5; color:#065F46; }
+  .b-closing { background:#DBEAFE; color:#1E40AF; }
+  .dl-empty-s { font-size:12px; color:var(--text-hint); padding:6px 0; }
   .toast { display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#111; color:#fff;
     padding:11px 20px; border-radius:12px; font-size:14px; font-weight:500; z-index:200; white-space:nowrap; }
   .toast.show { display:block; }
@@ -92,8 +114,13 @@
 </div>
 <div class="wrap">
 
-  <div class="pill-card">
-    <div class="pill-header">Listing</div>
+  <div class="seg" id="pageSeg">
+    <button class="seg-btn on" data-p="submit">📄 Submit a Contract</button>
+    <button class="seg-btn" data-p="current">🔒 Currently Under Contract</button>
+  </div>
+
+  <div class="pill-card" id="submitPickCard">
+    <div class="pill-header">Submit a Contract</div>
     <div class="pill-body">
       <div class="field">
         <div class="field-label">Pick the listing</div>
@@ -102,10 +129,29 @@
     </div>
   </div>
 
+  <div class="pill-card" id="currentListCard" style="display:none;">
+    <div class="pill-header">Currently Under Contract</div>
+    <div class="pill-body" id="ucListBody"><div class="uc-empty">Loading…</div></div>
+  </div>
+
   <div class="addr-banner" id="banner">
     <div class="ab-label">Working on</div>
     <div class="ab-addr" id="bAddr"></div>
     <div class="ab-seller" id="bSeller"></div>
+  </div>
+
+  <div class="pill-card" id="infoCard" style="display:none;">
+    <div class="pill-header">Transaction Snapshot</div>
+    <div class="pill-body">
+      <div class="frow">
+        <div class="field"><div class="field-label">Sales Price</div><div class="snap-val" id="snapPrice">—</div></div>
+        <div class="field"><div class="field-label">Current Stage</div><div class="snap-val" id="snapStage">—</div></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Deadlines</div>
+        <div id="snapDeadlines"><div class="dl-empty-s">Loading…</div></div>
+      </div>
+    </div>
   </div>
 
   <div id="workArea" style="display:none; flex-direction:column; gap:14px;">
@@ -130,7 +176,7 @@
           </div>
         </div>
       </div>
-      <div class="pill-card">
+      <div class="pill-card" id="datesCard">
         <div class="pill-header">Transaction Dates</div>
         <div class="pill-body">
           <div class="frow">
@@ -139,7 +185,7 @@
           </div>
         </div>
       </div>
-      <div class="pill-card">
+      <div class="pill-card" id="daysCard">
         <div class="pill-header">Deadline Days</div>
         <div class="pill-body">
           <div class="frow">
@@ -221,16 +267,127 @@
     }
   })();
 
-  document.getElementById('listingSel').addEventListener('change', e => {
-    const i = e.target.value;
-    if (i === '') { current = null; document.getElementById('banner').classList.remove('show'); document.getElementById('workArea').style.display = 'none'; return; }
-    current = listings[i];
+  // ── PAGE MODE: submit vs currently-under-contract ──
+  let pageMode = 'submit';
+  document.querySelectorAll('#pageSeg .seg-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#pageSeg .seg-btn').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      pageMode = b.dataset.p;
+      document.getElementById('submitPickCard').style.display = pageMode === 'submit' ? '' : 'none';
+      document.getElementById('currentListCard').style.display = pageMode === 'current' ? '' : 'none';
+      // reset selection state on switch
+      current = null;
+      document.getElementById('banner').classList.remove('show');
+      document.getElementById('infoCard').style.display = 'none';
+      document.getElementById('workArea').style.display = 'none';
+      document.getElementById('listingSel').value = '';
+      if (pageMode === 'current') renderUcList();
+    });
+  });
+  function renderUcList() {
+    const body = document.getElementById('ucListBody');
+    const ucs = listings.filter(l => l.status === 'under_contract');
+    if (!ucs.length) { body.innerHTML = '<div class="uc-empty">Nothing under contract right now. 🎉</div>'; return; }
+    body.innerHTML = '';
+    ucs.forEach(l => {
+      const item = document.createElement('div');
+      item.className = 'uc-item';
+      item.innerHTML = `<div class="uc-item-name">${esc(l.seller_name || 'Unknown seller')}</div><div class="uc-item-addr">${esc(l.address_full)}</div>`;
+      item.addEventListener('click', () => selectListing(l));
+      body.appendChild(item);
+    });
+  }
+  function applyModeVisibility() {
+    const isSubmit = pageMode === 'submit';
+    document.getElementById('datesCard').style.display = isSubmit ? '' : 'none';
+    document.getElementById('daysCard').style.display = isSubmit ? '' : 'none';
+  }
+  function selectListing(l) {
+    current = l;
     if (!current.seller_contact_id) { showToast('This listing has no linked GHL contact.', 'error'); }
     document.getElementById('bAddr').textContent = current.address_full;
     document.getElementById('bSeller').textContent = 'Seller: ' + (current.seller_name || 'unknown');
     document.getElementById('banner').classList.add('show');
     document.getElementById('workArea').style.display = 'flex';
+    applyModeVisibility();
+    loadSnapshot(current.seller_contact_id);
+  }
+  document.getElementById('listingSel').addEventListener('change', e => {
+    const i = e.target.value;
+    if (i === '') { current = null; document.getElementById('banner').classList.remove('show'); document.getElementById('infoCard').style.display = 'none'; document.getElementById('workArea').style.display = 'none'; return; }
+    selectListing(listings[i]);
   });
+  document.getElementById('listingSel').addEventListener('_dead', e => {
+    const i = e.target.value;
+    if (false) { current = null; }
+    current = listings[i];
+  });
+
+  function fmtMoney(v) {
+    const n = parseFloat(String(v).replace(/[^0-9.]/g, ''));
+    return isNaN(n) ? '—' : '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+  function daysOut(dateStr) {
+    if (!dateStr) return null;
+    const t = new Date(); t.setHours(0,0,0,0);
+    return Math.round((new Date(dateStr + 'T00:00:00') - t) / 86400000);
+  }
+  function fmtD(dateStr) {
+    if (!dateStr) return '';
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  async function loadSnapshot(contactId) {
+    const card = document.getElementById('infoCard');
+    card.style.display = '';
+    document.getElementById('snapPrice').textContent = '…';
+    document.getElementById('snapStage').textContent = '…';
+    document.getElementById('snapDeadlines').innerHTML = '<div class="dl-empty-s">Loading…</div>';
+    if (!contactId) {
+      document.getElementById('snapPrice').textContent = '—';
+      document.getElementById('snapStage').textContent = '—';
+      document.getElementById('snapDeadlines').innerHTML = '<div class="dl-empty-s">No linked contact.</div>';
+      return;
+    }
+    // stage + price
+    fetch('/.netlify/functions/get-contact?id=' + contactId).then(r => r.json()).then(d => {
+      document.getElementById('snapPrice').textContent = fmtMoney(d.salesPrice || d.listPrice);
+      document.getElementById('snapStage').textContent = d.stage || '—';
+    }).catch(() => {
+      document.getElementById('snapPrice').textContent = '—';
+      document.getElementById('snapStage').textContent = '—';
+    });
+    // deadlines
+    fetch('/.netlify/functions/get-calendar?contactId=' + contactId).then(r => r.json()).then(d => {
+      const appts = (d.appointments || []).filter(a => a.startTime);
+      const box = document.getElementById('snapDeadlines');
+      if (!appts.length) { box.innerHTML = '<div class="dl-empty-s">No deadlines on the calendar.</div>'; return; }
+      appts.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+      const list = document.createElement('div');
+      list.className = 'dl-list';
+      appts.forEach(a => {
+        const ds = a.startTime.split('T')[0];
+        const days = daysOut(ds);
+        const isClosing = (a.title || '').toLowerCase().includes('closing');
+        let rc = '', bc = 'b-ok', bt = days === null ? '' : days + 'd';
+        if (isClosing) { rc = 'closing'; bc = 'b-closing'; bt = 'Closing'; }
+        else if (days !== null) {
+          if (days < 0) { rc = 'urgent'; bc = 'b-urgent'; bt = Math.abs(days) + 'd overdue'; }
+          else if (days <= 3) { rc = 'urgent'; bc = 'b-urgent'; bt = days === 0 ? 'Today' : days + 'd'; }
+          else if (days <= 5) { rc = 'soon'; bc = 'b-soon'; }
+        }
+        const row = document.createElement('div');
+        row.className = 'dl-row' + (rc ? ' ' + rc : '');
+        row.innerHTML = `<div class="dl-label">${esc(a.title || 'Event')}</div>
+          <div class="dl-right"><div class="dl-date">${fmtD(ds)}</div><div class="dl-badge ${bc}">${bt}</div></div>`;
+        list.appendChild(row);
+      });
+      box.innerHTML = '';
+      box.appendChild(list);
+    }).catch(() => {
+      document.getElementById('snapDeadlines').innerHTML = '<div class="dl-empty-s">Could not load deadlines.</div>';
+    });
+  }
 
   // mode toggle
   document.querySelectorAll('#modeSeg .seg-btn').forEach(b => {
