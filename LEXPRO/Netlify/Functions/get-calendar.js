@@ -13,8 +13,11 @@ exports.handler = async (event) => {
     appointmentStatus: 'confirmed',
     ignoreDateRange: 'true',
   });
-  if (startDate) params.set('startTime', new Date(startDate).getTime());
-  if (endDate) params.set('endTime', new Date(endDate).getTime());
+  // GHL requires a time window — default to a wide one when the caller sends none
+  const start = startDate ? new Date(startDate).getTime() : Date.now() - 90 * 86400000;
+  const end = endDate ? new Date(endDate).getTime() : Date.now() + 548 * 86400000;
+  params.set('startTime', start);
+  params.set('endTime', end);
   if (contactId) params.set('contactId', contactId);
   try {
     const res = await fetch(`https://services.leadconnectorhq.com/calendars/events/appointments?${params}`, {
