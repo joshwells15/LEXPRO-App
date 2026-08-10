@@ -41,6 +41,8 @@ exports.handler = async (event) => {
         commission_amount:      'commission_amount',
         sales_price:            'sales_price',
         earnest_money:          'earnest_money_amount',
+        title_company:          'title_company',
+        title_company_address:  'title_company_address',
         street:                 'buyer__subject_property_street',
         city:                   'buyer__subject_property_city',
         state:                  'buyer__subject_property_state',
