@@ -135,12 +135,14 @@
     <button class="seg-btn" data-p="current">🔒 Currently Under Contract</button>
   </div>
 
-  <div class="pill-card" id="submitPickCard">
+  <div class="pill-card pop-ok" id="submitPickCard">
     <div class="pill-header">Submit a Contract</div>
     <div class="pill-body">
-      <div class="field">
-        <div class="field-label">Pick the buyer</div>
-        <div class="sel-wrap"><select id="buyerSel"><option value="">Loading buyers…</option></select></div>
+      <div class="field contact-box">
+        <div class="field-label">Search your contacts</div>
+        <input type="text" id="contactSearch" placeholder="Start typing the buyer's name…" autocomplete="off">
+        <div class="results" id="results"></div>
+        <div class="selected-chip" id="selectedChip"><span id="chipLabel"></span><button class="chip-x" id="chipX">✕</button></div>
       </div>
     </div>
   </div>
@@ -264,12 +266,11 @@
   function showToast(msg, type='') { toast.textContent = msg; toast.className = 'toast show' + (type ? ' '+type : ''); setTimeout(() => { toast.className = 'toast'; }, 3500); }
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // ── BUYER PICKER (Buyers sheet, like the listing picker) ──
+  // ── BUYERS SHEET (feeds the Currently Under Contract list) ──
   const SHEET_ID = '1KlfQEU02BcEM9RUTTi64-Eu60UzuaptT_EjE6OAXKOY';
   const SHEETS_API_KEY = 'AIzaSyD6mLXltjqMao1Ej0cALICxUGScHB5IKbE';
   let buyers = [], selected = null;
   (async function loadBuyers() {
-    const sel = document.getElementById('buyerSel');
     try {
       const res = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/' + encodeURIComponent('Buyers!A2:K1000') + '?key=' + SHEETS_API_KEY);
       const data = await res.json();
@@ -283,20 +284,59 @@
           stage: (r[8] || '').trim(),
           contactId: (r[10] || '').trim()
         }));
-      sel.innerHTML = '<option value="">— Select a buyer —</option>';
-      buyers.forEach((bu, i) => {
-        const o = document.createElement('option');
-        o.value = i;
-        o.textContent = bu.name + (bu.address ? ' — ' + bu.address : '') + (bu.stage ? ' · ' + bu.stage : '');
-        sel.appendChild(o);
-      });
       const want = new URLSearchParams(location.search).get('contact');
       if (want) {
-        const idx = buyers.findIndex(bu => bu.contactId === want);
-        if (idx > -1) { sel.value = idx; sel.dispatchEvent(new Event('change')); }
+        const hit = buyers.find(bu => bu.contactId === want);
+        if (hit) selectBuyer(hit);
       }
-    } catch (e) { sel.innerHTML = '<option value="">Could not load — refresh</option>'; }
+    } catch (e) { /* current list shows empty state */ }
   })();
+
+  // ── SUBMIT MODE: live GHL contact search ──
+  let searchTimer = null;
+  const searchInput = document.getElementById('contactSearch');
+  const resultsBox = document.getElementById('results');
+  const chip = document.getElementById('selectedChip');
+  const chipLabel = document.getElementById('chipLabel');
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    const q = searchInput.value.trim();
+    if (q.length < 2) { resultsBox.classList.remove('open'); return; }
+    searchTimer = setTimeout(async () => {
+      try {
+        const res = await fetch('/.netlify/functions/search-contacts?query=' + encodeURIComponent(q));
+        const data = await res.json();
+        const contacts = data.contacts || [];
+        resultsBox.innerHTML = '';
+        if (!contacts.length) resultsBox.innerHTML = '<div class="result-item"><div class="result-name">No contacts found</div></div>';
+        else contacts.forEach(c => {
+          const nm = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || c.contactName || 'Unnamed';
+          const item = document.createElement('div');
+          item.className = 'result-item';
+          item.innerHTML = `<div class="result-name">${esc(nm)}</div><div class="result-phone">${esc(c.phone || 'no phone on file')}</div>`;
+          item.addEventListener('click', () => {
+            chipLabel.textContent = nm + (c.phone ? ' · ' + c.phone : '');
+            chip.classList.add('show');
+            searchInput.value = ''; searchInput.style.display = 'none';
+            resultsBox.classList.remove('open');
+            selectBuyer({ contactId: c.id, name: nm, phone: c.phone || '', address: '', salesPrice: '', stage: '' });
+          });
+          resultsBox.appendChild(item);
+        });
+        resultsBox.classList.add('open');
+      } catch (e) { resultsBox.classList.remove('open'); }
+    }, 350);
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('.contact-box')) resultsBox.classList.remove('open'); });
+  document.getElementById('chipX').addEventListener('click', () => {
+    selected = null;
+    chip.classList.remove('show');
+    searchInput.style.display = ''; searchInput.focus();
+    document.getElementById('banner').classList.remove('show');
+    document.getElementById('infoCard').style.display = 'none';
+    onContactCleared();
+  });
+
   function fmtMoney(v) {
     const n = parseFloat(String(v).replace(/[^0-9.]/g, ''));
     return isNaN(n) ? '—' : '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
@@ -314,7 +354,9 @@
       selected = null;
       document.getElementById('banner').classList.remove('show');
       document.getElementById('infoCard').style.display = 'none';
-      document.getElementById('buyerSel').value = '';
+      chip.classList.remove('show');
+      searchInput.style.display = '';
+      searchInput.value = '';
       onContactCleared();
       if (pageMode === 'current') renderUcList();
     });
@@ -384,7 +426,7 @@
     document.getElementById('bAddr').textContent = bu.address || 'No address on file yet';
     document.getElementById('banner').classList.add('show');
     document.getElementById('infoCard').style.display = '';
-    document.getElementById('snapPrice').textContent = fmtMoney(bu.salesPrice);
+    document.getElementById('snapPrice').textContent = bu.salesPrice ? fmtMoney(bu.salesPrice) : '—';
     document.getElementById('snapStage').textContent = bu.stage || '—';
     if (bu.contactId) {
       fetch('/.netlify/functions/get-contact?id=' + bu.contactId).then(r => r.json()).then(d => {
@@ -396,17 +438,7 @@
     applyModeVisibility();
     onContactPicked();
   }
-  document.getElementById('buyerSel').addEventListener('change', e => {
-    const i = e.target.value;
-    if (i === '') {
-      selected = null;
-      document.getElementById('banner').classList.remove('show');
-      document.getElementById('infoCard').style.display = 'none';
-      onContactCleared();
-      return;
-    }
-    selectBuyer(buyers[i]);
-  });
+
 
   function onContactPicked() { document.getElementById('workArea').style.display = 'flex'; }
   function onContactCleared() { document.getElementById('workArea').style.display = 'none'; }
