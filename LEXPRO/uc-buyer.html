@@ -73,6 +73,7 @@
   @media (hover:hover) { .big-btn:hover { background:#fff; color:var(--primary); border-color:var(--primary); } }
   .big-btn:active { background:#fff; color:var(--primary); }
   .big-btn:disabled { background:var(--surface-2); color:var(--text-hint); border-color:var(--border); cursor:not-allowed; }
+  .snap-val { font-size:16px; font-weight:700; padding:4px 0; }
   .toast { display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#111; color:#fff;
     padding:11px 20px; border-radius:12px; font-size:14px; font-weight:500; z-index:200; white-space:nowrap; }
   .toast.show { display:block; }
@@ -108,14 +109,28 @@
 </div>
 <div class="wrap">
 
-  <div class="pill-card pop-ok">
-    <div class="pill-header">Buyer Contact</div>
+  <div class="pill-card">
+    <div class="pill-header">Buyer</div>
     <div class="pill-body">
-      <div class="field contact-box">
-        <div class="field-label">Search GHL Contacts</div>
-        <input type="text" id="contactSearch" placeholder="Start typing a name…" autocomplete="off">
-        <div class="results" id="results"></div>
-        <div class="selected-chip" id="selectedChip"><span id="chipLabel"></span><button class="chip-x" id="chipX">✕</button></div>
+      <div class="field">
+        <div class="field-label">Pick the buyer</div>
+        <div class="sel-wrap"><select id="buyerSel"><option value="">Loading buyers…</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="addr-banner" id="banner">
+    <div class="ab-label">Working on</div>
+    <div class="ab-addr" id="bName"></div>
+    <div class="ab-seller" id="bAddr"></div>
+  </div>
+
+  <div class="pill-card" id="infoCard" style="display:none;">
+    <div class="pill-header">Transaction Snapshot</div>
+    <div class="pill-body">
+      <div class="frow">
+        <div class="field"><div class="field-label">Sales Price</div><div class="snap-val" id="snapPrice">—</div></div>
+        <div class="field"><div class="field-label">Current Stage</div><div class="snap-val" id="snapStage">—</div></div>
       </div>
     </div>
   </div>
@@ -214,63 +229,73 @@
   function showToast(msg, type='') { toast.textContent = msg; toast.className = 'toast show' + (type ? ' '+type : ''); setTimeout(() => { toast.className = 'toast'; }, 3500); }
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // ── CONTACT SEARCH (shared search-contacts function) ──
-  let selected = null, searchTimer = null;
-  const searchInput = document.getElementById('contactSearch');
-  const resultsBox = document.getElementById('results');
-  const chip = document.getElementById('selectedChip');
-  const chipLabel = document.getElementById('chipLabel');
-  searchInput.addEventListener('input', () => {
-    clearTimeout(searchTimer);
-    const q = searchInput.value.trim();
-    if (q.length < 2) { resultsBox.classList.remove('open'); return; }
-    searchTimer = setTimeout(async () => {
-      try {
-        const res = await fetch('/.netlify/functions/search-contacts?query=' + encodeURIComponent(q));
-        const data = await res.json();
-        const contacts = data.contacts || [];
-        resultsBox.innerHTML = '';
-        if (!contacts.length) resultsBox.innerHTML = '<div class="result-item"><div class="result-name">No contacts found</div></div>';
-        else contacts.forEach(c => {
-          const nm = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || c.contactName || 'Unnamed';
-          const item = document.createElement('div');
-          item.className = 'result-item';
-          item.innerHTML = `<div class="result-name">${esc(nm)}</div><div class="result-phone">${esc(c.phone || 'no phone on file')}</div>`;
-          item.addEventListener('click', () => {
-            selected = { id: c.id, name: nm, phone: c.phone || '' };
-            chipLabel.textContent = nm + (c.phone ? ' · ' + c.phone : '');
-            chip.classList.add('show');
-            searchInput.value = ''; searchInput.style.display = 'none';
-            resultsBox.classList.remove('open');
-            onContactPicked();
-          });
-          resultsBox.appendChild(item);
-        });
-        resultsBox.classList.add('open');
-      } catch (e) { resultsBox.classList.remove('open'); }
-    }, 350);
-  });
-  document.addEventListener('click', e => { if (!e.target.closest('.contact-box')) resultsBox.classList.remove('open'); });
-  document.getElementById('chipX').addEventListener('click', () => {
-    selected = null; chip.classList.remove('show');
-    searchInput.style.display = ''; searchInput.focus();
-    onContactCleared();
+  // ── BUYER PICKER (Buyers sheet, like the listing picker) ──
+  const SHEET_ID = '1KlfQEU02BcEM9RUTTi64-Eu60UzuaptT_EjE6OAXKOY';
+  const SHEETS_API_KEY = 'AIzaSyD6mLXltjqMao1Ej0cALICxUGScHB5IKbE';
+  let buyers = [], selected = null;
+  (async function loadBuyers() {
+    const sel = document.getElementById('buyerSel');
+    try {
+      const res = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/' + encodeURIComponent('Buyers!A2:K1000') + '?key=' + SHEETS_API_KEY);
+      const data = await res.json();
+      buyers = (data.values || []).filter(r => (r[0] || r[1]) && (r[10] || '').trim())
+        .map(r => ({
+          name: ((r[0] || '') + ' ' + (r[1] || '')).trim(),
+          address: r[2] || '',
+          phone: r[3] || '',
+          ucDate: r[5] || '',
+          salesPrice: r[7] || '',
+          stage: (r[8] || '').trim(),
+          contactId: (r[10] || '').trim()
+        }));
+      sel.innerHTML = '<option value="">— Select a buyer —</option>';
+      buyers.forEach((bu, i) => {
+        const o = document.createElement('option');
+        o.value = i;
+        o.textContent = bu.name + (bu.address ? ' — ' + bu.address : '') + (bu.stage ? ' · ' + bu.stage : '');
+        sel.appendChild(o);
+      });
+      const want = new URLSearchParams(location.search).get('contact');
+      if (want) {
+        const idx = buyers.findIndex(bu => bu.contactId === want);
+        if (idx > -1) { sel.value = idx; sel.dispatchEvent(new Event('change')); }
+      }
+    } catch (e) { sel.innerHTML = '<option value="">Could not load — refresh</option>'; }
+  })();
+  function fmtMoney(v) {
+    const n = parseFloat(String(v).replace(/[^0-9.]/g, ''));
+    return isNaN(n) ? '—' : '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+  document.getElementById('buyerSel').addEventListener('change', e => {
+    const i = e.target.value;
+    const banner = document.getElementById('banner');
+    if (i === '') {
+      selected = null;
+      banner.classList.remove('show');
+      document.getElementById('infoCard').style.display = 'none';
+      onContactCleared();
+      return;
+    }
+    const bu = buyers[i];
+    selected = { id: bu.contactId, name: bu.name, phone: bu.phone };
+    document.getElementById('bName').textContent = bu.name;
+    document.getElementById('bAddr').textContent = bu.address || 'No address on file yet';
+    banner.classList.add('show');
+    document.getElementById('infoCard').style.display = '';
+    document.getElementById('snapPrice').textContent = fmtMoney(bu.salesPrice);
+    document.getElementById('snapStage').textContent = bu.stage || '—';
+    if (bu.contactId) {
+      fetch('/.netlify/functions/get-contact?id=' + bu.contactId).then(r => r.json()).then(d => {
+        if (d.stage) document.getElementById('snapStage').textContent = d.stage;
+        if (d.salesPrice) document.getElementById('snapPrice').textContent = fmtMoney(d.salesPrice);
+      }).catch(() => {});
+    }
+    onContactPicked();
   });
 
   function onContactPicked() { document.getElementById('workArea').style.display = 'flex'; }
   function onContactCleared() { document.getElementById('workArea').style.display = 'none'; }
-  // deep link: ?contact=<ghl id>&name=&phone=
-  (function preselect() {
-    const p = new URLSearchParams(location.search);
-    const id = p.get('contact');
-    if (!id) return;
-    const nm = p.get('name') || 'Contact';
-    selected = { id, name: nm, phone: p.get('phone') || '' };
-    chipLabel.textContent = nm + (selected.phone ? ' · ' + selected.phone : '');
-    chip.classList.add('show');
-    searchInput.style.display = 'none';
-    onContactPicked();
-  })();
+
 
   document.querySelectorAll('#modeSeg .seg-btn').forEach(b => {
     b.addEventListener('click', () => {
