@@ -148,11 +148,35 @@ exports.handler = async (event) => {
 
     /* 2. find existing row by contact id (column K) */
     const token = await getGoogleToken();
-    const readRes = await fetch(
+    let readRes = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(TAB)}!A2:K1000`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    if (!readRes.ok) throw new Error(`sheets read ${readRes.status}: ${await readRes.text()}`);
+    if (!readRes.ok) {
+      const errText = await readRes.text();
+      if (readRes.status === 400 && errText.includes('Unable to parse range')) {
+        /* Tab doesn't exist — self-heal: create it with headers, then continue */
+        const mk = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}:batchUpdate`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requests: [{ addSheet: { properties: { title: TAB } } }] })
+        });
+        if (!mk.ok) throw new Error(`tab create ${mk.status}: ${await mk.text()}`);
+        const hdr = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(TAB)}!A1:K1?valueInputOption=USER_ENTERED`,
+          { method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ values: [[ 'First Name','Last Name','Address','Phone','Buyer Email','Under Contract Date','Closing Date','Sales Price','Transaction Stage','Stage Updated Date','GHL Contact ID' ]] }) }
+        );
+        if (!hdr.ok) throw new Error(`header write ${hdr.status}: ${await hdr.text()}`);
+        readRes = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(TAB)}!A2:K1000`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (!readRes.ok) throw new Error(`sheets re-read ${readRes.status}: ${await readRes.text()}`);
+      } else {
+        throw new Error(`sheets read ${readRes.status}: ${errText}`);
+      }
+    }
     const rows = (await readRes.json()).values || [];
     let rowIndex = -1; // 0-based within rows (sheet row = index + 2)
     let existing = null;
