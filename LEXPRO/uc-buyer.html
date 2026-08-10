@@ -211,7 +211,6 @@
             <div class="field"><div class="field-label">Under Contract Date</div><input type="date" id="ucDate"></div>
             <div class="field"><div class="field-label">Tentative Closing</div><input type="date" id="closeDate"></div>
           </div>
-          <div class="field"><div class="field-label">Closing Time</div><input type="time" id="fCloseTime"></div>
           <div class="field"><div class="field-label">Earnest Money</div><input type="text" id="fEarnest" placeholder="e.g. 2500" inputmode="numeric"></div>
           <div class="field"><div class="field-label">Title Company</div><input type="text" id="fTitleCo" placeholder="e.g. Hogan Land Title"></div>
           <div class="field"><div class="field-label">Title Company Address</div><input type="text" id="fTitleAddr" placeholder="e.g. 1605 E Sunshine St, Springfield, MO 65804"></div>
@@ -249,6 +248,7 @@
             <div class="field"><div class="field-label">Commission Amount</div><input type="text" id="fComm" placeholder="e.g. 9750" inputmode="numeric"></div>
             <div class="field"><div class="field-label">Sales Price</div><input type="text" id="fSales" placeholder="e.g. 325000" inputmode="numeric"></div>
           </div>
+          <div class="field"><div class="field-label">Closing Time</div><input type="time" id="fCloseTime"></div>
         </div>
       </div>
       <button class="big-btn" id="saveDetails">Save Transaction Details</button>
@@ -494,14 +494,6 @@
       under_contract_date: document.getElementById('ucDate').value,
       tentative_closing_date: document.getElementById('closeDate').value,
       earnest_money: document.getElementById('fEarnest').value.trim(),
-      closing_time: (function(){
-        const t = document.getElementById('fCloseTime').value;
-        if (!t) return '';
-        const [h, m] = t.split(':').map(Number);
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        const h12 = h % 12 === 0 ? 12 : h % 12;
-        return h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
-      })(),
       title_company: document.getElementById('fTitleCo').value.trim(),
       title_company_address: document.getElementById('fTitleAddr').value.trim(),
       inspection_notice_days: document.getElementById('dInsp').value,
@@ -515,6 +507,14 @@
     const yn = document.querySelector('.yn-btn.selected');
     save({
       closing_gift_ordered: yn ? yn.dataset.val : '',
+      closing_time: (function(){
+        const t = document.getElementById('fCloseTime').value;
+        if (!t) return '';
+        const [h, m] = t.split(':').map(Number);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 === 0 ? 12 : h % 12;
+        return h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+      })(),
       commission_amount: document.getElementById('fComm').value.trim(),
       sales_price: document.getElementById('fSales').value.trim()
     }, document.getElementById('saveDetails'), 'Save Transaction Details');
