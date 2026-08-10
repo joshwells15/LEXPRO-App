@@ -294,7 +294,9 @@
   async function loadClosings() {
     buildLegend();
     try {
-      const res = await fetch('/.netlify/functions/get-calendar');
+      const rangeStart = new Date(Date.now() - 90 * 86400000).toISOString().split('T')[0];
+      const rangeEnd = new Date(Date.now() + 548 * 86400000).toISOString().split('T')[0];
+      const res = await fetch('/.netlify/functions/get-calendar?startDate=' + rangeStart + '&endDate=' + rangeEnd);
       const data = await res.json();
       const appts = data.appointments || [];
       allClosings = appts.filter(a => a.startTime).map(a => {
