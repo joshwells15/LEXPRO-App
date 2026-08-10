@@ -3,18 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contractors — LexPro</title>
+  <title>Business Contacts — LexPro</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #0f1117;
       color: #e8e8e8;
       min-height: 100vh;
     }
-
-    /* ── Header ── */
     .header {
       background: #1a1d27;
       border-bottom: 1px solid #2a2d3a;
@@ -45,8 +42,6 @@
       padding: 3px 10px;
       border-radius: 20px;
     }
-
-    /* ── Toolbar ── */
     .toolbar {
       padding: 16px 24px;
       display: flex;
@@ -117,16 +112,12 @@
       transition: all 0.2s;
     }
     .btn-upload:hover { border-color: #4f6ef7; color: #4f6ef7; }
-
-    /* ── Grid ── */
     .grid {
       padding: 0 24px 100px;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 14px;
     }
-
-    /* ── Card ── */
     .card {
       background: #1a1d27;
       border: 1px solid #2a2d3a;
@@ -137,7 +128,6 @@
     }
     .card:hover { border-color: #3a3f5a; }
     .card.inactive { opacity: 0.5; }
-
     .card-top {
       display: flex;
       align-items: flex-start;
@@ -166,7 +156,6 @@
       line-height: 1;
     }
     .card-menu-btn:hover { background: #2a2d3a; color: #e8e8e8; }
-
     .card-name {
       font-size: 15px;
       font-weight: 600;
@@ -233,8 +222,6 @@
     }
     .btn-text-sm:hover { border-color: #4f6ef7; color: #4f6ef7; }
     .btn-text-sm.sms:hover { border-color: #22c55e; color: #22c55e; }
-
-    /* ── Empty ── */
     .empty {
       grid-column: 1 / -1;
       text-align: center;
@@ -244,8 +231,6 @@
     .empty-icon { font-size: 48px; margin-bottom: 16px; }
     .empty h3 { font-size: 16px; color: #7c8db0; margin-bottom: 8px; }
     .empty p { font-size: 13px; }
-
-    /* ── Loading ── */
     .loading {
       grid-column: 1 / -1;
       text-align: center;
@@ -253,8 +238,6 @@
       color: #4a4f6a;
       font-size: 14px;
     }
-
-    /* ── Modal ── */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -345,8 +328,6 @@
     }
     .btn-save:hover { background: #3d5ce0; }
     .btn-save:disabled { background: #2a3560; color: #4a4f6a; cursor: not-allowed; }
-
-    /* ── Upload modal ── */
     .upload-zone {
       border: 2px dashed #2a2d3a;
       border-radius: 12px;
@@ -383,8 +364,6 @@
     }
     .upload-preview td { padding: 4px 8px; color: #a0a8c0; }
     .upload-preview tr:nth-child(even) td { background: #1a1d27; }
-
-    /* ── Toast ── */
     .toast {
       position: fixed;
       bottom: 24px;
@@ -402,8 +381,6 @@
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
     .toast.error { background: #ef4444; }
-
-    /* ── Context menu ── */
     .ctx-menu {
       display: none;
       position: fixed;
@@ -427,7 +404,6 @@
     .ctx-item:hover { background: #2a2d3a; color: #fff; }
     .ctx-item.danger { color: #ef4444; }
     .ctx-item.danger:hover { background: #2a1a1a; }
-
     @media (max-width: 600px) {
       .toolbar { padding: 12px 16px; }
       .grid { padding: 0 16px 100px; grid-template-columns: 1fr; }
@@ -437,17 +413,13 @@
   </style>
 </head>
 <body>
-
-<!-- Header -->
 <div class="header">
   <div class="header-left">
     <button class="back-btn" onclick="history.back()">←</button>
-    <h1>Contractors</h1>
+    <h1>🏢 Business Contacts</h1>
     <span class="header-count" id="countBadge">0</span>
   </div>
 </div>
-
-<!-- Toolbar -->
 <div class="toolbar">
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
@@ -457,18 +429,14 @@
     <option value="">All Trades</option>
   </select>
   <button class="btn-upload" onclick="openUploadModal()">⬆ Import CSV</button>
-  <button class="btn-add" onclick="openAddModal()">+ Add Contractor</button>
+  <button class="btn-add" onclick="openAddModal()">+ Add Partner</button>
 </div>
-
-<!-- Grid -->
 <div class="grid" id="grid">
-  <div class="loading">Loading contractors…</div>
+  <div class="loading">Loading business contacts…</div>
 </div>
-
-<!-- Add/Edit Modal -->
 <div class="modal-overlay" id="addModal">
   <div class="modal">
-    <h2 id="modalTitle">Add Contractor</h2>
+    <h2 id="modalTitle">Add Partner</h2>
     <input type="hidden" id="editId" />
     <div class="form-2col">
       <div class="form-row">
@@ -478,20 +446,7 @@
       <div class="form-row">
         <label>Trade *</label>
         <input type="text" id="fTrade" placeholder="Plumber" list="tradeList" />
-        <datalist id="tradeList">
-          <option value="Plumber">
-          <option value="HVAC">
-          <option value="Roofer">
-          <option value="Electrician">
-          <option value="General Contractor">
-          <option value="Painter">
-          <option value="Landscaper">
-          <option value="Inspector">
-          <option value="Handyman">
-          <option value="Flooring">
-          <option value="Pest Control">
-          <option value="Stager">
-        </datalist>
+        <datalist id="tradeList"></datalist>
       </div>
     </div>
     <div class="form-2col">
@@ -514,15 +469,13 @@
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
-      <button class="btn-save" id="saveBtn" onclick="saveContractor()">Save Contractor</button>
+      <button class="btn-save" id="saveBtn" onclick="saveContractor()">Save Partner</button>
     </div>
   </div>
 </div>
-
-<!-- Upload CSV Modal -->
 <div class="modal-overlay" id="uploadModal">
   <div class="modal">
-    <h2>Import Contractors from CSV</h2>
+    <h2>Import Business Contacts from CSV</h2>
     <div class="upload-zone" id="uploadZone"
          onclick="document.getElementById('csvFileInput').click()"
          ondragover="event.preventDefault(); this.classList.add('drag-over')"
@@ -537,31 +490,23 @@
     <div id="uploadStatus" style="font-size:13px; color:#7c8db0; margin-bottom:12px;"></div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeUploadModal()">Cancel</button>
-      <button class="btn-save" id="uploadBtn" onclick="uploadCSV()" disabled>Import Contractors</button>
+      <button class="btn-save" id="uploadBtn" onclick="uploadCSV()" disabled>Import Partners</button>
     </div>
   </div>
 </div>
-
-<!-- Context Menu -->
 <div class="ctx-menu" id="ctxMenu">
   <div class="ctx-item" onclick="ctxEdit()">✏️ Edit</div>
   <div class="ctx-item sms-ctx" onclick="ctxSMS()">💬 Send SMS</div>
   <div class="ctx-item" onclick="ctxToggleActive()">👁 Toggle Active</div>
   <div class="ctx-item danger" onclick="ctxDelete()">🗑 Delete</div>
 </div>
-
-<!-- Toast -->
 <div class="toast" id="toast"></div>
-
 <script>
   const SUPABASE_URL = 'https://dqiiekdfmocvizzvmwlc.supabase.co';
   const SUPABASE_ANON = 'sb_publishable_TCNeI1Mg36-kXLJKA33h1g_emUHiC-Z';
-
   let allContractors = [];
   let csvRows = [];
   let ctxTarget = null;
-
-  // ── Fetch ────────────────────────────────────────────────
   async function loadContractors() {
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/contractors?order=trade.asc,name.asc`, {
@@ -574,13 +519,12 @@
       buildTradeFilter();
       renderGrid(allContractors);
     } catch (e) {
-      document.getElementById('grid').innerHTML = '<div class="loading">Failed to load contractors.</div>';
+      document.getElementById('grid').innerHTML = '<div class="loading">Failed to load business contacts.</div>';
     }
   }
-
-  // ── Trade filter options ─────────────────────────────────
+  const DEFAULT_TRADES = ['Plumber','HVAC','Roofer','Electrician','General Contractor','Painter','Landscaper','Inspector','Handyman','Flooring','Pest Control','Stager'];
   function buildTradeFilter() {
-    const trades = [...new Set(allContractors.map(c => c.trade))].sort();
+    const trades = [...new Set(allContractors.map(c => c.trade).filter(Boolean))].sort();
     const sel = document.getElementById('tradeFilter');
     sel.innerHTML = '<option value="">All Trades</option>';
     trades.forEach(t => {
@@ -588,9 +532,11 @@
       o.value = t; o.textContent = t;
       sel.appendChild(o);
     });
+    // trade suggestions: live trades from the table, defaults fill in when the table is young
+    const dl = document.getElementById('tradeList');
+    const suggestions = [...new Set([...trades, ...DEFAULT_TRADES])].sort();
+    dl.innerHTML = suggestions.map(t => `<option value="${esc(t)}">`).join('');
   }
-
-  // ── Filter ───────────────────────────────────────────────
   function filterContractors() {
     const q = document.getElementById('searchInput').value.toLowerCase();
     const trade = document.getElementById('tradeFilter').value;
@@ -604,22 +550,19 @@
     });
     renderGrid(filtered);
   }
-
-  // ── Render ───────────────────────────────────────────────
   const TRADE_EMOJI = {
     'Plumber':'🔧','HVAC':'❄️','Roofer':'🏠','Electrician':'⚡',
     'General Contractor':'🏗️','Painter':'🎨','Landscaper':'🌿',
     'Inspector':'🔍','Handyman':'🪛','Flooring':'🪵',
     'Pest Control':'🐛','Stager':'🛋️'
   };
-
   function renderGrid(list) {
     const grid = document.getElementById('grid');
     document.getElementById('countBadge').textContent = list.length;
     if (!list.length) {
       grid.innerHTML = `<div class="empty">
         <div class="empty-icon">🔨</div>
-        <h3>No contractors found</h3>
+        <h3>No business contacts found</h3>
         <p>Add one manually or import a CSV</p>
       </div>`;
       return;
@@ -645,25 +588,21 @@
       </div>
     `).join('');
   }
-
   function esc(s) {
     if (!s) return '';
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
-
-  // ── Add / Edit Modal ─────────────────────────────────────
   function openAddModal() {
-    document.getElementById('modalTitle').textContent = 'Add Contractor';
+    document.getElementById('modalTitle').textContent = 'Add Partner';
     document.getElementById('editId').value = '';
     ['fName','fTrade','fPhone','fEmail','fCompany','fNotes'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('addModal').classList.add('open');
     document.getElementById('fName').focus();
   }
-
   function openEditModal(id) {
     const c = allContractors.find(x => x.id === id);
     if (!c) return;
-    document.getElementById('modalTitle').textContent = 'Edit Contractor';
+    document.getElementById('modalTitle').textContent = 'Edit Partner';
     document.getElementById('editId').value = c.id;
     document.getElementById('fName').value = c.name || '';
     document.getElementById('fTrade').value = c.trade || '';
@@ -674,19 +613,15 @@
     document.getElementById('addModal').classList.add('open');
     closeCtxMenu();
   }
-
   function closeAddModal() {
     document.getElementById('addModal').classList.remove('open');
   }
-
   async function saveContractor() {
     const name = document.getElementById('fName').value.trim();
     const trade = document.getElementById('fTrade').value.trim();
     if (!name || !trade) { showToast('Name and trade are required', true); return; }
-
     const btn = document.getElementById('saveBtn');
     btn.disabled = true; btn.textContent = 'Saving…';
-
     const payload = {
       name,
       trade,
@@ -696,7 +631,6 @@
       notes: document.getElementById('fNotes').value.trim() || null,
       active: true
     };
-
     const editId = document.getElementById('editId').value;
     try {
       if (editId) {
@@ -710,7 +644,7 @@
           },
           body: JSON.stringify(payload)
         });
-        showToast('Contractor updated ✓');
+        showToast('Partner updated ✓');
       } else {
         await fetch(`${SUPABASE_URL}/rest/v1/contractors`, {
           method: 'POST',
@@ -722,17 +656,15 @@
           },
           body: JSON.stringify(payload)
         });
-        showToast('Contractor added ✓');
+        showToast('Partner added ✓');
       }
       closeAddModal();
       await loadContractors();
     } catch(e) {
       showToast('Save failed — try again', true);
     }
-    btn.disabled = false; btn.textContent = 'Save Contractor';
+    btn.disabled = false; btn.textContent = 'Save Partner';
   }
-
-  // ── CSV Upload ───────────────────────────────────────────
   function openUploadModal() {
     csvRows = [];
     document.getElementById('uploadPreview').style.display = 'none';
@@ -754,7 +686,6 @@
     const file = e.target.files[0];
     if (file) parseCSV(file);
   }
-
   function parseCSV(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -771,7 +702,6 @@
     };
     reader.readAsText(file);
   }
-
   function showCSVPreview(headers, rows) {
     const preview = document.getElementById('uploadPreview');
     const status = document.getElementById('uploadStatus');
@@ -780,7 +710,7 @@
       document.getElementById('uploadBtn').disabled = true;
       return;
     }
-    status.textContent = `${rows.length} contractor${rows.length !== 1 ? 's' : ''} ready to import`;
+    status.textContent = `${rows.length} partner${rows.length !== 1 ? 's' : ''} ready to import`;
     preview.style.display = 'block';
     const cols = ['name','trade','phone','email','company','notes'];
     preview.innerHTML = `<table>
@@ -790,7 +720,6 @@
     </table>`;
     document.getElementById('uploadBtn').disabled = false;
   }
-
   async function uploadCSV() {
     if (!csvRows.length) return;
     const btn = document.getElementById('uploadBtn');
@@ -815,24 +744,20 @@
         },
         body: JSON.stringify(payload)
       });
-      showToast(`${csvRows.length} contractors imported ✓`);
+      showToast(`${csvRows.length} partners imported ✓`);
       closeUploadModal();
       await loadContractors();
     } catch(e) {
       showToast('Import failed — try again', true);
-      btn.disabled = false; btn.textContent = 'Import Contractors';
+      btn.disabled = false; btn.textContent = 'Import Partners';
     }
   }
-
-  // ── Quick SMS (placeholder — will wire to Netlify fn) ────
   function quickSMS(id) {
     const c = allContractors.find(x => x.id === id);
     if (!c || !c.phone) return;
     const msg = prompt(`SMS to ${c.name} (${c.phone}):`);
-    if (msg) showToast(`SMS to ${c.name} queued — SMS function coming in Phase 3`);
+    if (msg) showToast(`SMS to ${c.name} queued — direct SMS coming soon`);
   }
-
-  // ── Context Menu ─────────────────────────────────────────
   function openCtxMenu(e, id) {
     e.stopPropagation();
     ctxTarget = id;
@@ -843,7 +768,6 @@
   }
   function closeCtxMenu() { document.getElementById('ctxMenu').classList.remove('open'); }
   document.addEventListener('click', closeCtxMenu);
-
   function ctxEdit() { openEditModal(ctxTarget); }
   function ctxSMS() {
     const c = allContractors.find(x => x.id === ctxTarget);
@@ -882,8 +806,6 @@
     closeCtxMenu();
     await loadContractors();
   }
-
-  // ── Toast ────────────────────────────────────────────────
   function showToast(msg, error = false) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -891,8 +813,6 @@
     setTimeout(() => t.classList.add('show'), 10);
     setTimeout(() => t.classList.remove('show'), 3200);
   }
-
-  // ── Init ─────────────────────────────────────────────────
   loadContractors();
 </script>
 </body>
