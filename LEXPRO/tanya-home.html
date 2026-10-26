@@ -106,11 +106,7 @@
 </style>
 </head>
 <body>
-<div class="swoop-overlay" id="swoopOverlay" style="display:none;">
-  <div class="swoop-logo"><span class="sw-lex">LEX</span><div class="sw-pro-box"><span class="sw-pro">PRO</span></div></div>
-</div>
 <div class="header">
-  <div class="hdr-logo"><span class="hl-lex">LEX</span><div class="hl-pro-box"><span class="hl-pro">PRO</span></div></div>
   <div class="hdr-name" id="hdrName"></div>
   <div class="hdr-icons">
     <a class="icon-btn" href="calendar.html" title="Calendar">📆</a>
@@ -124,10 +120,6 @@
   </div>
 </div>
 <div class="main">
-  <div class="logo-area">
-    <div class="logo-mark"><span class="logo-lex">LEX</span><div class="logo-pro-box"><span class="logo-pro">PRO</span></div></div>
-    <div class="logo-sub">Real Estate Command</div>
-  </div>
   <a class="nav-btn tanya" href="morning-brief.html">
     <div class="btn-emoji">🌞</div>
     <div class="btn-text"><div class="btn-title">Good Morning Brief</div><div class="btn-sub">Today + rest of week</div></div>
@@ -156,15 +148,6 @@
 </div>
 <div class="footer">LexPro Real Estate &bull; Springfield, MO</div>
 <script>
-  // ── LOGO SWOOP: once per login session ──
-  if (!sessionStorage.getItem('lexpro_swooped')) {
-    sessionStorage.setItem('lexpro_swooped', '1');
-    const so = document.getElementById('swoopOverlay');
-    so.style.display = 'flex';
-    setTimeout(() => so.remove(), 2500);
-  } else {
-    document.getElementById('swoopOverlay').remove();
-  }
   // ── SERVICE WORKER EXORCISM: unregister all workers + purge caches (permanent cache-bust fix) ──
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(()=>{});
